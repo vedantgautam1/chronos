@@ -4,11 +4,10 @@
 **Scope:** the event-driven backtesting engine core, the cost model it plugs into, and the handoff contract to the Moirai (validation gauntlet).
 **Companion:** `HEPHAESTUS_BUILD_BRIEF.md` (the phased Claude Code build instructions). This document is the contract; the brief is the sequence.
 
-> **STATUS NOTE (added 2026-07-08, see HANDOFF.md):** the founder has decided
-> Stage 0 must include **perpetual futures and shorting**. Per §6 of this spec,
-> that decision requires this spec to be **extended before build** (funding
-> accrual, margin, liquidation mechanics). The build is halted at Phase 0
-> until the extended spec lands. This document is otherwise unmodified.
+> **STATUS NOTE (updated 2026-07-08, see HANDOFF.md):** Stage 0 is
+> **spot-only, no shorting** (founder decision; a brief same-day halt for a
+> perps scope choice was reverted). All §13 decisions are recorded in
+> HANDOFF.md. Build in progress under this spec as written.
 
 ---
 ## 0. What this component is, and where the rigor lives

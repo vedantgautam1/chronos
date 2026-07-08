@@ -1,39 +1,27 @@
 # HANDOFF
 
-## HEPHAESTUS (engine) — status: HALTED at Phase 0, awaiting spec extension
+## HEPHAESTUS (engine) — status: IN BUILD (Phase 0 complete)
 
-**2026-07-08.** The founder confirmed the developer is operating/reviewing
-the Hephaestus build (per the brief's working rule 1). The spec §13 founder
-decisions were then put to the founder before scaffolding. Outcome:
+**2026-07-08.** The developer is confirmed as operator/reviewer of this
+build (brief working rule 1). All spec §13 founder decisions are resolved:
 
-| # | Decision | Founder's choice | Consequence |
+| # | Decision | Founder's choice | Notes |
 |---|---|---|---|
-| 1+2 | Spot-only? / Shorting? | **Perps + shorting IN scope for Stage 0** (confirmed twice, explicitly, aware it halts the build) | **BUILD HALTED.** Spec §6 is explicit: perps require the spec to be extended (funding accrual, margin, liquidation mechanics) before any engine code is written. |
-| 3 | Unfilled remainder | **Cancel-and-record** (recommended) | Recorded; carries into the extended build. |
-| 4 | Numeric policy | **Decimal ledger + float series** (recommended) | Recorded. Note: margin/liquidation accounting under perps raises the stakes on the ledger — Decimal is the right call. |
-| 5 | Initial capital | **10,000 USDT** | Recorded. |
-| 6 | Fee values | Deferred to Phase 4 build-time verification, per spec | Must now also cover **perp fee schedule + funding intervals**, not just spot. |
-| 7 | Provisional slippage bps | **Not yet asked** — moot until the extended spec exists | Ask at the extended build's Phase 0. |
+| 1 | Spot-only for Stage 0? | **Yes — spot-only** | Founder initially chose perps+shorting (2026-07-08), which halted the build per spec §6; same day, after the scope cost was laid out, reverted to spot-only. Perps remain a possible later stage on an extended spec. `funding()` is stubbed to raise NotImplementedError. |
+| 2 | Shorting allowed? | **No** | Implied by spot-only. Sell-more-than-held is a recorded rejection. |
+| 3 | Unfilled remainder | **Cancel-and-record** | No order state carried between bars; strategy may re-order. |
+| 4 | Numeric policy | **Decimal ledger + float series** | Cash/fees/realized PnL in Decimal (exact, to-the-cent reconciliation); price series and returns float64, matching Oceanus. |
+| 5 | Initial capital | **10,000 USDT** | Arbitrary but fixed; recorded in run config. |
+| 6 | Fee values | **Deferred to Phase 4** build-time verification per spec — Binance spot maker/taker bps from the published schedule, source URL + date recorded in config. | Explicitly pending, per the Phase 0 checkpoint's allowance. |
+| 7 | Provisional slippage | **10 bps** (conservative end) | Provisional constant per R6 discipline: flagged in every result's warnings, stress-tested 2×/5× by the Moirai, replaced with measured values at Stage 2. |
 
-**What must happen before the build can resume** (dev + spec author's work,
-not Claude Code's to improvise):
-- Extend `HEPHAESTUS_SPEC.md`: §5 (shorting-aware rejections/position rules),
-  §6 (funding accrual at the venue's interval — funding()'s real contract),
-  §7 (margin accounting, liquidation mechanics and their accounting events),
-  §9 (probes for funding/liquidation correctness), §13 (any new decisions,
-  e.g. leverage cap, liquidation convention).
-- Decide the leverage/margin model explicitly (cross vs isolated, max
-  leverage) — nothing in the current spec covers it.
-- Note: Oceanus currently serves **spot** OHLCV. Perps need perp-market
-  candles and funding-rate history — that is an **Oceanus scope extension
-  too** (new data type through the same one door), and should be specified
-  at the same time.
-- The invariant probes' definitions (I1–I8) are unaffected and carry over.
-
-Both contract documents are committed at repo root (`HEPHAESTUS_SPEC.md`,
-`HEPHAESTUS_BUILD_BRIEF.md`) with a status note pointing here. No engine
-code, no skeleton, has been created — per the spec, the contract changes
-first.
+**Phase 0 (2026-07-08):** module skeleton created (`src/chronos/hephaestus/`,
+`src/chronos/run.py`, `src/chronos/mnemosyne/stub.py`, `tests/hephaestus/`);
+no logic yet. Note for Phase 7: the existing Oceanus one-door guard
+(`test_acceptance_5`) already scans ALL of `src/` outside `oceanus/`, so the
+new hephaestus modules are covered by it automatically from day one — the
+Phase 7 work is to extend it for engine-specific rules (e.g. no public
+execute path), not to add basic coverage.
 
 ---
 

@@ -6,9 +6,9 @@ Phase 0. Where this brief and the spec disagree, the spec wins.
 **Prerequisite:** Oceanus exists, is tested, and is the ONLY data source
 (via `get_bars()`).
 
-> **STATUS NOTE (added 2026-07-08, see HANDOFF.md):** build halted at Phase 0
-> by founder decision to include perps/shorting in Stage 0 — the spec requires
-> extension (funding, margin, liquidation) before any engine code is written.
+> **STATUS NOTE (updated 2026-07-08, see HANDOFF.md):** build in progress,
+> spot-only per the founder's (reverted, then final) decision. Developer is
+> operator/reviewer. Decisions table lives in HANDOFF.md.
 
 ## 0. READ THIS FIRST — working rules
 
