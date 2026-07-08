@@ -1,0 +1,25 @@
+[project]
+name = "chronos"
+version = "0.1.0"
+description = "Chronos systematic trading research system. Oceanus is the data layer."
+requires-python = ">=3.11"
+dependencies = [
+    "ccxt>=4.5.64",
+    "matplotlib>=3.11.0",
+    "numpy>=2.4.6",
+    "pandas>=3.0.3",
+    "pyarrow>=24.0.0",
+    "pytest>=9.1.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# Our code lives under src/chronos (the "src layout" — keeps source
+# separate from tests, data, and config).
+[tool.hatch.build.targets.wheel]
+packages = ["src/chronos"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

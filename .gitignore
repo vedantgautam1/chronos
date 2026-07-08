@@ -1,0 +1,15 @@
+# Virtual environment (recreated from the lockfile with `uv sync`)
+.venv/
+
+# Stored market data — big binary files, not source code.
+# Anyone can re-download it; git only tracks the code that fetches it.
+data/*
+# ...but keep the empty folder itself in git so the structure exists on a fresh clone
+!data/.gitkeep
+
+# Python's compiled-file caches
+__pycache__/
+*.pyc
+
+# Test tooling cache
+.pytest_cache/
