@@ -65,6 +65,27 @@ fill lands at bar t+1's open to the cent. Notes for reviewers:
   timestamps across symbols; anything else is refused, not aligned.
   Cross-symbol alignment is deliberately future work.
 
+**Phase 3 (2026-07-08):** `broker.py` — participation-capped fills
+(default 5% of bar volume), cancel-and-record remainders (founder
+decision), conservative limit convention (strict trade-through: a buy
+limit fills iff `low < limit`; a bare touch is NOT a fill; the
+optimistic touch-fill variant sits behind a flag that stamps a warning
+into the run), recorded rejections (zero-volume bar, insufficient cash,
+oversell/no-shorting). `costs.py` holds the CostModel protocol + a
+TEMPORARY zero-parameter passthrough so the I2 call path exists from the
+first fill — Phase 4 replaces the numbers, never the path. 11 tests.
+Broker calls the quant should audit:
+- **Rejection is whole-order** for insufficient cash and oversell — no
+  partial-to-affordability fills. Simple and conservative; a strategy
+  wanting partial exposure must size its orders itself.
+- **Intra-bar sequencing:** orders process in creation order; an earlier
+  buy consumes cash a later buy may then lack (tested). Deterministic.
+- **Untriggered limit orders die at end of bar** (REMAINDER_CANCELLED,
+  "not traded through") under the no-carry policy — a strategy wanting a
+  standing limit must re-emit it each bar.
+- **Fills never price outside the bar's range** and never against zero
+  volume; sells don't check cash (proceeds only add).
+
 ---
 
 # HANDOFF — Oceanus

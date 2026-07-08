@@ -60,6 +60,8 @@ class EngineConfig:
 class BrokerLike(Protocol):
     """What the engine needs from a broker (real one lands in Phase 3)."""
 
+    warnings: tuple[str, ...]  # e.g. optimistic fill modes; stamped into results
+
     def process(
         self, orders: list[Order], bars_at_t: Mapping[str, pd.Series]
     ) -> tuple[list[Fill], list[OrderEvent]]: ...
@@ -175,5 +177,5 @@ def _execute(
         order_events=tuple(order_events),
         equity_curve=equity_curve,
         bars_processed=len(open_times),
-        warnings=(),
+        warnings=tuple(broker.warnings),  # honesty flags travel with the result
     )

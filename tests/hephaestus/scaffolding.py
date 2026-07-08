@@ -21,6 +21,8 @@ class StubBroker:
     """Fills every market order fully at the processing bar's open. No
     costs, no caps, no limits — Phase 3 replaces this with honesty."""
 
+    warnings: tuple[str, ...] = ()
+
     def process(
         self, orders: list[Order], bars_at_t: Mapping[str, pd.Series]
     ) -> tuple[list[Fill], list[OrderEvent]]:
@@ -66,6 +68,9 @@ class StubPortfolio:
             Decimal("0"),
         )
         return self.cash + holdings
+
+    def position_qty(self, symbol: str) -> Decimal:
+        return self.qty.get(symbol, Decimal("0"))
 
     def snapshot(self) -> Mapping:
         return {"cash": self.cash, "positions": dict(self.qty)}
