@@ -10,10 +10,20 @@ flagged to the founder (and what they chose), and every open question.
   project (lockfile: `uv.lock`), src-layout package structure, dependencies
   pinned to exactly what Oceanus needs (ccxt, pandas, numpy, pyarrow,
   matplotlib, pytest). `data/` is gitignored.
+- **Phase 1 — Bar data model** (2026-07-07): `model.py` defines `Timeframe`
+  (fixed enum: 1m/5m/15m/1h/4h/1d, each knowing its duration) and `Bar`, an
+  immutable dataclass that validates itself at creation — tz-aware UTC
+  timestamps required, positive prices, `low <= open,close <= high`,
+  `volume >= 0`, and an `is_final` flag for still-forming bars. An invalid
+  Bar cannot be constructed. 11 tests in `tests/oceanus/test_model.py`.
 
 ## Decisions
 
-*(none yet — first flagged decision comes in Phase 1: float64 vs. decimal prices)*
+- **Price storage: float64, not Decimal** (Phase 1, founder chose 2026-07-07).
+  Rationale: standard for a research data layer, native to pandas/numpy;
+  float64's ~15-16 significant digits are ample for OHLCV research data.
+  Exact decimal arithmetic matters for trade accounting, which is out of
+  Oceanus's scope — revisit there if/when that layer is built.
 
 ## Open questions / unverified details
 
