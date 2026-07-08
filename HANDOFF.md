@@ -24,6 +24,10 @@ flagged to the founder (and what they chose), and every open question.
   marks the still-forming bar `is_final=False` by comparing
   `open_time + duration` to current UTC. Tested against a fake exchange
   (8 tests) plus a live checkpoint run against real Binance data.
+- **Phase 3 — Storage** (2026-07-07): `store.py` persists bars as Parquet
+  under `data/bars/<symbol>/<timeframe>/vNNNN.parquet`. `get_range()` is the
+  load-if-present path (fetches only missing edge ranges). `snapshot_hash()`
+  is a SHA-256 over a canonical text form of the data. 8 tests, no network.
 
 ## Decisions
 
@@ -41,6 +45,23 @@ flagged to the founder (and what they chose), and every open question.
   fallback (works from this location, history to 2015 for BTC/USD).
 - **Range convention: half-open `[start, end)`** (Phase 2). Start included,
   end excluded, so adjacent ranges tile without overlapping bars.
+- **Versioning: full-snapshot files, append-only** (Phase 3). Every write
+  that changes anything produces a new `vNNNN.parquet` holding the complete
+  current view; older versions are never modified or deleted. Restated
+  candles: new values win in the latest version, old version preserves what
+  we had. Simple and fully auditable at the cost of duplicated storage —
+  dev may switch to delta-based versioning if data volume grows.
+- **Only final bars are persisted** (Phase 3). A still-forming bar changes
+  by the second; storing it would break idempotency. It exists only in the
+  in-memory frame returned by ingestion.
+- **Storage extends edges only** (Phase 3). `get_range()` fetches data
+  before the first stored bar and after the last, but never tries to patch
+  holes in the middle — interior gaps are validation's job to *report*
+  (Phase 4), not storage's to silently fill.
+- **Snapshot hash = SHA-256 of canonical text** (Phase 3), one line per bar
+  (ISO timestamp + `repr()` of each float), rows sorted by time. Hashing
+  the Parquet bytes instead would break across pyarrow versions; this form
+  is machine- and library-independent.
 
 ## Open questions / unverified details
 
