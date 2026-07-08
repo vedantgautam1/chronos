@@ -39,6 +39,11 @@ flagged to the founder (and what they chose), and every open question.
   applies the founder's chosen policy (below) to a copy of the data and
   reports every change it makes. Gap-filling raises an error by design.
   7 tests.
+- **Phase 6 — Access door** (2026-07-08): `access.py` — `get_bars()` serves
+  only completed (`is_final`) bars, validated/sorted/de-duplicated/UTC;
+  raises `DataIntegrityError` on corrupt ranges; optional `snapshot=`
+  pins a request to an exact data hash. `universe_at()` gives the
+  point-in-time symbol set. 7 tests.
 
 ## Decisions
 
@@ -90,6 +95,18 @@ flagged to the founder (and what they chose), and every open question.
   - Out-of-order rows are sorted (non-destructive, reported).
   - Naive timestamps are currently flag-only (not dropped) — dev may
     want a policy knob for this class too.
+- **Access door refusal rule: hard vs. soft issues** (Phase 6, my call —
+  reviewers should sanity-check). Hard integrity failures (duplicates,
+  out-of-order, OHLC violations, impossible values, naive timestamps)
+  make `get_bars()` raise. Gaps and outliers are honest facts about real
+  markets (outages, crashes), so refusing on them would make most long
+  ranges unservable — they're served with a printed notice instead.
+  If the quant wants stricter behavior (e.g. refuse-on-gap for certain
+  studies), add a strictness parameter rather than changing the default.
+- **universe_at() v1 is a hand-maintained table** (Phase 6): symbol →
+  listing date (BTC/USDT: 2017-08-17, verified by fetching Binance's
+  earliest bar). Fine for a handful of symbols; a real point-in-time
+  universe (delistings included!) is left for the dev/quant.
 
 ## Open questions / unverified details
 
