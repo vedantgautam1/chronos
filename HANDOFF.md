@@ -23,6 +23,29 @@ new hephaestus modules are covered by it automatically from day one — the
 Phase 7 work is to extend it for engine-specific rules (e.g. no public
 execute path), not to add basic coverage.
 
+**Phase 1 (2026-07-08):** `types.py` (Order/Fill/Position/BacktestResult +
+OrderEvent for rejections/expiries/cancellations; Decimal ledger types with
+`to_decimal()` as the single float→Decimal crossing; `OrderIdSequence`
+counter for deterministic ids) and `view.py` (MarketView + Feed + Strategy
+protocol + Context). 19 tests.
+
+**How the MarketView bound works (for the quant's audit — the I1 core):**
+the Feed owns the full series and, at each decision time t, cuts it BY
+POSITION at the number of bars whose close time (open_time + timeframe) is
+≤ t, found by binary search on a precomputed close-time column. The
+MarketView is constructed from that prefix slice only. Consequences:
+(1) the view never *contains* a future row — a strategy that reaches into
+the view's private attributes finds nothing beyond t, because nothing
+beyond t was ever put in (this is tested by white-box inspection);
+(2) `bars(symbol, lookback)` returns a deep copy, so strategy-side
+mutation cannot corrupt engine state (tested); (3) a bar closing exactly
+at t IS visible (spec: `open_time + timeframe <= t`) and one second before
+its close it is NOT (both tested, boundary-exact). The Feed also refuses
+unsorted/duplicated input outright — engine data must come from
+`get_bars()`, which guarantees both. Indicator warm-up leaks are excluded
+by construction: there is no engine-side indicator facility; strategies
+compute indicators from the bounded view only.
+
 ---
 
 # HANDOFF — Oceanus
