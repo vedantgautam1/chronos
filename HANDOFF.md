@@ -1,3 +1,42 @@
+# HANDOFF
+
+## HEPHAESTUS (engine) — status: HALTED at Phase 0, awaiting spec extension
+
+**2026-07-08.** The founder confirmed the developer is operating/reviewing
+the Hephaestus build (per the brief's working rule 1). The spec §13 founder
+decisions were then put to the founder before scaffolding. Outcome:
+
+| # | Decision | Founder's choice | Consequence |
+|---|---|---|---|
+| 1+2 | Spot-only? / Shorting? | **Perps + shorting IN scope for Stage 0** (confirmed twice, explicitly, aware it halts the build) | **BUILD HALTED.** Spec §6 is explicit: perps require the spec to be extended (funding accrual, margin, liquidation mechanics) before any engine code is written. |
+| 3 | Unfilled remainder | **Cancel-and-record** (recommended) | Recorded; carries into the extended build. |
+| 4 | Numeric policy | **Decimal ledger + float series** (recommended) | Recorded. Note: margin/liquidation accounting under perps raises the stakes on the ledger — Decimal is the right call. |
+| 5 | Initial capital | **10,000 USDT** | Recorded. |
+| 6 | Fee values | Deferred to Phase 4 build-time verification, per spec | Must now also cover **perp fee schedule + funding intervals**, not just spot. |
+| 7 | Provisional slippage bps | **Not yet asked** — moot until the extended spec exists | Ask at the extended build's Phase 0. |
+
+**What must happen before the build can resume** (dev + spec author's work,
+not Claude Code's to improvise):
+- Extend `HEPHAESTUS_SPEC.md`: §5 (shorting-aware rejections/position rules),
+  §6 (funding accrual at the venue's interval — funding()'s real contract),
+  §7 (margin accounting, liquidation mechanics and their accounting events),
+  §9 (probes for funding/liquidation correctness), §13 (any new decisions,
+  e.g. leverage cap, liquidation convention).
+- Decide the leverage/margin model explicitly (cross vs isolated, max
+  leverage) — nothing in the current spec covers it.
+- Note: Oceanus currently serves **spot** OHLCV. Perps need perp-market
+  candles and funding-rate history — that is an **Oceanus scope extension
+  too** (new data type through the same one door), and should be specified
+  at the same time.
+- The invariant probes' definitions (I1–I8) are unaffected and carry over.
+
+Both contract documents are committed at repo root (`HEPHAESTUS_SPEC.md`,
+`HEPHAESTUS_BUILD_BRIEF.md`) with a status note pointing here. No engine
+code, no skeleton, has been created — per the spec, the contract changes
+first.
+
+---
+
 # HANDOFF — Oceanus
 
 Notes for the developer and quant who will review this build.
