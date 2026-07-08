@@ -1,8 +1,20 @@
 # HANDOFF — Oceanus
 
 Notes for the developer and quant who will review this build.
-Updated at every phase. Records what was built, every decision that was
-flagged to the founder (and what they chose), and every open question.
+Records what was built phase by phase, every decision that was flagged
+to the founder (and what they chose), every open question, and what was
+deliberately left for you.
+
+**Orientation, 30 seconds:** the whole component is
+`src/chronos/oceanus/` — six small modules, read them in phase order
+(`model` → `ingest` → `store` → `validate` → `clean` → `access`). The
+public surface is `access.get_bars()` and `access.universe_at()`;
+everything else is internal, and `tests/oceanus/test_acceptance.py` is
+the contract. The git history mirrors the phases one commit each.
+Built by Claude Code (an AI) pair-working with the founder, who is
+non-technical: expect deliberately simple, heavily-commented code —
+readability was chosen over cleverness throughout. Review skeptically;
+nothing here is sacred.
 
 ## Build log
 
@@ -119,11 +131,44 @@ flagged to the founder (and what they chose), and every open question.
 
 ## Open questions / unverified details
 
-- Binance occasionally **restates** old candles. Ingestion never overwrites
-  anything in place; how restatements are versioned is Phase 3's job.
-- Free Binance history for BTC/USDT starts 2017-08-17; other pairs start at
-  their listing dates. Nothing enforces this — a request for earlier data
-  simply returns fewer (or zero) bars.
+- Binance occasionally **restates** old candles. Storage handles this with
+  versioned snapshots (new version wins, old preserved) — but restatement
+  is only *detected when we happen to re-fetch an overlapping range*.
+  There is no proactive re-check of stored history. Is that acceptable,
+  or should there be a periodic "re-verify last N days" job?
+- **How often Binance restates, and how far back**, was not verified —
+  I found no authoritative documentation of their restatement behavior.
+  The versioning design assumes it's rare and shallow.
+- Free Binance history for BTC/USDT starts 2017-08-17; other pairs start
+  at their listing dates. Nothing enforces this — a request for earlier
+  data simply returns fewer (or zero) bars, silently. Should an
+  out-of-history request warn?
+- `fetch_ohlcv` semantics were verified against the **installed** ccxt
+  (4.5.64) and a live run, not against every exchange's quirks. ccxt
+  abstracts exchanges imperfectly; if you swap exchanges, re-verify
+  pagination behavior and the meaning of the last (possibly partial)
+  candle.
+- The is_final calculation trusts the **local clock**. A machine with a
+  badly wrong clock could mislabel the newest 1-2 bars. Not guarded.
+
+## Known limitations / deliberately left for you
+
+- **Single exchange, single venue.** No cross-exchange reconciliation;
+  "the market" currently means "Binance spot."
+- **`universe_at()` is a stub-quality v1**: one hand-entered symbol, no
+  delistings, no point-in-time membership history. The *interface* is
+  the deliverable; the implementation is yours.
+- **Validation is loop-based, not vectorized.** Chosen for readability.
+  Fine at hourly scale; will crawl on years of 1m bars across many
+  symbols. Optimize when it hurts, keep the corrupted-fixture test green.
+- **No CLI or scheduler** — ingestion runs via Python calls (see README).
+  No automation, no cron, no monitoring.
+- **Concurrency**: nothing locks the data directory; two processes
+  writing the same symbol/timeframe could race on version numbering.
+- **Snapshot pinning covers bars only** — `universe_at()` results are
+  not hashed/versioned yet.
+- Per the brief, **no backtesting, strategies, indicators, or metrics**
+  exist anywhere in this repo. That is your territory.
 
 ## Failure-modes checklist (from the build brief)
 

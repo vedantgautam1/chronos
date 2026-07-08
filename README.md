@@ -1,30 +1,37 @@
 # Chronos
 
 A systematic trading research system, built in components. This repository
-currently contains **Oceanus**, the data layer.
+currently contains **Oceanus**, the data layer — complete as a reviewed-ready
+first draft. See [HANDOFF.md](HANDOFF.md) for decisions, open questions, and
+known limitations.
 
 ## What Oceanus is
 
 Oceanus produces clean, trustworthy, point-in-time-correct crypto market
-data behind **one access function**. Every other part of Chronos will get
-its data through that single door — never from raw files or the exchange
-directly. Data errors here are inherited silently by everything downstream,
-so this layer is treated as part of the trusted core.
+data behind **one access function**. Every other part of Chronos gets its
+data through that single door — never from raw files or the exchange
+directly (a test enforces this). Its four rules:
+
+1. **No future leakage** — the still-forming bar is never served.
+2. **Reproducibility** — data is content-hashed; a result can be pinned to
+   an exact snapshot.
+3. **One data door** — all reads go through `get_bars()`.
+4. **Honest validation** — problems are reported, never silently fixed.
 
 ## Project layout
 
 ```
-src/chronos/oceanus/   the Oceanus code
-  model.py             the Bar schema (Phase 1)
-  ingest.py            fetch data from the exchange (Phase 2)
-  store.py             save/load Parquet + snapshot hashes (Phase 3)
-  validate.py          detect data problems, never fix them (Phase 4)
-  clean.py             explicit, documented cleaning policy (Phase 5)
-  access.py            the one data door: get_bars, universe_at (Phase 6)
-tests/oceanus/         tests for each phase
+src/chronos/oceanus/   the Oceanus code (read in this order)
+  model.py             the Bar schema and Timeframe enum
+  ingest.py            fetch OHLCV from Binance via ccxt (paginated, idempotent)
+  store.py             Parquet storage, versioned snapshots, content hashing
+  validate.py          detect data problems — never fixes anything
+  clean.py             the explicit cleaning policy — every change reported
+  access.py            the one door: get_bars() and universe_at()
+tests/oceanus/         tests, incl. test_acceptance.py (the contract)
 data/                  stored market data (not in git)
-configs/               configuration files
-HANDOFF.md             decisions and open questions for the reviewers
+scripts/check_setup.py environment sanity check
+HANDOFF.md             notes for the reviewing developer and quant
 ```
 
 ## Setup
@@ -32,14 +39,60 @@ HANDOFF.md             decisions and open questions for the reviewers
 Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 
 ```sh
-uv sync            # create the virtual environment from the lockfile
-uv run python scripts/check_setup.py   # should print "Oceanus setup OK"
+uv sync                                 # environment from the lockfile
+uv run python scripts/check_setup.py    # prints "Oceanus setup OK"
 ```
 
-## Running tests
+## Getting data (the one door)
+
+```python
+from datetime import datetime, timezone
+from chronos.oceanus.access import get_bars, universe_at
+from chronos.oceanus.model import Timeframe
+
+bars = get_bars(
+    "BTC/USDT",
+    Timeframe.H1,
+    datetime(2026, 6, 1, tzinfo=timezone.utc),   # timestamps must be UTC-aware
+    datetime(2026, 7, 1, tzinfo=timezone.utc),   # end is excluded: [start, end)
+)
+```
+
+First call fetches from Binance (no account needed) and stores Parquet under
+`data/`; later calls serve from disk. Only completed bars come back. If the
+range contains corrupt data, `get_bars` raises `DataIntegrityError` instead
+of returning it.
+
+To pin a result to an exact data snapshot:
+
+```python
+from chronos.oceanus.store import snapshot_hash
+pin = snapshot_hash(bars)                        # record this with results
+bars = get_bars(..., snapshot=pin)               # raises if data changed since
+```
+
+`universe_at(date)` returns the symbols tradeable as of that date.
+
+## Validating and cleaning
+
+```python
+from chronos.oceanus.validate import validate
+from chronos.oceanus.clean import clean
+
+report = validate(bars, Timeframe.H1)   # detects; changes nothing
+print(report)
+
+result = clean(bars)                    # applies the documented policy
+print(result)                           # ...and lists every change it made
+```
+
+The policy (chosen deliberately, recorded in HANDOFF.md): gaps are left and
+flagged — never interpolated; outliers are flagged, not removed; only
+provably impossible rows (duplicates, high < low, negative volume) are
+dropped, each drop reported.
+
+## Tests
 
 ```sh
-uv run pytest
+uv run pytest -v        # 53 tests; test_acceptance.py is the contract
 ```
-
-*(Ingestion/validation usage instructions will be added as those phases are built.)*
