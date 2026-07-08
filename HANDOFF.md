@@ -44,6 +44,15 @@ flagged to the founder (and what they chose), and every open question.
   raises `DataIntegrityError` on corrupt ranges; optional `snapshot=`
   pins a request to an exact data hash. `universe_at()` gives the
   point-in-time symbol set. 7 tests.
+- **Phase 7 — Acceptance tests** (2026-07-08):
+  `tests/oceanus/test_acceptance.py` — the brief's five promises in one
+  file: idempotent ingestion, validation catches every planted problem,
+  the door never serves a partial bar, the snapshot hash matches a
+  hard-coded pinned value (cross-machine stability), and the one-door
+  guard (AST scan: no ccxt/oceanus-internal imports or data-directory
+  references outside oceanus/; sole documented exemption:
+  `scripts/check_setup.py`). The guard was proven live — it caught
+  check_setup.py's ccxt import before the exemption was added.
 
 ## Decisions
 
@@ -118,9 +127,9 @@ flagged to the founder (and what they chose), and every open question.
 
 ## Failure-modes checklist (from the build brief)
 
-- [ ] Survivorship bias — `universe_at(date)` (Phase 6)
-- [ ] Partial trailing bar — `is_final` flag; `get_bars` excludes non-final (Phases 2, 6)
-- [ ] Restated candles — versioned, hashed snapshots (Phase 3)
-- [ ] Silent gap — `validate()` reports; `clean()` explicit policy (Phases 4, 5)
-- [ ] Timezone drift — tz-aware UTC mandated (Phases 1, 4)
-- [ ] Back-door reads — one-door guard test (Phase 7)
+- [x] Survivorship bias — `universe_at(date)` (Phase 6)
+- [x] Partial trailing bar — `is_final` flag; `get_bars` excludes non-final (Phases 2, 6)
+- [x] Restated candles — versioned, hashed snapshots (Phase 3)
+- [x] Silent gap — `validate()` reports; `clean()` explicit policy (Phases 4, 5)
+- [x] Timezone drift — tz-aware UTC mandated (Phases 1, 4)
+- [x] Back-door reads — one-door guard test (Phase 7)
