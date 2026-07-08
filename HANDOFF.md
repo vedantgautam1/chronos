@@ -157,7 +157,13 @@ nothing here is sacred.
   or should there be a periodic "re-verify last N days" job?
 - **How often Binance restates, and how far back**, was not verified —
   I found no authoritative documentation of their restatement behavior.
-  The versioning design assumes it's rare and shallow.
+  The versioning design assumes it's rare and shallow. **A measurement
+  tool now exists**: `scripts/restatement_probe.py` records a baseline of
+  a fixed historical range (fresh from the exchange, bypassing cache) and
+  reports on later runs exactly which bars, if any, have been restated.
+  Run it periodically to replace this assumption with data. Detection was
+  verified end-to-end (baseline → no-change → simulated restatement caught
+  → reset).
 - Free Binance history for BTC/USDT starts 2017-08-17; other pairs start
   at their listing dates. Nothing enforces this — a request for earlier
   data simply returns fewer (or zero) bars, silently. Should an

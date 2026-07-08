@@ -16,3 +16,6 @@ __pycache__/
 
 # Generated preview images from scripts/see_data.py
 *.png
+
+# Local diagnostic baselines (machine/time-specific, like data/)
+diagnostics/

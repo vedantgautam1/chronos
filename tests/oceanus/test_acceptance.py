@@ -102,9 +102,12 @@ def test_acceptance_5_one_door_guard_nothing_bypasses_oceanus():
     #     the environment installs; it never touches market data.
     #   - selftest.py is a live acceptance test that deliberately plants
     #     corrupt data via store internals to prove the door refuses it.
+    #   - restatement_probe.py must bypass the cache and re-fetch from the
+    #     exchange to detect revised candles — the door can't do that.
     exempt = {
         REPO_ROOT / "scripts" / "check_setup.py",
         REPO_ROOT / "scripts" / "selftest.py",
+        REPO_ROOT / "scripts" / "restatement_probe.py",
     }
 
     application_code = list((REPO_ROOT / "src").rglob("*.py"))

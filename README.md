@@ -94,5 +94,17 @@ dropped, each drop reported.
 ## Tests
 
 ```sh
-uv run pytest -v        # 53 tests; test_acceptance.py is the contract
+uv run pytest -v        # 56 tests; test_acceptance.py is the contract
 ```
+
+## Diagnostic tools
+
+```sh
+uv run python scripts/selftest.py           # 10 live PASS/FAIL checks vs Binance
+uv run python scripts/see_data.py           # fetch + chart real data (oceanus_preview.png)
+uv run python scripts/restatement_probe.py  # detect if the exchange revised old candles
+```
+
+The restatement probe records a baseline of a fixed historical range on its
+first run, then reports on later runs whether any old bars have changed.
+Re-baseline (accept current data) with `--update`.
