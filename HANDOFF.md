@@ -28,6 +28,13 @@ flagged to the founder (and what they chose), and every open question.
   under `data/bars/<symbol>/<timeframe>/vNNNN.parquet`. `get_range()` is the
   load-if-present path (fetches only missing edge ranges). `snapshot_hash()`
   is a SHA-256 over a canonical text form of the data. 8 tests, no network.
+- **Phase 4 — Validation** (2026-07-07): `validate.py` — pure function,
+  detects gaps, duplicates, out-of-order timestamps, OHLC violations,
+  impossible values, naive timestamps, and outliers; returns a
+  plain-English `ValidationReport`; never alters the data. A corrupted
+  fixture (`tests/oceanus/corrupted_fixture.py`) plants one of each
+  problem; a test asserts every one is caught. 7 tests. The real 168-bar
+  BTC/USDT week validated clean.
 
 ## Decisions
 
@@ -62,6 +69,12 @@ flagged to the founder (and what they chose), and every open question.
   (ISO timestamp + `repr()` of each float), rows sorted by time. Hashing
   the Parquet bytes instead would break across pyarrow versions; this form
   is machine- and library-independent.
+- **Outlier threshold: 25% single-bar close-to-close move** (Phase 4),
+  overridable per call (`outlier_threshold=`). Deliberately generous for
+  crypto; both sides of a spike get flagged (the jump and the reversion).
+  Outliers are flagged only, never removed — a real crash looks like an
+  outlier too. Quant should revisit the threshold and may want a
+  volatility-relative definition instead of a fixed percentage.
 
 ## Open questions / unverified details
 
