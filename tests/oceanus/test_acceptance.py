@@ -94,10 +94,18 @@ def test_acceptance_5_one_door_guard_nothing_bypasses_oceanus():
     }
     offenders = []
 
-    # The ONLY exemption: the Phase 0 setup checker imports every dependency
-    # (ccxt included) purely to prove the environment installs correctly.
-    # It never touches market data. Anything else added here is a red flag.
-    exempt = {REPO_ROOT / "scripts" / "check_setup.py"}
+    # Exemptions are sanctioned DIAGNOSTIC tooling only — scripts whose job
+    # is to exercise the internals, never application/library code that
+    # could feed research downstream. Each is hand-audited; adding to this
+    # list is a red flag that deserves scrutiny.
+    #   - check_setup.py imports every dependency (ccxt included) to prove
+    #     the environment installs; it never touches market data.
+    #   - selftest.py is a live acceptance test that deliberately plants
+    #     corrupt data via store internals to prove the door refuses it.
+    exempt = {
+        REPO_ROOT / "scripts" / "check_setup.py",
+        REPO_ROOT / "scripts" / "selftest.py",
+    }
 
     application_code = list((REPO_ROOT / "src").rglob("*.py"))
     application_code += (REPO_ROOT / "scripts").rglob("*.py")

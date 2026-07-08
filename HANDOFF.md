@@ -129,6 +129,15 @@ nothing here is sacred.
   earliest bar). Fine for a handful of symbols; a real point-in-time
   universe (delistings included!) is left for the dev/quant.
 
+- **Post-build hardening** (2026-07-08): live self-test
+  (`scripts/selftest.py`) run against real Binance surfaced a bug the
+  fake-exchange unit tests missed — `get_bars()` didn't validate its own
+  inputs, so a naive (tz-less) datetime crashed with a `TypeError` deep
+  in storage instead of a clean `ValueError`. Fixed: the door now checks
+  start/end are UTC-aware and start < end up front. Regression test added
+  (`test_get_bars_rejects_naive_datetimes`). Also added `scripts/see_data.py`
+  (eyeball chart) and `scripts/selftest.py` (10 live PASS/FAIL checks).
+
 ## Open questions / unverified details
 
 - Binance occasionally **restates** old candles. Storage handles this with

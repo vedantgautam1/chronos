@@ -19,7 +19,7 @@ door serves such data but prints a notice pointing at the validation
 report. Recorded as a decision in HANDOFF.md — reviewers may tighten it.
 """
 
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
 from pandas import DataFrame
 
@@ -62,6 +62,17 @@ def get_bars(
     (e.g. the exchange restated a candle) and we raise rather than let a
     result silently stop being reproducible.
     """
+    # The door validates its OWN inputs first, so a bad request fails with
+    # a clear message instead of crashing deeper down (e.g. comparing a
+    # naive datetime against stored UTC-aware timestamps).
+    for name, moment in (("start", start), ("end", end)):
+        if moment.tzinfo is None:
+            raise ValueError(f"{name} is naive (no timezone): {moment}. Use a UTC-aware datetime.")
+        if moment.utcoffset() != timedelta(0):
+            raise ValueError(f"{name} is not UTC: {moment}. Pass timestamps in UTC.")
+    if start >= end:
+        raise ValueError(f"start ({start}) must be before end ({end})")
+
     bars = get_range(symbol, timeframe, start, end, root=root, exchange=exchange)
 
     # The concrete no-future-leakage guard: never serve a forming bar.

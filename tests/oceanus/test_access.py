@@ -92,3 +92,12 @@ def test_universe_at_is_point_in_time():
 def test_universe_at_rejects_naive_datetimes():
     with pytest.raises(ValueError, match="naive"):
         universe_at(datetime(2026, 7, 1))
+
+
+def test_get_bars_rejects_naive_datetimes(tmp_path):
+    # Regression: the door must reject a timezone-less start/end with a
+    # clear ValueError, not crash deeper down with a TypeError.
+    fake = FakeExchange(START_MS, n_bars=24)
+    with pytest.raises(ValueError, match="naive"):
+        get_bars("BTC/USDT", Timeframe.H1, datetime(2026, 1, 1), START + timedelta(hours=5),
+                 root=tmp_path, exchange=fake)
