@@ -26,8 +26,13 @@ DAYS = 120
 
 
 def main() -> None:
-    end = datetime.now(timezone.utc) + timedelta(days=1)  # include today on purpose
-    start = end - timedelta(days=DAYS)
+    now = datetime.now(timezone.utc)
+    end = now + timedelta(days=1)  # reach into today on purpose (proves it's excluded)
+    # Start at a midnight boundary so storage doesn't keep re-checking a
+    # sub-day sliver before the first saved daily bar. The live frontier
+    # (near "now") is still re-checked each run by design — that's how new
+    # completed bars get picked up — so this script isn't a pure cache demo.
+    start = (now - timedelta(days=DAYS)).replace(hour=0, minute=0, second=0, microsecond=0)
 
     print(f"Asking the one door for {DAYS} days of BTC/USDT daily bars...\n")
     bars = get_bars("BTC/USDT", Timeframe.D1, start, end)

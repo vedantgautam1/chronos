@@ -95,6 +95,16 @@ nothing here is sacred.
   before the first stored bar and after the last, but never tries to patch
   holes in the middle — interior gaps are validation's job to *report*
   (Phase 4), not storage's to silently fill.
+  - **Known quirk (found while testing 2026-07-08):** coverage is inferred
+    from the *extent of stored bars* (min/max open_time), not from what
+    ranges were actually requested. So a request whose start falls in a
+    sub-bar sliver before the first stored bar (e.g. mid-day start vs.
+    midnight daily bars), or whose end reaches the still-forming frontier,
+    will **re-fetch that edge on every run** even though nothing new gets
+    stored — harmless (data stays correct/idempotent) but wasteful, and it
+    means "loaded from disk, nothing re-downloaded" only prints for a
+    fully-past, boundary-aligned range. A proper fix is coverage metadata
+    (record requested ranges, not just data extent) — left for the dev.
 - **Snapshot hash = SHA-256 of canonical text** (Phase 3), one line per bar
   (ISO timestamp + `repr()` of each float), rows sorted by time. Hashing
   the Parquet bytes instead would break across pyarrow versions; this form
