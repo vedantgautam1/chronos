@@ -13,3 +13,6 @@ __pycache__/
 
 # Test tooling cache
 .pytest_cache/
+
+# Generated preview images from scripts/see_data.py
+*.png
