@@ -46,6 +46,25 @@ unsorted/duplicated input outright — engine data must come from
 by construction: there is no engine-side indicator facility; strategies
 compute indicators from the bounded view only.
 
+**Phase 2 (2026-07-08):** `engine.py` — the seven-step loop per spec §4,
+`_execute()` module-private, broker/portfolio injected via protocols
+(real ones land in Phases 3/5; tests use clearly-labeled scaffolding).
+9 tests. Checkpoint ran 720 real 1h bars (June 2026, via `get_bars()`):
+do-nothing strategy → equity exactly flat at 10,000; buy-once fixture →
+fill lands at bar t+1's open to the cent. Notes for reviewers:
+- **Timing semantics:** the strategy decides at the CLOSE of bar t
+  (view bounded there); its orders are stamped `created_at = bar t's
+  open_time` (bar identity) and processed against bar t+1. Orders sit in
+  `pending` for exactly one iteration — there is no code path from
+  decision to same-bar execution. `unsafe_same_bar_fill` exists in config
+  (so the config hash covers it) but raises NotImplementedError until the
+  broker phases.
+- **The engine stamps order ids and created_at itself**, overwriting
+  whatever the strategy wrote (forgery test included).
+- **Stage 0 simplification:** multi-symbol runs require identical bar
+  timestamps across symbols; anything else is refused, not aligned.
+  Cross-symbol alignment is deliberately future work.
+
 ---
 
 # HANDOFF — Oceanus
