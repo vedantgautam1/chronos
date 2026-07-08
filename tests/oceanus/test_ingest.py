@@ -19,18 +19,26 @@ HOUR_MS = 3_600_000
 class FakeExchange:
     """Serves a synthetic hourly candle series, `page_limit` bars per call."""
 
-    def __init__(self, first_ts_ms: int, n_bars: int, page_limit: int = 100):
+    def __init__(self, first_ts_ms: int, n_bars: int, page_limit: int = 100, now_ms: int | None = None):
         self.candles = [
             [first_ts_ms + i * HOUR_MS, 100.0 + i, 101.0 + i, 99.0 + i, 100.5 + i, 10.0]
             for i in range(n_bars)
         ]
         self.page_limit = page_limit
         self.calls = 0
+        # The "server clock". Defaults to the real now, so is_final behaves
+        # like a live exchange; a fixed value lets a test pin "now".
+        self._now_ms = now_ms
 
     def fetch_ohlcv(self, symbol, timeframe, since=None, limit=None, params={}):
         self.calls += 1
         page = [c for c in self.candles if c[0] >= since]
         return page[: min(limit or self.page_limit, self.page_limit)]
+
+    def fetch_time(self):
+        if self._now_ms is not None:
+            return self._now_ms
+        return int(datetime.now(timezone.utc).timestamp() * 1000)
 
 
 START = datetime(2026, 1, 1, tzinfo=timezone.utc)
@@ -86,6 +94,29 @@ def test_forming_bar_is_marked_not_final():
     assert len(frame) == 24
     assert not frame["is_final"].iloc[-1]  # still forming
     assert frame["is_final"].iloc[:-1].all()  # all earlier bars complete
+
+
+def test_is_final_follows_the_exchange_clock_not_the_local_one():
+    # 24 hourly bars, all in the past by real-world time. But we tell the
+    # exchange its "now" is only 12 hours after the first bar. is_final
+    # must be computed against THAT, so exactly the first 12 bars (whose
+    # windows have closed by the fake now) are final and the rest are not.
+    fake = FakeExchange(START_MS, n_bars=24, now_ms=START_MS + 12 * HOUR_MS)
+    frame = fetch_bars("BTC/USDT", Timeframe.H1, START, START + timedelta(hours=24), exchange=fake)
+    assert frame["is_final"].sum() == 12
+    assert frame["is_final"].iloc[:12].all()
+    assert not frame["is_final"].iloc[12:].any()
+
+
+def test_missing_exchange_clock_falls_back_to_local(capsys):
+    class NoClock(FakeExchange):
+        def fetch_time(self):
+            raise AttributeError("this exchange has no clock")
+
+    fake = NoClock(START_MS, n_bars=10)
+    frame = fetch_bars("BTC/USDT", Timeframe.H1, START, START + timedelta(hours=10), exchange=fake)
+    assert len(frame) == 10  # still works, degraded
+    assert "using local clock" in capsys.readouterr().out
 
 
 def test_naive_datetimes_are_rejected():

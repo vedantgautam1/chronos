@@ -148,8 +148,12 @@ nothing here is sacred.
   abstracts exchanges imperfectly; if you swap exchanges, re-verify
   pagination behavior and the meaning of the last (possibly partial)
   candle.
-- The is_final calculation trusts the **local clock**. A machine with a
-  badly wrong clock could mislabel the newest 1-2 bars. Not guarded.
+- ~~The is_final calculation trusts the local clock.~~ **Resolved
+  2026-07-08**: `is_final` now uses the exchange's own clock via
+  `exchange.fetch_time()` (verified present for Binance), falling back to
+  the local clock with a printed notice only if the exchange can't report
+  its time. Two tests cover it (`test_is_final_follows_the_exchange_clock…`,
+  `test_missing_exchange_clock_falls_back_to_local`).
 
 ## Known limitations / deliberately left for you
 

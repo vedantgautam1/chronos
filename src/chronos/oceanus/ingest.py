@@ -88,8 +88,10 @@ def fetch_bars(
 
     # A bar is final only if its whole window has passed: a 12:00 hourly
     # bar isn't final until 13:00 UTC. The bar still forming right now
-    # must never be treated as complete.
-    now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+    # must never be treated as complete. "Now" comes from the EXCHANGE's
+    # own clock, not this machine's — a laptop with a wrong clock could
+    # otherwise mislabel the newest bars and leak the future.
+    now_ms = _reference_now_ms(exchange)
     frame["is_final"] = (frame["ts_ms"] + tf_ms) <= now_ms
 
     return frame[BAR_COLUMNS].reset_index(drop=True)
@@ -109,6 +111,21 @@ def _fetch_page_with_retry(
             print(f"  transient error ({error!r}), retrying in {wait}s...")
             time.sleep(wait)
     raise AssertionError("unreachable")
+
+
+def _reference_now_ms(exchange: ccxt.Exchange) -> int:
+    """Current UTC time in milliseconds, taken from the exchange's own
+    clock so our is_final decision doesn't depend on this machine's clock.
+
+    If the exchange can't report its time (e.g. offline, or a test double
+    without the method), fall back to the local clock and say so out loud
+    rather than failing — a degraded but honest mode.
+    """
+    try:
+        return int(exchange.fetch_time())
+    except Exception as error:  # AttributeError, network errors, etc.
+        print(f"  [ingest] exchange time unavailable ({error!r}); using local clock")
+        return int(datetime.now(timezone.utc).timestamp() * 1000)
 
 
 def _require_utc(moment: datetime, name: str) -> None:
