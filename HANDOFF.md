@@ -35,6 +35,10 @@ flagged to the founder (and what they chose), and every open question.
   fixture (`tests/oceanus/corrupted_fixture.py`) plants one of each
   problem; a test asserts every one is caught. 7 tests. The real 168-bar
   BTC/USDT week validated clean.
+- **Phase 5 — Cleaning** (2026-07-08): `clean.py` — `clean(frame, policy)`
+  applies the founder's chosen policy (below) to a copy of the data and
+  reports every change it makes. Gap-filling raises an error by design.
+  7 tests.
 
 ## Decisions
 
@@ -75,6 +79,17 @@ flagged to the founder (and what they chose), and every open question.
   Outliers are flagged only, never removed — a real crash looks like an
   outlier too. Quant should revisit the threshold and may want a
   volatility-relative definition instead of a fixed percentage.
+- **Cleaning policy** (Phase 5, founder chose 2026-07-08):
+  - Gaps: **leave and flag** — never interpolate; `fill_gaps=True` raises.
+  - Outliers: **flag only** — a real crash looks like a data error;
+    `drop_outliers=True` exists but is off by default.
+  - Unambiguous garbage: **drop and report** — exact duplicate timestamps
+    (first copy kept) and impossible rows (high<low, open/close outside
+    [low,high], non-positive prices, negative volume). Holes left by
+    drops surface as honest gaps in the next validation.
+  - Out-of-order rows are sorted (non-destructive, reported).
+  - Naive timestamps are currently flag-only (not dropped) — dev may
+    want a policy knob for this class too.
 
 ## Open questions / unverified details
 
