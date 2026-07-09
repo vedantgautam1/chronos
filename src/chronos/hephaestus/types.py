@@ -13,10 +13,34 @@ Determinism (invariant I5): order ids come from a per-run counter
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, getcontext
 from enum import Enum
 
 import pandas as pd
+
+# Ledger numeric policy, hardened by the invariant probes (2026-07-08):
+# probe 1's market-collapse scenario drifted the reconciliation identity
+# by 5E-24 — Decimal's default 28-digit context couldn't hold a rounded
+# non-terminating division consistently across values of very different
+# magnitudes (realized PnL ~1e1 vs basis ~1e-5). The fix has two parts:
+#
+# 1. LEDGER_QUANTUM: any ledger value born from a NON-TERMINATING
+#    division (today: only the partial-sale basis apportionment) is
+#    quantized to this fixed exponent, making it exactly representable.
+# 2. LEDGER_PRECISION = 50 significant digits of headroom, so sums of
+#    quantum-aligned values across the full market dynamic range
+#    (~1e6 prices x 1e-8 dust quantities) never round.
+#
+# Together: every ledger addition/subtraction is exact, and the
+# reconciliation identity holds to the last digit, always.
+LEDGER_PRECISION = 50
+LEDGER_QUANTUM = Decimal("1E-30")
+getcontext().prec = LEDGER_PRECISION
+
+
+def quantize_ledger(value: Decimal) -> Decimal:
+    """Snap a division result onto the ledger's fixed grid (see above)."""
+    return value.quantize(LEDGER_QUANTUM)
 
 
 def to_decimal(value) -> Decimal:

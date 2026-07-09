@@ -103,9 +103,15 @@ def test_same_seed_same_everything():
     assert a.equity_curve.equals(b.equity_curve)  # early determinism check (I5)
 
 
-def test_unsafe_same_bar_fill_is_not_available():
-    with pytest.raises(NotImplementedError, match="never be the default"):
-        run(DoNothingStrategy(), config=EngineConfig(unsafe_same_bar_fill=True))
+def test_unsafe_same_bar_fill_fills_at_the_decision_close_and_warns():
+    # The research-only leak mode: the order decided on bar 2 fills ON
+    # bar 2, at bar 2's CLOSE (102.5) — the price the strategy just used.
+    unsafe = EngineConfig(initial_cash=Decimal("10000"), seed=42, unsafe_same_bar_fill=True)
+    out = run(BuyOnceStrategy(trigger_bars=3), config=unsafe)
+    fill = out.fills[0]
+    assert fill.bar_time == START + timedelta(hours=2)  # same bar, not t+1
+    assert fill.price == Decimal("102.5")  # bar 2's close
+    assert any("NON-PROMOTABLE" in w for w in out.warnings)
 
 
 def test_full_real_stack_identity_checked_every_bar():

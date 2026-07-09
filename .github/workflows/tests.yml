@@ -1,0 +1,27 @@
+# CI for Chronos. The invariant probes (tests/hephaestus/invariants/) are
+# the engine's trust suite — the dev should mark this workflow as a
+# REQUIRED check on protected branches once the repo is pushed to GitHub
+# (branch protection itself is a repo setting, not something a workflow
+# file can declare).
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install exact locked environment
+        run: uv sync --frozen
+      - name: Full test suite (Oceanus + Hephaestus + acceptance guards)
+        run: uv run pytest -q
+      - name: Invariant probes, second pass (determinism across process restarts)
+        # The determinism probe compares byte-identical results within a
+        # process; running the probes in a FRESH process catches
+        # machine/process-dependent nondeterminism (hash seeds, dict
+        # ordering, wall-clock creep).
+        run: uv run pytest tests/hephaestus/invariants tests/oceanus/test_acceptance.py -q

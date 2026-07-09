@@ -157,6 +157,39 @@ store + persistent trial counter). 10 tests. Reviewer notes:
   local store; real Mnemosyne later); single-process only, no file
   locking; run_id = trial index + hypothesis id (deterministic, no uuid).
 
+**Phase 7 (2026-07-08):** `tests/hephaestus/invariants/test_probes.py` —
+the seven probes + an engine-door guard; CI workflow in
+`.github/workflows/tests.yml` (dev: mark it REQUIRED via branch
+protection after pushing to GitHub). `unsafe_same_bar_fill` is now
+implemented (fills at the decision bar's close; stamps a NON-PROMOTABLE
+warning; default path never carries it — probe 7).
+
+**The meta-test found two real defects — read this, it matters:**
+1. **Probe 1 v1 was too weak.** A deliberately planted one-bar leak in
+   the view PASSED the original probe: a leaked decision at bar cut−1
+   first manifests AT the cut bar, outside the strictly-before-cut
+   comparison window. Fixed by comparing recorded strategy DECISIONS
+   (intent) up to the cut boundary, under both pump- and collapse-
+   poisoned futures. The plant is now caught; the full
+   plant → red → revert → green cycle was demonstrated.
+2. **The ledger's exactness had a precision cliff.** Probe 1's collapse
+   scenario (cash ~1e4 against dust positions ~1e-9) drifted the
+   reconciliation identity by 5E-24: the partial-sale basis
+   apportionment is a non-terminating division, and its rounded tail is
+   absorbed at different magnitudes in realized PnL vs basis, breaking
+   the cancellation. Raising Decimal precision only moved the drift
+   (1E-46 at 50 digits). Real fix: `LEDGER_QUANTUM = 1E-30` — the
+   apportionment is quantized onto a fixed grid (making it exactly
+   representable) + `LEDGER_PRECISION = 50` headroom so all sums stay
+   exact. QUANT: verify this reasoning; it is the numeric policy's
+   sharpest edge. Any future ledger value born from a division must be
+   quantized the same way.
+
+**Determinism probe nuance:** run_id and trial_index legitimately advance
+between runs (I6 requires it), so the byte-compare uses
+`determinism_view()` — the serialized result minus exactly those two
+bookkeeping fields. Everything else must be byte-identical.
+
 ---
 
 # HANDOFF — Oceanus

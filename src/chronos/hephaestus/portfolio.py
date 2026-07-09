@@ -35,7 +35,7 @@ from typing import Mapping
 
 import pandas as pd
 
-from chronos.hephaestus.types import Fill, Side, to_decimal
+from chronos.hephaestus.types import Fill, Side, quantize_ledger, to_decimal
 
 
 class AccountingError(Exception):
@@ -109,12 +109,14 @@ class Portfolio:
                 )
             # Apportion basis to the sold quantity. Selling everything takes
             # the whole basis exactly (no division residue); a partial sale
-            # takes the pro-rata share. ANY rounding in this apportionment
-            # cancels in the reconciliation identity (see module docstring).
+            # takes the pro-rata share QUANTIZED to the ledger grid — the
+            # division is non-terminating in general, and only a grid-exact
+            # sold_basis cancels perfectly between realized and basis in
+            # the reconciliation identity (probe-discovered, 2026-07-08).
             if fill.qty_filled == holding.qty:
                 sold_basis = holding.basis
             else:
-                sold_basis = holding.basis * fill.qty_filled / holding.qty
+                sold_basis = quantize_ledger(holding.basis * fill.qty_filled / holding.qty)
             self._cash += notional - fill.fee
             holding.realized_pnl += notional - sold_basis
             holding.qty -= fill.qty_filled

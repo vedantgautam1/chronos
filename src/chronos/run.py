@@ -198,6 +198,18 @@ def serialize_result(result: BacktestResult) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
 
+def determinism_view(serialized_result: str) -> str:
+    """The byte-compare form for the determinism probe (I5).
+
+    run_id and trial_index advance on every run BY DESIGN (I6: every
+    trial counted) — they are bookkeeping, not result content. Everything
+    else must be byte-identical across runs with identical coordinates."""
+    payload = json.loads(serialized_result)
+    payload.pop("run_id")
+    payload.pop("trial_index")
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"))
+
+
 def _canonical(obj):
     """Recursively convert to JSON-safe, deterministic primitives."""
     if is_dataclass(obj) and not isinstance(obj, type):

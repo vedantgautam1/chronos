@@ -51,9 +51,10 @@ class EngineConfig:
     initial_cash: Decimal = Decimal("10000")  # founder decision: 10,000 USDT
     seed: int = 0
     strategy_params: Mapping = field(default_factory=dict)
-    # Same-bar fills are a research-only mode, NOT implemented yet; the
-    # field exists so the config hash covers it from day one. Enabling it
-    # before the broker phases raises (see _execute).
+    # Research-only comparison mode: orders fill at the very close the
+    # strategy decided on — the classic unrealizable-returns leak, made
+    # available ONLY to measure its flattery. Never the default; stamps a
+    # warning the Moirai treat as non-promotable.
     unsafe_same_bar_fill: bool = False
 
 
@@ -94,6 +95,12 @@ class _EngineOutput:
 # besides run.py touches _execute or this token.
 _RUN_TOKEN = object()
 
+UNSAFE_SAME_BAR_WARNING = (
+    "unsafe_same_bar_fill: orders filled at the very close used to decide "
+    "them — returns are unrealizable. Research comparison only; "
+    "NON-PROMOTABLE."
+)
+
 
 def _execute(
     bars_by_symbol: Mapping[str, pd.DataFrame],
@@ -112,11 +119,6 @@ def _execute(
             "engine._execute is private: runs must go through "
             "run_experiment(), which logs every run and counts every "
             "trial (invariants I3/I6). There is no unlogged execution."
-        )
-    if config.unsafe_same_bar_fill:
-        raise NotImplementedError(
-            "unsafe_same_bar_fill is not implemented yet (arrives with the "
-            "broker phases); it will never be the default."
         )
 
     feed = Feed(bars_by_symbol, timeframe)  # validates sorted/unique input
@@ -158,13 +160,32 @@ def _execute(
 
         # step 5: the strategy speaks; the engine stamps what it says
         ctx = Context(rng=rng, portfolio=portfolio.snapshot(), params=config.strategy_params)
+        new_orders: list[Order] = []
         for order in strategy.on_bar(view, ctx):
             if not isinstance(order, Order):
                 raise TypeError(f"strategy returned {type(order).__name__}, expected Order")
             if order.symbol not in bars_by_symbol:
                 raise ValueError(f"order for {order.symbol!r}: not in this run's universe")
             # id and created_at are engine-owned: overwrite unconditionally.
-            pending.append(replace(order, id=order_ids.next(), created_at=bar_open))
+            new_orders.append(replace(order, id=order_ids.next(), created_at=bar_open))
+
+        if config.unsafe_same_bar_fill:
+            # UNSAFE research mode: fill NOW, at the very close the strategy
+            # just decided on. Modeled by handing the broker bar t with its
+            # open replaced by its close (market orders fill "at the open"
+            # of what they're processed against). Flagged in warnings.
+            same_bar = {}
+            for sym, row in bars_at_t.items():
+                fake = row.copy()
+                fake["open"] = row["close"]
+                same_bar[sym] = fake
+            unsafe_fills, unsafe_events = broker.process(new_orders, same_bar)
+            fills.extend(unsafe_fills)
+            order_events.extend(unsafe_events)
+            for fill in unsafe_fills:
+                portfolio.apply_fill(fill)
+        else:
+            pending = new_orders  # the safe default: they wait for bar t+1
 
         # step 6: mark to market at close(t)
         closes = {sym: row["close"] for sym, row in bars_at_t.items()}
@@ -188,10 +209,13 @@ def _execute(
     equity_curve = pd.Series(
         equity_values, index=pd.DatetimeIndex(equity_times, name="open_time"), name="equity"
     )
+    warnings = list(broker.warnings)  # honesty flags travel with the result
+    if config.unsafe_same_bar_fill:
+        warnings.append(UNSAFE_SAME_BAR_WARNING)
     return _EngineOutput(
         fills=tuple(fills),
         order_events=tuple(order_events),
         equity_curve=equity_curve,
         bars_processed=len(open_times),
-        warnings=tuple(broker.warnings),  # honesty flags travel with the result
+        warnings=tuple(warnings),
     )
