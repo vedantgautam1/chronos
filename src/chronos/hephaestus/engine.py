@@ -87,6 +87,14 @@ class _EngineOutput:
     warnings: tuple[str, ...]
 
 
+# The capability token for _execute. run_experiment() (and tests, which
+# must exercise the loop directly) import it explicitly; any call without
+# it raises. This guards against ACCIDENTAL bypass of the logged entry
+# point — Phase 7's guard test additionally asserts no non-test module
+# besides run.py touches _execute or this token.
+_RUN_TOKEN = object()
+
+
 def _execute(
     bars_by_symbol: Mapping[str, pd.DataFrame],
     timeframe: Timeframe,
@@ -94,9 +102,17 @@ def _execute(
     broker: BrokerLike,
     portfolio: PortfolioLike,
     config: EngineConfig,
+    *,
+    _token: object = None,
 ) -> _EngineOutput:
     """The event loop. MODULE-PRIVATE: nothing outside this package may
     call it — every run must enter through run_experiment() (I3)."""
+    if _token is not _RUN_TOKEN:
+        raise PermissionError(
+            "engine._execute is private: runs must go through "
+            "run_experiment(), which logs every run and counts every "
+            "trial (invariants I3/I6). There is no unlogged execution."
+        )
     if config.unsafe_same_bar_fill:
         raise NotImplementedError(
             "unsafe_same_bar_fill is not implemented yet (arrives with the "

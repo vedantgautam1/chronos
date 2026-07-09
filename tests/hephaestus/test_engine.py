@@ -9,7 +9,7 @@ from decimal import Decimal
 
 import pytest
 
-from chronos.hephaestus.engine import EngineConfig, _execute
+from chronos.hephaestus.engine import EngineConfig, _RUN_TOKEN, _execute
 from chronos.hephaestus.types import Order, OrderEventKind, OrderType, Side
 from chronos.oceanus.model import Timeframe
 
@@ -27,6 +27,7 @@ def run(strategy, n_bars=24, config=CONFIG):
         StubBroker(),
         StubPortfolio(config.initial_cash),
         config,
+        _token=_RUN_TOKEN,  # tests exercise the loop directly, explicitly
     )
 
 
@@ -118,7 +119,8 @@ def test_full_real_stack_identity_checked_every_bar():
     portfolio = Portfolio(Decimal("10000"))
     broker = Broker(FixedBpsCostModel(), portfolio, BrokerConfig())
     out = _execute({"BTC/USDT": hourly_frame(48)}, Timeframe.H1,
-                   BuyOnceStrategy(qty=Decimal("0.4")), broker, portfolio, CONFIG)
+                   BuyOnceStrategy(qty=Decimal("0.4")), broker, portfolio, CONFIG,
+                   _token=_RUN_TOKEN)
     assert len(out.fills) == 1
     assert out.bars_processed == 48  # every bar marked; identity held 48 times
     assert any("provisional_cost_constants" in w for w in out.warnings)
@@ -138,6 +140,6 @@ def test_loop_runs_end_to_end_on_oceanus_served_data(tmp_path):
                     root=tmp_path, exchange=fake)
 
     out = _execute({"BTC/USDT": bars}, Timeframe.H1, DoNothingStrategy(),
-                   StubBroker(), StubPortfolio(Decimal("10000")), CONFIG)
+                   StubBroker(), StubPortfolio(Decimal("10000")), CONFIG, _token=_RUN_TOKEN)
     assert out.bars_processed == len(bars) > 0
     assert (out.equity_curve == 10000.0).all()

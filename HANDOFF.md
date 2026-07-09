@@ -134,6 +134,29 @@ bars. Accounting conventions the quant must sign off on:
 - Fee accounting: fees are expensed (cash out), never capitalized into
   basis — standard treatment, keeps basis = pure execution cost.
 
+**Phase 6 (2026-07-08):** `run.py` (`run_experiment`, `Hypothesis`,
+`RunConfig`, `serialize_result`) + `mnemosyne/stub.py` (append-only JSONL
+store + persistent trial counter). 10 tests. Reviewer notes:
+- **I8:** no Hypothesis object → TypeError before anything happens; the
+  hypothesis record is appended BEFORE execution (test asserts ordering).
+- **I6:** counter persisted to disk and advanced before execution;
+  crashed runs count. Store's whole write surface is append+read — no
+  update/delete methods exist.
+- **I3:** try/finally writes a run record on every exit path; a crash
+  persists an ERRORED record with the error text, then re-raises.
+- **I5 coordinates** on every record: core git SHA (with an honest
+  `-dirty` suffix if the tree has uncommitted changes), sha256 config
+  hash over a canonical serialization, Oceanus snapshot hash, seed.
+  `serialize_result()` is the canonical no-wall-clock serialization the
+  Phase 7 determinism probe byte-compares.
+- **Private execute:** `_execute` requires a module-private token; only
+  run.py (and tests, explicitly) pass it. Direct calls raise
+  PermissionError. This guards accidental bypass; Phase 7 extends the
+  static guard so no other module imports _execute/_RUN_TOKEN.
+- **Limitations:** deleting `records/` resets the trial counter (single
+  local store; real Mnemosyne later); single-process only, no file
+  locking; run_id = trial index + hypothesis id (deterministic, no uuid).
+
 ---
 
 # HANDOFF — Oceanus
