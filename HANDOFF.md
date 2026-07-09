@@ -205,6 +205,19 @@ counter. 6 tests. 280-pair sweep over 720 real bars: 0.06s.
   is a one-line change (call `store.next_trial_index()` per screen).
   Quant to confirm or overrule; record the outcome here.
 
+**Phase 9 (2026-07-08):** the end-to-end milestone.
+`strategies/ma_crossover.py` (state-based long-only 20/50 crossover,
+indicator math from the bounded view only, satoshi-grid order sizing) +
+`scripts/run_milestone.py` (the one command). 4 tests. Live result on
+six months of real BTC/USDT 1h (4,344 bars): **-15.40% net** — 84 fills,
+1,588.55 USDT total itemized costs (fees 756.45 / slippage 756.45 /
+spread 75.65), zero rejections, persisted as trial #4 with full
+coordinates. A losing result was the registered prediction: the
+milestone proves the instrument, not the idea. Note the run's
+`core_version` carries `-dirty` (milestone files were uncommitted when
+it ran) — the honesty mechanism working as designed; re-run after this
+commit for a clean SHA.
+
 ---
 
 # HANDOFF — Oceanus
