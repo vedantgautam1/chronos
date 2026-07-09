@@ -109,6 +109,31 @@ the spec's exact intent — no zero-cost path, only zero-cost parameters.
   no default. Plus the counting-spy test: every fill calls fee, slippage,
   and spread exactly once.
 
+**Phase 5 (2026-07-08):** `portfolio.py` — the Decimal ledger. 8 tests
+incl. 3 hand-derived fixtures (derivations written longhand in
+`tests/hephaestus/fixtures/test_hand_computed.py` — QUANT: re-do these on
+paper) + a full-real-stack engine run with the identity checked at all 48
+bars. Accounting conventions the quant must sign off on:
+- **Cost-basis tracking, not average-entry.** avg_entry_price is derived
+  for display only. The load-bearing property: any rounding in a partial
+  sale's basis apportionment cancels between realized and unrealized, so
+  the reconciliation identity holds EXACTLY (no tolerance) under Decimal.
+  Selling the full holding takes the whole basis (no division residue).
+- **The identity's cost term is FEES ONLY:**
+  `equity == initial_cash + realized + unrealized − fees_paid`.
+  Slippage and spread are embedded in execution prices, so they already
+  live inside realized/unrealized PnL — adding them to the cost term
+  would double-count. They remain itemized (slippage_paid/spread_paid)
+  for the cost summary as attribution, not cash flows.
+- **Identity checked at EVERY mark, always-on** (`check_identity=True`
+  default); violation raises AccountingDriftError immediately.
+- **Returns are derived once, here** (`returns_from_equity`): simple
+  returns, first bar = 0.0 by convention, keeping the series aligned
+  with the equity curve. The Moirai must not recompute returns their own
+  way.
+- Fee accounting: fees are expensed (cash out), never capitalized into
+  basis — standard treatment, keeps basis = pure execution cost.
+
 ---
 
 # HANDOFF — Oceanus

@@ -107,6 +107,26 @@ def test_unsafe_same_bar_fill_is_not_available():
         run(DoNothingStrategy(), config=EngineConfig(unsafe_same_bar_fill=True))
 
 
+def test_full_real_stack_identity_checked_every_bar():
+    # Engine + real Broker + real CostModel + real Portfolio, 48 bars,
+    # a buy early on. The Portfolio checks the reconciliation identity at
+    # EVERY mark_to_market — 48 exact checks; any drift raises.
+    from chronos.hephaestus.broker import Broker, BrokerConfig
+    from chronos.hephaestus.costs import FixedBpsCostModel
+    from chronos.hephaestus.portfolio import Portfolio
+
+    portfolio = Portfolio(Decimal("10000"))
+    broker = Broker(FixedBpsCostModel(), portfolio, BrokerConfig())
+    out = _execute({"BTC/USDT": hourly_frame(48)}, Timeframe.H1,
+                   BuyOnceStrategy(qty=Decimal("0.4")), broker, portfolio, CONFIG)
+    assert len(out.fills) == 1
+    assert out.bars_processed == 48  # every bar marked; identity held 48 times
+    assert any("provisional_cost_constants" in w for w in out.warnings)
+    # Costs itemized on the fill and accumulated in the ledger:
+    assert portfolio.fees_paid == out.fills[0].fee
+    assert portfolio.slippage_paid == out.fills[0].slippage_cost
+
+
 def test_loop_runs_end_to_end_on_oceanus_served_data(tmp_path):
     # Through the real one door: get_bars() backed by the fake exchange.
     from chronos.oceanus.access import get_bars
