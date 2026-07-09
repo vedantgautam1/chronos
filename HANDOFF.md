@@ -1,6 +1,6 @@
 # HANDOFF
 
-## HEPHAESTUS (engine) — status: IN BUILD (Phase 0 complete)
+## HEPHAESTUS (engine) — status: BUILD COMPLETE, awaiting dev+quant review
 
 **2026-07-08.** The developer is confirmed as operator/reviewer of this
 build (brief working rule 1). All spec §13 founder decisions are resolved:
@@ -217,6 +217,91 @@ milestone proves the instrument, not the idea. Note the run's
 `core_version` carries `-dirty` (milestone files were uncommitted when
 it ran) — the honesty mechanism working as designed; re-run after this
 commit for a clean SHA.
+
+### FOR THE QUANT — everything needed to start the Moirai
+
+**The `BacktestResult` contract, exactly as built** (`hephaestus/types.py`):
+
+| Field | Type | Notes |
+|---|---|---|
+| run_id | str | `{trial:06d}-{hypothesis_id}`, deterministic |
+| core_version | str | git SHA, `-dirty` suffix if uncommitted changes |
+| config_hash | str | sha256 of canonical RunConfig serialization |
+| data_snapshot_hash | str | Oceanus content hash of the exact bars used |
+| seed | int | the run's single RNG seed |
+| bars_processed | int | |
+| date_range | (datetime, datetime) | the requested [start, end), UTC |
+| symbols | tuple[str, ...] | Stage 0: length 1 |
+| timeframe | str | e.g. "1h" |
+| trades | tuple[Fill, ...] | Fill: order_id, symbol, side, qty_filled (Decimal), price (Decimal, cost-adjusted), fee / slippage_cost / spread_cost (Decimal, itemized), bar_time (UTC) |
+| order_events | tuple[OrderEvent, ...] | REJECTED / EXPIRED / REMAINDER_CANCELLED, with reasons — the full story of unexecuted intent |
+| equity_curve | pd.Series float64 | indexed by bar open_time (UTC), marked at close |
+| returns | pd.Series float64 | simple returns from equity, first bar = 0.0, derived ONCE (`returns_from_equity`) — do not recompute differently |
+| cost_summary | CostSummary | fees / slippage / spread Decimals + `.total` |
+| warnings | tuple[str, ...] | non-promotable flags, provisional-cost flag |
+| hypothesis_id, trial_index | str, int | the I8 / I6 links |
+
+`serialize_result(result)` is the canonical wall-clock-free JSON;
+`determinism_view(serialized)` strips run_id/trial_index — the only two
+fields that legitimately differ between runs at identical coordinates.
+
+**Walk-forward recipe** (what spec §10 promises you): one
+`run_experiment` call per window, same strategy, sub-range config.
+Windows share a hypothesis; every window is a separately counted,
+separately recorded trial:
+
+```python
+from dataclasses import replace
+for win_start, win_end in windows:
+    cfg = replace(base_config, start=win_start, end=win_end)
+    record = run_experiment(strategy, cfg, hypothesis)
+```
+
+Oceanus serves sub-ranges from its disk cache after the first fetch, so
+window re-runs cost no network. **Cost sensitivity** (mandatory, R6):
+
+```python
+stressed = replace(base_config, cost=CostConfig(
+    taker_fee_bps=Decimal("20"), slippage_bps=Decimal("20"),
+    half_spread_bps=Decimal("2")))   # 2x baseline; likewise 5x
+```
+
+**Moirai sufficiency check (spec §10):** walk-forward → cheap sub-range
+re-invocation ✓; cost-sensitivity → cost params exposed in RunConfig ✓;
+Deflated Sharpe → persistent trial counter + per-bar returns ✓; regime
+decomposition → timestamps on every fill, event, and equity point ✓.
+Anything missing: file it against this section.
+
+**External facts verified during the build** (working rule 6):
+- Binance spot fees 0.100%/0.100% (VIP-0, no BNB discount assumed) —
+  binance.com/en/fee/trading, retrieved 2026-07-08
+  (`configs/binance_fees.md`).
+- ccxt semantics verified against installed 4.5.64 plus live calls
+  (fetch_ohlcv pagination, fetch_time).
+- Binance/Coinbase/OKX public endpoints probed live from this machine.
+
+**Known limitations (consolidated):**
+- Spread is a modeled 1 bp half-spread (no order book at bar
+  granularity); slippage a provisional flat 10 bps (R6 — awaits real
+  Stage-2 fills). Every result carries the warning until measured.
+- Taker fee charged on ALL fills, including resting limits (conservative).
+- Spot-only, long-only, single venue; multi-symbol runs require
+  identical bar timestamps (refused otherwise, never aligned).
+- No intra-bar path modeling: fills at opens (market) or limit prices
+  (trade-through); a bar's internal sequence is unknowable from OHLCV.
+- Participation cap 5% of bar volume by default; unfilled remainders
+  cancel — no order state carries between bars.
+- Equity marked at closes only; intra-bar drawdown is invisible.
+- `records/` is a local stub: deleting it resets the trial counter;
+  single-process, no locking. Real Mnemosyne owns durability later.
+- CI workflow exists; required-check enforcement needs branch
+  protection once the repo is pushed to GitHub.
+
+**Decisions awaiting your sign-off** (detailed in the phase notes above):
+the fees-only reconciliation convention; the basis-apportionment
+cancellation and `LEDGER_QUANTUM = 1E-30`; the returns convention
+(simple, first bar 0); screens-as-non-trials; the 1 bp half-spread
+placeholder; Oceanus's 25% outlier threshold.
 
 ---
 

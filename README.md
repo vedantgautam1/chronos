@@ -1,9 +1,37 @@
 # Chronos
 
 A systematic trading research system, built in components. This repository
-currently contains **Oceanus**, the data layer — complete as a reviewed-ready
-first draft. See [HANDOFF.md](HANDOFF.md) for decisions, open questions, and
-known limitations.
+contains **Oceanus** (the data layer) and **Hephaestus** (the event-driven
+backtesting engine), both complete as review-ready first drafts. See
+[HANDOFF.md](HANDOFF.md) for decisions, open questions, and known
+limitations; [HEPHAESTUS_SPEC.md](HEPHAESTUS_SPEC.md) is the engine's
+contract.
+
+## Hephaestus in one paragraph
+
+An event-driven simulator that walks historical bars in time order,
+exposes strategies only to information available at decision time (the
+bounded `MarketView` — look-ahead is structurally impossible), fills
+orders through a simulated broker with participation caps and a
+never-skippable cost model, keeps an exact Decimal ledger with a
+reconciliation identity checked at every bar, and records every run —
+including crashes — through the sole entry point:
+
+```python
+from chronos.run import Hypothesis, RunConfig, run_experiment
+
+record = run_experiment(strategy, config, hypothesis)  # the only door
+```
+
+No hypothesis, no run. Every run is counted and persisted to
+`records/runs.jsonl` with full reproducibility coordinates (code SHA,
+config hash, data snapshot hash, seed). The invariant probes in
+`tests/hephaestus/invariants/` are the engine's definition of "cannot
+lie." Run the end-to-end milestone:
+
+```sh
+uv run python scripts/run_milestone.py
+```
 
 ## What Oceanus is
 
