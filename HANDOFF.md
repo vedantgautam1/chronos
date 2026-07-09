@@ -86,6 +86,29 @@ Broker calls the quant should audit:
 - **Fills never price outside the bar's range** and never against zero
   volume; sells don't check cash (proceeds only add).
 
+**Phase 4 (2026-07-08):** `costs.py` — the real `FixedBpsCostModel`
+replaces the passthrough. The passthrough CLASS is gone entirely: probe
+runs use the same model with zero parameters (`ZERO_COSTS`), which is
+the spec's exact intent — no zero-cost path, only zero-cost parameters.
+9 tests with hand-derived Decimal-exact expectations. Reviewer notes:
+- **Fees verified at build time** (rule 6): Binance spot VIP-0 = 0.100%
+  maker / 0.100% taker, retrieved 2026-07-08 from binance.com/en/fee/trading
+  — full record in `configs/binance_fees.md`. BNB discount NOT assumed.
+- **Taker is charged on every fill including limit fills** (conservative:
+  maker ≤ taker on all published tiers). Maker bps sit in config unused,
+  documented for the future.
+- **Cost anatomy of a fill:** exec price = base ± (slippage + half-spread)
+  per unit, adverse direction always (buys pay more, sells receive less);
+  fee = taker bps on executed notional. All itemized on the Fill.
+- **Provisional constants (R6):** slippage 10 bps (founder), half-spread
+  1 bp (my placeholder — quant should sanity-check). Both are configured
+  guesses; the `provisional_cost_constants` warning is stamped through
+  broker → engine → result automatically. `funding()` raises (spot-only).
+- **No-bypass is enforced statically:** a test AST-parses broker.py and
+  asserts Fill is constructed in exactly one place and `cost_model` has
+  no default. Plus the counting-spy test: every fill calls fee, slippage,
+  and spread exactly once.
+
 ---
 
 # HANDOFF — Oceanus

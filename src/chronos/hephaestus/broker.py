@@ -68,11 +68,14 @@ class Broker:
         self._costs = cost_model
         self._portfolio = portfolio
         self._config = config
-        self.warnings: tuple[str, ...] = (
+        # Honesty flags: the broker's own, plus whatever the cost model
+        # declares (e.g. provisional constants). These reach the result.
+        own = (
             ("optimistic_touch_fills enabled: limit orders fill on a touch — "
              "results are flattered and non-promotable",)
             if config.optimistic_touch_fills else ()
         )
+        self.warnings: tuple[str, ...] = own + tuple(getattr(cost_model, "warnings", ()))
 
     def process(
         self, orders: list[Order], bars_at_t: Mapping[str, pd.Series]

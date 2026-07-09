@@ -11,7 +11,7 @@ import pandas as pd
 import pytest
 
 from chronos.hephaestus.broker import Broker, BrokerConfig
-from chronos.hephaestus.costs import PassthroughCostModel
+from chronos.hephaestus.costs import ZERO_COSTS, FixedBpsCostModel
 from chronos.hephaestus.types import Order, OrderEventKind, OrderType, Side
 
 from .scaffolding import StubPortfolio
@@ -27,7 +27,7 @@ def bar(open_=100.0, high=110.0, low=90.0, close=105.0, volume=10.0) -> pd.Serie
 def make_broker(cash="10000", holdings=None, config=BrokerConfig(), costs=None):
     portfolio = StubPortfolio(Decimal(cash))
     portfolio.qty.update(holdings or {})
-    return Broker(costs or PassthroughCostModel(), portfolio, config)
+    return Broker(costs or FixedBpsCostModel(ZERO_COSTS), portfolio, config)
 
 
 def market(qty, side=Side.BUY, oid=1):
@@ -121,8 +121,9 @@ def test_selling_more_than_held_rejects_no_shorting():
 
 
 def test_every_fill_passes_through_the_cost_model():
-    class CountingCosts(PassthroughCostModel):
+    class CountingCosts(FixedBpsCostModel):
         def __init__(self):
+            super().__init__(ZERO_COSTS)
             self.calls = {"fee": 0, "slippage": 0, "spread": 0}
 
         def fee(self, side, notional):
