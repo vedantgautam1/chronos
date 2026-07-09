@@ -190,6 +190,21 @@ between runs (I6 requires it), so the byte-compare uses
 `determinism_view()` — the serialized result minus exactly those two
 bookkeeping fields. Everything else must be byte-identical.
 
+**Phase 8 (2026-07-08):** `screener.py` — vectorized MA-crossover sweep,
+UNTRUSTED banner, `screen_only_never_promote()`. Shares cost parameters
+as a flat per-side fraction charged on every position change; signals
+shift one bar (even the crude path avoids same-bar leakage). Verdicts:
+degenerate / never-trades / loses-after-costs / "MAY deserve a real
+engine run — not evidence of anything." `ScreenVerdict` is type-level
+quarantined (cannot pass where BacktestResult is expected; test).
+Screens log as `type: "screen"` events and do NOT advance the trial
+counter. 6 tests. 280-pair sweep over 720 real bars: 0.06s.
+- **PENDING QUANT DECISION:** screens-as-non-trials is implemented per
+  the spec's recommendation (only full evaluations feed selection). The
+  conservative alternative — counting screens in the DSR trial count —
+  is a one-line change (call `store.next_trial_index()` per screen).
+  Quant to confirm or overrule; record the outcome here.
+
 ---
 
 # HANDOFF — Oceanus
