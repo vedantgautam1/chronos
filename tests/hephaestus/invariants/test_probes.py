@@ -26,6 +26,7 @@ from chronos.run import (
     RunConfig,
     RunKind,
     determinism_view,
+    register_search,
     run_experiment,
     serialize_result,
 )
@@ -164,11 +165,12 @@ def test_probe_2_no_cost_path_costs_always_bite():
 
 # ---------------------------------------------------------------- probe 3
 def test_probe_3_determinism_byte_identical_results(tmp_path):
-    """I5 — identical (code, config, data snapshot, seed) -> byte-identical
-    serialized results, modulo the trial bookkeeping that I6 requires to
-    advance. Run through the FULL public door, twice."""
+    """I5 — identical (code, config, data snapshot, seed, search-N) ->
+    byte-identical serialized results, modulo the trial bookkeeping that
+    I6 requires to advance. Run through the FULL public door, twice."""
+    store = RecordStore(tmp_path / "records")
+
     def one_run():
-        store = RecordStore(tmp_path / "records")
         fake = FakeExchange(int(START.timestamp() * 1000), n_bars=100)
         cfg = RunConfig(symbol="BTC/USDT", timeframe=Timeframe.H1,
                         start=START, end=START + timedelta(hours=100), seed=13)
@@ -179,8 +181,35 @@ def test_probe_3_determinism_byte_identical_results(tmp_path):
         return serialize_result(record.result)
 
     first, second = one_run(), one_run()
-    assert determinism_view(first) == determinism_view(second)  # byte-equal
+    assert determinism_view(first, store) == determinism_view(second, store)  # byte-equal
     assert first != second  # ONLY because trial bookkeeping advanced (I6)
+
+
+# ------------------------------------------------------- probe 3 (search-N)
+def test_probe_3_different_search_n_is_a_legitimate_difference(tmp_path):
+    """I5's fifth coordinate: two SEARCH-kind runs of the same hypothesis
+    drawn at different points in the same sweep legitimately carry
+    different candidate_n — that is not a determinism failure, it is
+    compute_search_n() correctly advancing as the search grows."""
+    store = RecordStore(tmp_path / "records")
+    hyp = register_search(
+        Hypothesis(id="H-det-search", statement="s", prediction="p"),
+        param_grid_description="toy grid",
+    )
+
+    def run_and_view():
+        fake = FakeExchange(int(START.timestamp() * 1000), n_bars=100)
+        cfg = RunConfig(symbol="BTC/USDT", timeframe=Timeframe.H1,
+                        start=START, end=START + timedelta(hours=100), seed=13)
+        record = run_experiment(ToyMomentum(), cfg, hyp, kind=RunKind.SEARCH,
+                                store=store, data_root=tmp_path / "data", exchange=fake)
+        return determinism_view(serialize_result(record.result), store)
+
+    first_view = run_and_view()   # one SEARCH run so far -> candidate_n == 1
+    second_view = run_and_view()  # two SEARCH runs so far -> candidate_n == 2
+    assert '"candidate_n":1' in first_view
+    assert '"candidate_n":2' in second_view
+    assert first_view != second_view  # legitimate: different search-N, not a bug
 
 
 # ---------------------------------------------------------------- probe 4

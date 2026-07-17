@@ -330,6 +330,24 @@ search points from standalone runs) — that remains open, as recorded
 above; `kind`/`compute_search_n()` is a narrower, additive fix scoped
 to what DSR's N specifically needs.
 
+**2026-07-17 — I5 expanded from four coordinates to five: candidate_n
+joins the reproducibility tuple.** `determinism_view()` used to strip
+`trial_index` and compare everything else byte-for-byte. That is no
+longer sufficient now that the gauntlet exists: `trial_index` feeds
+DSR (via `compute_search_n()`), and `trial_index` legitimately differs
+between two runs that are otherwise identical. `determinism_view()` now
+takes the `RecordStore` and adds a `candidate_n` field — the value
+`compute_search_n()` reports for that result's `hypothesis_id` at the
+moment the view is taken — before comparing. Two runs are the same
+determinism claim iff they share (core git SHA, config hash, data
+snapshot hash, seed, candidate_n). A difference in candidate_n is not
+flagged as a determinism failure by this probe; it is the correct,
+separate signal that the two runs were drawn from searches of
+different breadth. Probe 3 (`test_probes.py`) now asserts both: same
+five coordinates -> byte-identical view; a search advancing between
+two SEARCH-kind runs of the same hypothesis -> differing candidate_n,
+acknowledged as legitimate, not raised as a failure.
+
 ---
 
 # HANDOFF — Oceanus

@@ -9,7 +9,9 @@ The seam of Chronos: hypothesis in → engine executes → record persisted →
 - I3: a record is written on EVERY exit path (try/finally); a crash
   yields a persisted ERRORED record, then the exception propagates.
 - I5: every record carries the full reproducibility coordinates —
-  core git SHA, config hash, Oceanus data snapshot hash, seed.
+  core git SHA, config hash, Oceanus data snapshot hash, seed, and
+  candidate_n (the search-breadth compute_search_n() reports for this
+  hypothesis_id) — five coordinates, not four.
 
 Data enters exclusively through chronos.oceanus.access (the one door).
 """
@@ -277,15 +279,25 @@ def serialize_result(result: BacktestResult) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
 
-def determinism_view(serialized_result: str) -> str:
+def determinism_view(serialized_result: str, store: RecordStore) -> str:
     """The byte-compare form for the determinism probe (I5).
+
+    I5's coordinates are FIVE, not four: core git SHA, config hash, data
+    snapshot hash, seed — and candidate_n, the search-breadth
+    compute_search_n() would report for this result's hypothesis_id
+    right now. Two runs are the same determinism claim only if they
+    share all five. A different candidate_n is not a determinism
+    failure — it is an honest difference in which search a candidate
+    was drawn from (see SESSION_FINDINGS.md; HANDOFF.md 2026-07-17).
 
     run_id and trial_index advance on every run BY DESIGN (I6: every
     trial counted) — they are bookkeeping, not result content. Everything
-    else must be byte-identical across runs with identical coordinates."""
+    else, including candidate_n, must be byte-identical across runs
+    with identical coordinates."""
     payload = json.loads(serialized_result)
     payload.pop("run_id")
     payload.pop("trial_index")
+    payload["candidate_n"] = compute_search_n(payload["hypothesis_id"], store)
     return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
 
