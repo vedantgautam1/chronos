@@ -81,6 +81,13 @@ class RunConfig:
     optimistic_touch_fills: bool = False
     unsafe_same_bar_fill: bool = False
     cost: CostConfig = field(default_factory=CostConfig)
+    # I9: when the Moirai exists, changing a gauntlet threshold is a
+    # protected-path commit requiring full CI plus human review, and it
+    # invalidates every prior verdict stamped with the old hash —
+    # visibly, the way core_version already does. The enforcement
+    # mechanism lives in the Moirai, not here; this field is the anchor
+    # point.
+    gauntlet_config_hash: str | None = None
 
 
 class RunStatus(str, Enum):
@@ -203,6 +210,7 @@ def run_experiment(
             "status": status.value, "kind": kind.value, "error": error,
             "hypothesis_id": hypothesis.id,
             "core_version": core_version, "config_hash": config_hash,
+            "gauntlet_config_hash": config.gauntlet_config_hash,
             "data_snapshot_hash": data_hash, "seed": config.seed,
             "config": _canonical(config),
             "started_at": started_at.isoformat(),

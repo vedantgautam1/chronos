@@ -348,6 +348,18 @@ five coordinates -> byte-identical view; a search advancing between
 two SEARCH-kind runs of the same hypothesis -> differing candidate_n,
 acknowledged as legitimate, not raised as a failure.
 
+**2026-07-17 — I9 proposed: gauntlet_config_hash anchor field.**
+`RunConfig` gains an optional `gauntlet_config_hash: str | None = None`,
+persisted on every 'run' record alongside `config_hash`. This is
+purely an anchor point, not enforcement: when the Moirai (the judge)
+exists, changing a gauntlet threshold becomes a protected-path commit
+requiring full CI plus human review, and it must visibly invalidate
+every prior verdict stamped with the old hash — the same way
+`core_version` already does for engine-code changes. Nothing in
+run.py enforces that yet; this field just gives the Moirai something
+to stamp and compare against once it exists. Purely additive: default
+`None` means every existing `RunConfig(...)` call site is unchanged.
+
 ---
 
 # HANDOFF — Oceanus
