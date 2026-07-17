@@ -9,7 +9,7 @@ import pytest
 from chronos.hephaestus.types import Side
 from chronos.mnemosyne.stub import RecordStore
 from chronos.oceanus.model import Timeframe
-from chronos.run import Hypothesis, RunConfig, RunStatus, run_experiment
+from chronos.run import Hypothesis, RunConfig, RunKind, RunStatus, run_experiment
 from chronos.strategies.ma_crossover import MACrossover
 from tests.oceanus.test_ingest import FakeExchange
 
@@ -39,6 +39,7 @@ def test_crossover_buys_on_golden_cross_and_sells_on_death_cross(tmp_path):
     record = run_experiment(
         MACrossover(), milestone_config(),
         Hypothesis(id="H-x", statement="s", prediction="p"),
+        kind=RunKind.VERIFICATION,
         store=RecordStore(tmp_path / "records"),
         data_root=tmp_path / "data", exchange=TrendingFake())
     trades = record.result.trades
@@ -57,6 +58,7 @@ def test_milestone_end_to_end_record_complete(tmp_path):
     record = run_experiment(
         MACrossover(), milestone_config(),
         Hypothesis(id="H-milestone-test", statement="s", prediction="p"),
+        kind=RunKind.VERIFICATION,
         store=store, data_root=tmp_path / "data", exchange=TrendingFake())
 
     assert record.status is RunStatus.COMPLETED
@@ -77,6 +79,7 @@ def test_strategy_waits_for_enough_history(tmp_path):
     record = run_experiment(
         MACrossover(), milestone_config(n_hours=19),
         Hypothesis(id="H-warmup", statement="s", prediction="p"),
+        kind=RunKind.VERIFICATION,
         store=RecordStore(tmp_path / "records"),
         data_root=tmp_path / "data", exchange=TrendingFake())
     assert not record.result.trades
@@ -90,5 +93,6 @@ def test_bad_params_fail_loudly(tmp_path):
     with pytest.raises(ValueError, match="fast < slow"):
         run_experiment(MACrossover(), cfg,
                        Hypothesis(id="H-bad", statement="s", prediction="p"),
+                       kind=RunKind.VERIFICATION,
                        store=RecordStore(tmp_path / "records"),
                        data_root=tmp_path / "data", exchange=TrendingFake())

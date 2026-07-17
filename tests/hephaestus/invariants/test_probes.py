@@ -24,6 +24,7 @@ from chronos.oceanus.model import BAR_COLUMNS, Timeframe
 from chronos.run import (
     Hypothesis,
     RunConfig,
+    RunKind,
     determinism_view,
     run_experiment,
     serialize_result,
@@ -173,6 +174,7 @@ def test_probe_3_determinism_byte_identical_results(tmp_path):
                         start=START, end=START + timedelta(hours=100), seed=13)
         record = run_experiment(ToyMomentum(), cfg,
                                 Hypothesis(id="H-det", statement="s", prediction="p"),
+                                kind=RunKind.VERIFICATION,
                                 store=store, data_root=tmp_path / "data", exchange=fake)
         return serialize_result(record.result)
 
@@ -199,6 +201,7 @@ def test_probe_4_logging_no_unlogged_execution(tmp_path):
     with pytest.raises(RuntimeError, match="probe crash"):
         run_experiment(Crasher(), cfg,
                        Hypothesis(id="H-log", statement="s", prediction="p"),
+                       kind=RunKind.VERIFICATION,
                        store=store, data_root=tmp_path / "data", exchange=fake)
     runs = [r for r in store.read_all() if r["type"] == "run"]
     assert runs and runs[0]["status"] == "ERRORED"
@@ -216,6 +219,7 @@ def test_probe_5_every_trial_counted(tmp_path):
         fake = FakeExchange(int(START.timestamp() * 1000), n_bars=50)
         return run_experiment(strategy, cfg,
                               Hypothesis(id="H-count", statement="s", prediction="p"),
+                              kind=RunKind.VERIFICATION,
                               store=store, data_root=tmp_path / "data", exchange=fake)
 
     attempt(ToyMomentum())

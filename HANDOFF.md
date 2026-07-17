@@ -303,6 +303,33 @@ cancellation and `LEDGER_QUANTUM = 1E-30`; the returns convention
 (simple, first bar 0); screens-as-non-trials; the 1 bp half-spread
 placeholder; Oceanus's 25% outlier threshold.
 
+**2026-07-17 — SEARCH vs VERIFICATION run kind, and the N-ontology fix
+it enables.** `run_experiment()` now takes a required `kind: RunKind`
+argument (`SEARCH` or `VERIFICATION`), persisted on every 'run' record.
+This does NOT touch the execution counter in `trial_counter.txt` — that
+stays exactly as it was, still counting every execution (I6), still
+conflating search points and standalone runs the same way it always
+has. `kind` is a separate, narrower label read only by the new
+`compute_search_n(hypothesis_id, store)`, which counts `SEARCH`-kind
+records sharing a hypothesis_id — giving DSR the honest N for a
+candidate pulled from a search (see `SESSION_FINDINGS.md` for the
+concrete N=1-vs-N=280 case, fast=25/slow=60, that motivated this).
+`register_search(hypothesis, param_grid_description)` is the companion
+helper: call it once before a sweep, reuse the returned Hypothesis
+across every call in that search, and the grid shape gets persisted
+into every 'hypothesis' record alongside statement/prediction.
+
+**Records 1–284 predate this distinction and carry no `kind` field at
+all — do not backfill or guess one for them.** They are legacy: written
+before `SEARCH`/`VERIFICATION` existed, and `compute_search_n()`
+already excludes them correctly (a missing `kind` never matches
+`RunKind.SEARCH.value`). Treat them as un-labeled history, not as data
+to retrofit. This does not resolve the broader I6 trial-ontology
+question (the execution counter itself still does not distinguish
+search points from standalone runs) — that remains open, as recorded
+above; `kind`/`compute_search_n()` is a narrower, additive fix scoped
+to what DSR's N specifically needs.
+
 ---
 
 # HANDOFF — Oceanus

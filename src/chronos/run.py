@@ -17,7 +17,7 @@ Data enters exclusively through chronos.oceanus.access (the one door).
 import hashlib
 import json
 import subprocess
-from dataclasses import asdict, dataclass, field, is_dataclass
+from dataclasses import asdict, dataclass, field, is_dataclass, replace
 from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum
@@ -48,11 +48,19 @@ class Hypothesis:
     id: str  # e.g. "H-001-ma-crossover"
     statement: str  # what you believe and why it might be true
     prediction: str  # what result would support it — stated in advance
+    # Set only via register_search(): the grid shape of a parameter
+    # search (e.g. "fast in range(5,55,5) x slow in range(60,200,5)").
+    # None for a standalone, non-search hypothesis. Persisted verbatim
+    # in every 'hypothesis' record so a reader auditing a search sees
+    # the grid on the record itself, not in the script that produced it.
+    param_grid_description: str | None = None
 
     def __post_init__(self) -> None:
         for name in ("id", "statement", "prediction"):
             if not getattr(self, name).strip():
                 raise ValueError(f"hypothesis {name} must be non-empty")
+        if self.param_grid_description is not None and not self.param_grid_description.strip():
+            raise ValueError("param_grid_description must be non-empty or None")
 
 
 @dataclass(frozen=True)
@@ -78,6 +86,31 @@ class RunStatus(str, Enum):
     ERRORED = "ERRORED"
 
 
+class RunKind(str, Enum):
+    """What kind of execution this is — NOT an audit count (the
+    execution counter in trial_counter.txt is unchanged and unrelated).
+    This is the semantic label compute_search_n() reads to determine
+    DSR's N: how many executions genuinely belong to the SAME search
+    over the SAME hypothesis family, versus one standalone pre-
+    registered run.
+
+    SEARCH        — one point in a parameter sweep over one hypothesis
+                    family (e.g. the 280-point MA sweep). Counted by
+                    compute_search_n() per hypothesis_id.
+    VERIFICATION  — a standalone, pre-registered run: one hypothesis,
+                    no preceding search over it (e.g. trial #4).
+
+    See SESSION_FINDINGS.md for the concrete N=1 vs N=280 case that
+    motivated this distinction, and HANDOFF.md for the open I6
+    trial-ontology question this does NOT resolve (the execution
+    counter still conflates every run; this is a separate, narrower
+    label read only by compute_search_n()).
+    """
+
+    SEARCH = "SEARCH"
+    VERIFICATION = "VERIFICATION"
+
+
 @dataclass(frozen=True)
 class RunRecord:
     """What run_experiment returns and what the store persists."""
@@ -85,6 +118,7 @@ class RunRecord:
     run_id: str
     trial_index: int
     status: RunStatus
+    kind: RunKind
     hypothesis: Hypothesis
     result: BacktestResult | None  # None iff ERRORED
     error: str | None
@@ -94,6 +128,7 @@ def run_experiment(
     strategy: Strategy,
     config: RunConfig,
     hypothesis: Hypothesis,
+    kind: RunKind,
     store: RecordStore | None = None,
     data_root=None,  # internal: overridden only by tests
     exchange=None,  # internal: overridden only by tests
@@ -155,7 +190,7 @@ def run_experiment(
             hypothesis_id=hypothesis.id, trial_index=trial_index,
         )
         status = RunStatus.COMPLETED
-        return RunRecord(run_id, trial_index, status, hypothesis, result, None)
+        return RunRecord(run_id, trial_index, status, kind, hypothesis, result, None)
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
         raise  # the caller must see the failure — but the record persists
@@ -163,7 +198,7 @@ def run_experiment(
         # I3: a record on every exit path, success or crash alike.
         store.append({
             "type": "run", "run_id": run_id, "trial_index": trial_index,
-            "status": status.value, "error": error,
+            "status": status.value, "kind": kind.value, "error": error,
             "hypothesis_id": hypothesis.id,
             "core_version": core_version, "config_hash": config_hash,
             "data_snapshot_hash": data_hash, "seed": config.seed,
@@ -172,6 +207,50 @@ def run_experiment(
             "finished_at": datetime.now(timezone.utc).isoformat(),
             "result": None if result is None else json.loads(serialize_result(result)),
         })
+
+
+def register_search(base_hypothesis: Hypothesis, param_grid_description: str) -> Hypothesis:
+    """Explicit marker for a parameter search: call this ONCE before
+    sweeping and reuse the returned Hypothesis across every
+    run_experiment() call in that search — so the search is genuinely
+    one hypothesis family on the record, not N separate beliefs.
+
+    Returns a NEW Hypothesis with `param_grid_description` attached
+    (Hypothesis is frozen, so this cannot mutate base_hypothesis in
+    place — dataclasses.replace() builds the new instance). The
+    description is then persisted verbatim in every 'hypothesis' record
+    this Hypothesis is used with, alongside statement and prediction —
+    a future reader auditing the sweep sees the grid shape on the
+    record itself, not in the script that produced it.
+    """
+    return replace(base_hypothesis, param_grid_description=param_grid_description)
+
+
+def compute_search_n(hypothesis_id: str, store: RecordStore) -> int:
+    """The honest DSR search-breadth N for a candidate drawn from a
+    search: the count of 'run'-type records with kind == SEARCH sharing
+    this hypothesis_id. NOT a live counter — derived by re-reading the
+    store, so it always reflects exactly what was actually searched.
+
+    LEGACY NOTE: records written before this `kind` field existed
+    (trials 1-284, predating this change, 2026-07-17) have no 'kind' key
+    at all — record.get('kind') is None for them, which never matches
+    RunKind.SEARCH.value, so they are silently and correctly excluded.
+    Do NOT backfill or guess a kind for those records; they predate the
+    SEARCH/VERIFICATION distinction and must be treated as legacy, not
+    retrofitted into this accounting. See SESSION_FINDINGS.md and
+    HANDOFF.md.
+    """
+    n = 0
+    for record in store.read_all():
+        if record.get("type") != "run":
+            continue
+        if record.get("kind") != RunKind.SEARCH.value:
+            continue
+        if record.get("hypothesis_id") != hypothesis_id:
+            continue
+        n += 1
+    return n
 
 
 def serialize_result(result: BacktestResult) -> str:

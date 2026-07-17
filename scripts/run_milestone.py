@@ -21,7 +21,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from chronos.oceanus.model import Timeframe
-from chronos.run import DEFAULT_RECORDS_DIR, Hypothesis, RunConfig, run_experiment
+from chronos.run import DEFAULT_RECORDS_DIR, Hypothesis, RunConfig, RunKind, run_experiment
 from chronos.strategies.ma_crossover import MACrossover
 
 HYPOTHESIS = Hypothesis(
@@ -55,7 +55,7 @@ def main() -> None:
     print(f"\nHypothesis {HYPOTHESIS.id} registered BEFORE execution:")
     print(f"  {HYPOTHESIS.prediction}\n")
 
-    record = run_experiment(MACrossover(), CONFIG, HYPOTHESIS)
+    record = run_experiment(MACrossover(), CONFIG, HYPOTHESIS, kind=RunKind.VERIFICATION)
     result = record.result
 
     initial = float(CONFIG.initial_cash)

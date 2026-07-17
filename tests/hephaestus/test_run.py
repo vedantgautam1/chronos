@@ -9,7 +9,7 @@ import pytest
 from chronos.hephaestus.engine import _execute
 from chronos.mnemosyne.stub import RecordStore
 from chronos.oceanus.model import Timeframe
-from chronos.run import Hypothesis, RunConfig, RunStatus, run_experiment
+from chronos.run import Hypothesis, RunConfig, RunKind, RunStatus, run_experiment
 from tests.oceanus.test_ingest import FakeExchange
 
 from .scaffolding import BuyOnceStrategy, DoNothingStrategy
@@ -31,7 +31,7 @@ def run(tmp_path, strategy=None, cfg=None, store=None):
     store = store or RecordStore(tmp_path / "records")
     fake = FakeExchange(int(START.timestamp() * 1000), n_bars=200)
     record = run_experiment(strategy or DoNothingStrategy(), cfg or config(),
-                            HYPOTHESIS, store=store,
+                            HYPOTHESIS, kind=RunKind.VERIFICATION, store=store,
                             data_root=tmp_path / "data", exchange=fake)
     return record, store
 
@@ -43,8 +43,8 @@ class CrashingStrategy:
 
 def test_no_hypothesis_no_run(tmp_path):
     with pytest.raises(TypeError, match="Hypothesis"):
-        run_experiment(DoNothingStrategy(), config(), hypothesis=None,
-                       store=RecordStore(tmp_path))
+        run_experiment(DoNothingStrategy(), config(), kind=RunKind.VERIFICATION,
+                       hypothesis=None, store=RecordStore(tmp_path))
 
 
 def test_empty_hypothesis_fields_are_refused():
