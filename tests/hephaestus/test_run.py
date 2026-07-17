@@ -119,3 +119,25 @@ def test_result_carries_hypothesis_link_and_warnings(tmp_path):
     assert any("provisional_cost_constants" in w for w in record.result.warnings)
     assert len(record.result.trades) == 1
     assert record.result.returns.iloc[0] == 0.0
+
+
+def test_data_quality_warnings_propagate_into_backtest_result(tmp_path):
+    from chronos.oceanus.store import store_dir
+    from tests.oceanus.test_store import make_bars
+
+    folder = store_dir("BTC/USDT", Timeframe.H1, root=tmp_path / "data")
+    folder.mkdir(parents=True)
+    bars = make_bars(48)
+    with_gap = bars.drop(index=10)
+    with_gap.to_parquet(folder / "v0001.parquet", index=False)
+
+    store = RecordStore(tmp_path / "records")
+    record = run_experiment(
+        DoNothingStrategy(),
+        config(n_hours=48),
+        HYPOTHESIS,
+        kind=RunKind.VERIFICATION,
+        store=store,
+        data_root=tmp_path / "data",
+    )
+    assert any("data-quality/gap" in w for w in record.result.warnings)

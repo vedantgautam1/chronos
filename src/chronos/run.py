@@ -163,10 +163,12 @@ def run_experiment(
         "hypothesis": asdict(hypothesis), "registered_at": started_at.isoformat(),
     })
 
+    data_warnings: list[str] = []
     status, error, result, data_hash = RunStatus.ERRORED, None, None, None
     try:
         bars = get_bars(config.symbol, config.timeframe, config.start, config.end,
-                        root=data_root, exchange=exchange)
+                        root=data_root, exchange=exchange,
+                        warnings_collector=data_warnings)
         data_hash = snapshot_hash(bars)
 
         portfolio = Portfolio(config.initial_cash)
@@ -195,7 +197,7 @@ def run_experiment(
             cost_summary=CostSummary(fees=portfolio.fees_paid,
                                      slippage=portfolio.slippage_paid,
                                      spread=portfolio.spread_paid),
-            warnings=out.warnings,
+            warnings=out.warnings + tuple(data_warnings),
             hypothesis_id=hypothesis.id, trial_index=trial_index,
         )
         status = RunStatus.COMPLETED

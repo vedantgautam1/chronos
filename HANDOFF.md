@@ -360,6 +360,18 @@ run.py enforces that yet; this field just gives the Moirai something
 to stamp and compare against once it exists. Purely additive: default
 `None` means every existing `RunConfig(...)` call site is unchanged.
 
+**2026-07-17 — Oceanus data-quality warnings now structured and
+propagated into run records (I3 gap closed).** `get_bars()` gains an
+optional `warnings_collector: list | None = None` parameter. When
+provided, soft data-quality notices (gaps, outliers) are appended as
+structured strings (`[data-quality/gap] ...`) instead of printed to
+stdout. `run_experiment()` passes a collector and merges the results
+into `BacktestResult.warnings` alongside the existing engine honesty
+flags. Without a collector (every existing call site), behavior is
+unchanged — warnings still print, preserving interactive script use.
+This closes the I3 gap: a 600-run sweep now has data-quality facts on
+the record, not scrolling past in a terminal nobody watches.
+
 ---
 
 # HANDOFF — Oceanus

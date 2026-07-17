@@ -60,6 +60,7 @@ def get_bars(
     snapshot: str | None = None,
     seal_token: FinalEvaluationToken | None = None,
     seal_registry: SealRegistry | None = None,  # internal: overridden only by tests
+    warnings_collector: list | None = None,
     root=None,  # internal: overridden only by tests
     exchange=None,  # internal: overridden only by tests
 ) -> DataFrame:
@@ -125,8 +126,12 @@ def get_bars(
             "questionable data and never fixes it silently."
         )
     if soft:
-        print(f"  [access] note: {len(soft)} data fact(s) in this range "
-              f"({', '.join(sorted({i.kind for i in soft}))}) — run validate() for details")
+        for issue in soft:
+            msg = f"[data-quality/{issue.kind}] {issue.message}"
+            if warnings_collector is not None:
+                warnings_collector.append(msg)
+            else:
+                print(f"  [access] note: {msg}")
 
     if snapshot is not None:
         actual = snapshot_hash(bars)

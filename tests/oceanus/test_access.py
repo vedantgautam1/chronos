@@ -101,3 +101,19 @@ def test_get_bars_rejects_naive_datetimes(tmp_path):
     with pytest.raises(ValueError, match="naive"):
         get_bars("BTC/USDT", Timeframe.H1, datetime(2026, 1, 1), START + timedelta(hours=5),
                  root=tmp_path, exchange=fake)
+
+
+def test_gap_warnings_are_collected_not_just_printed(tmp_path):
+    folder = store_dir("BTC/USDT", Timeframe.H1, root=tmp_path)
+    folder.mkdir(parents=True)
+    bars = make_bars(24)
+    with_gap = bars.drop(index=5)
+    with_gap.to_parquet(folder / "v0001.parquet", index=False)
+
+    collector: list[str] = []
+    served = get_bars("BTC/USDT", Timeframe.H1, START, START + timedelta(hours=24),
+                      root=tmp_path, warnings_collector=collector)
+    assert len(served) == 23
+    assert len(collector) == 1
+    assert "gap" in collector[0]
+    assert "data-quality" in collector[0]
