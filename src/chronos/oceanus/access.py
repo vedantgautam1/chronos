@@ -24,6 +24,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from pandas import DataFrame
 
 from chronos.oceanus.model import Timeframe
+from chronos.oceanus.seal import FinalEvaluationToken, SealRegistry
 from chronos.oceanus.store import get_range, snapshot_hash
 from chronos.oceanus.validate import validate
 
@@ -35,6 +36,11 @@ SOFT_NOTICES = {"gap", "outlier"}
 
 class DataIntegrityError(Exception):
     """Raised when a requested range contains data that failed validation."""
+
+
+class SealedDataError(DataIntegrityError):
+    """Raised when a requested range overlaps a sealed holdout (invariant
+    I4) and no FinalEvaluationToken was supplied."""
 
 
 # First version of the tradeable universe: which symbols exist as of a
@@ -52,6 +58,8 @@ def get_bars(
     start: datetime,
     end: datetime,
     snapshot: str | None = None,
+    seal_token: FinalEvaluationToken | None = None,
+    seal_registry: SealRegistry | None = None,  # internal: overridden only by tests
     root=None,  # internal: overridden only by tests
     exchange=None,  # internal: overridden only by tests
 ) -> DataFrame:
@@ -61,6 +69,11 @@ def get_bars(
     data must hash to exactly that value — otherwise the data has changed
     (e.g. the exchange restated a candle) and we raise rather than let a
     result silently stop being reproducible.
+
+    Sealed ranges (invariant I4): if [start, end) overlaps a range sealed
+    via SealRegistry.seal(), the door refuses with SealedDataError unless
+    a FinalEvaluationToken is supplied — meant for exactly one,
+    pre-registered final evaluation. Access with a token is logged.
     """
     # The door validates its OWN inputs first, so a bad request fails with
     # a clear message instead of crashing deeper down (e.g. comparing a
@@ -72,6 +85,27 @@ def get_bars(
             raise ValueError(f"{name} is not UTC: {moment}. Pass timestamps in UTC.")
     if start >= end:
         raise ValueError(f"start ({start}) must be before end ({end})")
+
+    # I4: check authorization BEFORE touching disk/network — a sealed
+    # range must be unreachable, not merely "returns an error after the
+    # fact." No token needed for anything that doesn't overlap a seal.
+    registry = seal_registry or SealRegistry()
+    if registry.is_sealed(symbol, timeframe, start, end):
+        if seal_token is None:
+            overlaps = registry.overlapping(symbol, timeframe, start, end)
+            details = "\n".join(
+                f"  [sealed {r.sealed_at.isoformat()}] {r.start} → {r.end}  reason: {r.reason}"
+                for r in overlaps
+            )
+            raise SealedDataError(
+                f"Refusing to serve {symbol} {timeframe.value} {start} → {end}: "
+                f"the requested range overlaps {len(overlaps)} sealed range(s):\n{details}\n"
+                "This data is under a holdout seal (invariant I4) and may only be "
+                "accessed with a FinalEvaluationToken — opened once, for the final "
+                "evaluation. Nothing was returned."
+            )
+        print(f"  [access] SEALED DATA ACCESSED for {symbol} {timeframe.value} "
+              f"{start} → {end} — token reason: {seal_token.reason}")
 
     bars = get_range(symbol, timeframe, start, end, root=root, exchange=exchange)
 

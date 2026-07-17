@@ -481,6 +481,18 @@ nothing here is sacred.
   start/end are UTC-aware and start < end up front. Regression test added
   (`test_get_bars_rejects_naive_datetimes`). Also added `scripts/see_data.py`
   (eyeball chart) and `scripts/selftest.py` (10 live PASS/FAIL checks).
+- **Sealed-range registry: invariant I4 fulfilled** (2026-07-17).
+  `SealRegistry` (`oceanus/seal.py`) records holdout ranges that must not
+  be queried outside one pre-registered final evaluation. `get_bars()`
+  refuses any request overlapping a sealed range unless a
+  `FinalEvaluationToken` is supplied, and logs sealed-data access
+  (including the token's reason) when one is. `SealedDataError`
+  subclasses `DataIntegrityError`. The registry defaults to
+  `configs/sealed_ranges.json` (git-tracked, not `data/` which is
+  gitignored and re-derivable) — losing the registry must never silently
+  un-seal a holdout. `SealRegistry.seal()` is strictly additive; there is
+  no remove/unseal method. Fulfills spec §4.4's promise that the sealed
+  holdout (I4) is enforced by the data layer, not left to convention.
 
 ## Open questions / unverified details
 
