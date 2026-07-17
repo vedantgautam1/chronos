@@ -41,11 +41,29 @@ requirements, verified by automated probes (§9):
   The sole public entry point is `run_experiment()`, which writes a record on
   every exit path, including exceptions.
 - **I5 — Determinism.** All randomness flows through one injected, seeded RNG.
-  No global `random`/`np.random` calls anywhere in the engine.
+  No global `random`/`np.random` calls anywhere in the engine. Determinism
+  means: identical (code SHA, config hash, data snapshot hash, seed,
+  candidate search-N) → identical outputs. `candidate_n` is computed by
+  `compute_search_n()` from the record store — a differing search-N
+  between runs is a legitimate difference, not a determinism failure.
 - **I6 — Every trial counted.** `run_experiment()` increments a monotonic
-  trial counter before execution.
+  trial counter before execution. Every execution is logged with a
+  monotonic execution index (unchanged). Additionally, every execution
+  carries a `kind` tag — `SEARCH` (one point in a parameter sweep,
+  counted by `compute_search_n()` toward the DSR's N) or `VERIFICATION`
+  (a standalone pre-registered run, a walk-forward window, a
+  cost-sensitivity re-run — not counted toward N). The distinction
+  cannot be inferred after the fact. See `RunKind` in `run.py` and the
+  2026-07-17 HANDOFF.md entry.
 - **I8 — Hypothesis precedes results.** `run_experiment()` requires a
   pre-registered hypothesis object; results cannot be recorded without one.
+- **I9 — The judge is fixed before the trial.** The gauntlet's threshold
+  vector is a versioned, hashed artifact (`gauntlet_config_hash` on
+  `RunConfig`). Changing a threshold is a protected-path commit requiring
+  full CI plus human review, and it invalidates every prior verdict
+  stamped with the old hash — visibly, the way `core_version` already
+  does. Enforcement deferred to the Moirai build; the anchor field
+  exists in run records now.
 
 (I4 — the sealed holdout — is a Moirai/data concern; the engine only needs to
 respect snapshot pinning. I7 — one data door — is already enforced by Oceanus:
@@ -287,7 +305,11 @@ truthful `BacktestResult`; the Moirai judge it. The boundary:
   planned Moira: walk-forward needs re-runs over windows (so the engine must
   be cheaply re-invokable over sub-ranges via the same `run_experiment()`
   path); cost-sensitivity needs cost parameters exposed in config;
-  the Deflated Sharpe needs the trial counter (I6) and per-bar returns;
+  the Deflated Sharpe needs per-bar returns and the search-breadth N,
+  computed by `compute_search_n(hypothesis_id, store)` — which counts
+  `SEARCH`-kind records sharing the hypothesis. This is NOT the global
+  execution counter in `trial_counter.txt` (which conflates every run
+  regardless of purpose). See I6 above and `RunKind`;
   regime decomposition needs timestamps on everything.
 - **The Moirai provide (later, quant's domain):** `evaluate(result, ctx) ->
   TestOutcome {passed, score, evidence}` per test, sequenced cheapest-first,
@@ -353,6 +375,75 @@ the whole series with array operations for fast idea-killing. Contract:
   coefficients await real Stage-2 fill data, hence the provisional-constant
   discipline above.
 - **No exchange account.** That is a Stage 2 concern.
+
+---
+## 15. Derive-From-Source Register (R1–R5)
+
+These methods have a primary academic source; each entry's status tracks
+whether Chronos's implementation has been verified against that source.
+
+- **R1 (Deflated Sharpe)** — status: FORMULA SOURCED (secondary: AFML
+  §14.7.3), KNOWN-ANSWER TEST PENDING. The primary is Bailey & López de
+  Prado (2014), JPM Vol 40 No 5 — its worked example must still be
+  checked before this is fully SOURCED. Per Chronos's own register rule,
+  AFML is a secondary source.
+- **R2 (purged/embargoed CV)** — unchanged, deferred until ML labeling.
+- **R3 (Sharpe annualization)** — SOURCED, verified against Lo (2002)
+  Tables 1 & 2.
+- **R4 (HAC significance)** — SOURCED (Newey-West 1987), structural
+  properties verified (PSD, m=0 reduction, i.i.d./AR(1) behavior). The
+  source paper gives NO automatic lag-selection rule and says so
+  explicitly — the choice of m must be documented as a separate,
+  explicit decision.
+- **R5 (stationary bootstrap)** — SOURCED (Politis-Romano 1994), verified
+  against Lemma 1 closed-form variance. The source paper gives no rule
+  for optimal p beyond an asymptotic rate; practical choice must follow
+  the autocovariance inspection procedure described in their Section 5.
+
+**Note:** verification for R3–R5 currently lives in
+`chronos_math_probe.py`, which is untracked scratch code at the repo
+root, not yet part of the committed test suite. Promoting these checks
+into a permanent, CI-required test module (e.g. `tests/statistics/`) is
+an explicit follow-up task.
+
+---
+## 16. Assumptions Register (R6–R7)
+
+These methods have no primary source; a plausible number substitutes for
+a derivation. Any verdict depending on an entry here must report a range
+(e.g. DSR at both raw N and effective N), not a point estimate.
+
+- **R6 (slippage/impact)** — currently 10 bps, a guess defended as
+  conservative. This is roughly half the total 42 bps per-round-trip
+  cost hurdle. A "conservative" assumption that is actually too high is
+  not a safety margin — it is a false-negative generator. Replacement
+  plan: measure from Binance historical aggTrades data at the project's
+  actual order sizes and pairs.
+- **R7 (effective independent trials)** — DEMOTED, NOT CLOSED. The DSR's
+  SR* formula already partially self-corrects via the cross-trial
+  variance term V[{SR_n}] (measured empirically: 8.66e-05 for the
+  280-point MA sweep). At that V, going from N=1 to N=280 raises the
+  annualized DSR bar by approximately 1.33, not catastrophically. If a
+  future search is more tightly correlated, effective-N estimation could
+  matter again. Concrete instruction: whenever DSR is reported, always
+  show both raw N and (if estimated) effective N as a bracket.
+
+---
+## Appendix A — Metric Definitions
+
+**Sharpe ratio:** SR = mean(returns) / std(returns, ddof=1), computed at
+the strategy's native bar frequency.
+
+The DSR and PSR (§7, R1) operate on the non-annualized Sharpe ratio,
+computed at the strategy's native decision frequency — per López de
+Prado, AFML §14.7.3. Annualization via the formula below is a REPORTING
+convenience only, applied after the gauntlet's verdict is reached, and
+is subject to R3's correction whenever returns are non-i.i.d.
+
+**Annualized Sharpe:** SR_annual = SR_bar × √(bars_per_year), where
+bars_per_year depends on the timeframe (e.g. 8760 for H1, 365 for D1).
+This √T scaling assumes i.i.d. returns; when returns are autocorrelated,
+R3's Lo (2002) correction must be applied (see §15).
 
 ---
 *End of specification. The build sequence, checkpoints, and Claude Code

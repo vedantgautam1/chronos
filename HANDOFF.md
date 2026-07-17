@@ -372,6 +372,20 @@ unchanged — warnings still print, preserving interactive script use.
 This closes the I3 gap: a 600-run sweep now has data-quality facts on
 the record, not scrolling past in a terminal nobody watches.
 
+**2026-07-17 — Stage 0 spec amendments (HEPHAESTUS_SPEC.md).** Four
+changes: (1) §1 I5 expanded to five coordinates (code SHA, config hash,
+data snapshot hash, seed, candidate_n); I6 now distinguishes
+SEARCH/VERIFICATION via RunKind; I9 added (judge is fixed before the
+trial — gauntlet_config_hash anchor, enforcement deferred to Moirai).
+(2) §10 updated: DSR needs compute_search_n(), not the global trial
+counter. (3) New §15–§16 split the register into Derive-From-Source
+(R1–R5, methods with primary sources) and Assumptions (R6–R7, plausible
+numbers without derivations); R7 demoted not closed. (4) New Appendix A
+with metric definitions resolves the annualized-vs-native Sharpe
+contradiction: DSR/PSR operate on the non-annualized Sharpe at native
+frequency; annualization is reporting-only, applied after the verdict,
+subject to R3's Lo (2002) correction for non-i.i.d. returns.
+
 ---
 
 # HANDOFF — Oceanus
