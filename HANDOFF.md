@@ -386,6 +386,78 @@ contradiction: DSR/PSR operate on the non-annualized Sharpe at native
 frequency; annualization is reporting-only, applied after the verdict,
 subject to R3's Lo (2002) correction for non-i.i.d. returns.
 
+**2026-07-17 — R6 (slippage) measured; default 10bps → 1bps.** Method:
+streamed 6 months of real Binance BTC/USDT aggTrades (Jan–Jun 2026,
+4,344 hourly bars) directly out of their monthly ZIPs (never extracted
+to disk — `zipfile` + `pd.read_csv` on the in-memory stream), simulating
+a market BUY at each hour's open against taker-side (`is_buyer_maker ==
+False`) trades only. Zero bars had insufficient liquidity to fill either
+a 9,000 USDT or a 90,000 USDT order — this pair is deep enough at both
+sizes. Raw result: mean -0.68bps / median 0.00bps / std 1.53bps at 9k;
+mean -0.94bps / median -0.08bps / std 2.70bps at 90k.
+
+**The drift confound (why p95 was not used as the anchor):** BTC/USDT
+fell ~33% over the measurement window (Jan 1 ≈ $87,648 → Jun 30 ≈
+$58,625). Comparing each fill's VWAP against the hour's *first*-trade
+price entangles genuine market impact with intra-hour price drift — a
+larger order takes longer to fill, so it samples more of the downward
+drift, which is why the 90k mean/p95 are *more negative*, not more
+positive, than 9k's (backwards from what pure impact would predict).
+This confound affects BOTH tails, not just the mean — p95 (0.66bps at
+9k, 2.40bps at 90k) is a drift-dominated worst case, not a clean impact
+ceiling, so it was rejected as the anchor for the same reason the mean
+was.
+
+**Isolating size-dependent impact (difference estimator):** per-bar
+(slip_90k − slip_9k) differences out the shared drift, since both order
+sizes are measured against the same hour's same first-trade price.
+Result: mean -0.27bps, **median 0.0019bps**, p5 -4.19bps, p95 2.34bps,
+std 2.01bps. A near-zero median difference across a 10x size change
+confirms true size-dependent impact is below this measurement's
+resolution at these sizes — consistent with "true impact at 9k is
+plausibly ~0.1bps."
+
+**Limitation — buy-only:** this measurement only simulates market BUYs
+against taker-side trades. Sell-side slippage was not measured and may
+differ (asymmetric order book depth is common, especially during a
+downtrend). The 1bps default is applied uniformly to both sides pending
+that measurement.
+
+**Decision:** `CostConfig.slippage_bps` default changed 10 → 1
+(`src/chronos/hephaestus/costs.py`). Justification: raw distribution is
+drift-dominated (median 0.00bps, std 1.53bps at 9k) — true impact is
+below measurement resolution, plausibly ~0.1bps. 1bps gives roughly a
+10x margin over that plausible impact without manufacturing false
+negatives the way the old 10bps (nearly half the ~42bps round-trip cost
+hurdle) risked doing. `provisional_constants` stays `True` — the
+measured value is still drift-confounded, not a clean impact number, so
+the Moirai's 2×/5× cost-sensitivity test remains required.
+
+**Cross-comparability boundary:** every record with `trial_index <= 284`
+(trial #4 through the 280-point sweep) was produced under the OLD 10bps
+value and is NOT cost-comparable with any run after this commit without
+re-running. Concretely: trial #4's registered -15.40% net result used
+756.45 USDT of slippage cost at 10bps; rescaling that line item linearly
+to 1bps (75.65 USDT; fees and spread unchanged) gives a recomputed net
+of approximately **-8.6% ("~-9%")** — still a loss, so the milestone's
+registered prediction (losing result, proving the instrument not the
+idea) still holds. This is a linear rescaling of the itemized cost
+breakdown, not a fresh engine run — an exact re-run would be needed for
+an authoritative number, since costs interact with cash-sufficiency
+checks in ways linear rescaling can't fully capture. `SESSION_FINDINGS.md`
+updated to record this.
+
+**Deferred to Stage 2:** drift-neutral re-measurement (referencing each
+fill's VWAP against a mid-price captured at order-entry time rather than
+the hour's first trade, and measuring both book sides) would isolate
+impact cleanly. Not attempted here — the difference estimator above is
+a sufficient stopgap for setting the default, not a replacement for that
+re-measurement.
+
+**Evidence:** `measure_slippage.py` (repo root); raw per-bar arrays at
+`data/aggtrades/measured_slippage_9k_bps.npy` and `_90k_bps.npy`
+(untracked — regenerable from the aggTrades ZIPs, not committed).
+
 ---
 
 # HANDOFF — Oceanus

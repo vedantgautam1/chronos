@@ -2,7 +2,14 @@
 no-bypass guarantee (I2).
 
 Hand derivations (the quant should re-do these on paper):
-  Defaults: taker 10 bps, half-spread 1 bp, slippage 10 bps.
+  taker 10 bps, half-spread 1 bp, slippage 10 bps — taker/half-spread are
+  CostConfig's actual defaults; slippage is explicitly PINNED to 10 bps
+  in these fixtures via CostConfig(slippage_bps=Decimal("10")), not read
+  from the default. This decouples the cost-model arithmetic (what these
+  tests verify) from R6's current best-guess slippage value (a
+  measurement that will keep changing — see HANDOFF.md 2026-07-17): the
+  fixture's hand-derived numbers below stay correct regardless of what
+  the default becomes.
   Bar open = 100. BUY market order, qty 0.5, volume 10.
 
   slippage/unit = 100 × 10/10000              = 0.10
@@ -44,7 +51,7 @@ def test_fee_hand_computed():
 
 
 def test_slippage_and_spread_hand_computed():
-    model = FixedBpsCostModel()
+    model = FixedBpsCostModel(CostConfig(slippage_bps=Decimal("10")))
     assert model.slippage(market("0.5"), bar(), Decimal("0.05")) == Decimal("0.1")
     assert model.spread(bar()) == Decimal("0.01")
     # A limit order's slippage references its limit price, not the open.
@@ -52,7 +59,8 @@ def test_slippage_and_spread_hand_computed():
 
 
 def test_full_fill_is_costed_exactly_as_derived():
-    broker = Broker(FixedBpsCostModel(), StubPortfolio(Decimal("10000")), BrokerConfig())
+    broker = Broker(FixedBpsCostModel(CostConfig(slippage_bps=Decimal("10"))),
+                    StubPortfolio(Decimal("10000")), BrokerConfig())
     fills, _ = broker.process([market("0.5")], {"BTC/USDT": bar()})
     f = fills[0]
     assert f.price == Decimal("100.11")  # 100 + 0.10 slippage + 0.01 half-spread
@@ -62,7 +70,7 @@ def test_full_fill_is_costed_exactly_as_derived():
 
 
 def test_sell_side_costs_are_adverse_downward():
-    broker = Broker(FixedBpsCostModel(),
+    broker = Broker(FixedBpsCostModel(CostConfig(slippage_bps=Decimal("10"))),
                     StubPortfolio(Decimal("0")), BrokerConfig())
     broker._portfolio.qty["BTC/USDT"] = Decimal("1")
     fills, _ = broker.process([market("0.5", side=Side.SELL)], {"BTC/USDT": bar()})

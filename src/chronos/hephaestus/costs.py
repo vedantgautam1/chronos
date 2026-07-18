@@ -16,13 +16,17 @@ SPREAD — an admitted approximation. Bar data has no order book, so the
     bid/ask spread is modeled as a configured half-spread charged per
     side, referenced to the fill's base price. Default 1 bp.
 
-SLIPPAGE — fixed-bps placeholder (founder decision: 10 bps), structured
-    so a size-aware (participation/√-impact) model can replace it behind
-    the same interface. R6 discipline, non-negotiable: these constants
-    CANNOT be derived from papers; they await estimation from Chronos's
-    own real fills (Stage 2). Until then every result carries the
+SLIPPAGE — fixed-bps placeholder, default 1 bp, MEASURED 2026-07-17 from
+    6 months of real Binance BTC/USDT aggTrades (see costs below and
+    HANDOFF.md 2026-07-17). Was 10 bps (founder guess) before this
+    measurement; structured so a size-aware (participation/√-impact)
+    model can replace it behind the same interface. R6 discipline still
+    applies: the measured value is drift-confounded, not a clean impact
+    estimate (see HANDOFF.md), so every result still carries the
     provisional_cost_constants warning, and the Moirai's 2×/5×
-    cost-sensitivity test exists precisely because of this uncertainty.
+    cost-sensitivity test still exists precisely because of this
+    uncertainty. Records with trial_index <= 284 used the old 10 bps
+    value and are not cost-comparable with later runs.
 
 FUNDING — spot-only Stage 0 (founder decision): raises NotImplementedError.
 """
@@ -60,7 +64,14 @@ class CostConfig:
     taker_fee_bps: Decimal = Decimal("10")  # 0.100%
     maker_fee_bps: Decimal = Decimal("10")  # 0.100% (recorded; taker charged everywhere)
     half_spread_bps: Decimal = Decimal("1")  # modeled spread approximation
-    slippage_bps: Decimal = Decimal("10")  # founder decision; PROVISIONAL (R6)
+    # R6 MEASURED 2026-07-17: BTC/USDT spot, 4,344 hourly bars Jan–Jun
+    # 2026, zero liquidity failures at 9k or 90k USDT. Raw distribution is
+    # drift-dominated (median 0.00bps, std 1.53bps) — true impact at 9k is
+    # below measurement resolution, plausibly ~0.1bps. Default 1bps ≈ 10x
+    # margin on plausible impact without manufacturing false negatives.
+    # Cross-comparability warning: records trial_index <= 284 used the
+    # 10bps provisional value.
+    slippage_bps: Decimal = Decimal("1")  # measured (R6); was 10 (provisional)
     # True while the spread/slippage numbers are configured guesses rather
     # than estimates from our own real fills. Stamps a warning on results.
     provisional_constants: bool = True

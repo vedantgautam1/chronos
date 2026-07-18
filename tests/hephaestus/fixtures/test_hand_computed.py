@@ -5,10 +5,13 @@ comments. The quant's job is to re-do the arithmetic on paper and check
 the derivations, not just trust the asserts. All assertions are EXACT
 Decimal equality — "close enough" is not accepted on the ledger.
 
-Cost parameters used throughout (the real defaults):
-    taker fee     10 bps  (0.10%)  of executed notional
-    slippage      10 bps  of base price, adverse direction
-    half-spread    1 bp   of base price, adverse direction
+Cost parameters used throughout:
+    taker fee     10 bps  (0.10%)  of executed notional  (CostConfig default)
+    slippage      10 bps  of base price, adverse direction  (PINNED in
+                  fixture 3's CostConfig — decoupled from R6's actual
+                  default, which is a measured value that changes
+                  independently; see HANDOFF.md 2026-07-17)
+    half-spread    1 bp   of base price, adverse direction  (CostConfig default)
 """
 
 from datetime import datetime, timedelta, timezone
@@ -17,7 +20,7 @@ from decimal import Decimal
 import pytest
 
 from chronos.hephaestus.broker import Broker, BrokerConfig
-from chronos.hephaestus.costs import FixedBpsCostModel
+from chronos.hephaestus.costs import CostConfig, FixedBpsCostModel
 from chronos.hephaestus.portfolio import (
     AccountingDriftError,
     AccountingError,
@@ -144,7 +147,11 @@ def test_fixture_3_partial_fill_through_the_real_broker():
          10,000 + 0 + 2.445 − 0.050055 = 10,002.394945 ✓)
     """
     portfolio = Portfolio(Decimal("10000"))
-    broker = Broker(FixedBpsCostModel(), portfolio, BrokerConfig())
+    # slippage pinned to 10 bps (see module docstring) — decoupled from
+    # CostConfig's default, which is R6's current best-guess and changes
+    # independently of this hand-derived fixture (HANDOFF.md 2026-07-17).
+    broker = Broker(FixedBpsCostModel(CostConfig(slippage_bps=Decimal("10"))),
+                    portfolio, BrokerConfig())
     bar = pd.Series({"open_time": pd.Timestamp(T0), "open": 100.0, "high": 110.0,
                      "low": 90.0, "close": 105.0, "volume": 10.0, "is_final": True})
     order = Order(id=1, symbol="BTC/USDT", side=Side.BUY, type=OrderType.MARKET,
