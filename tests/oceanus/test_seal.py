@@ -124,3 +124,29 @@ def test_sealed_range_rejects_naive_and_reversed_and_empty_reason():
 def test_final_evaluation_token_rejects_empty_reason():
     with pytest.raises(ValueError, match="non-empty"):
         FinalEvaluationToken(reason="   ")
+
+
+def test_default_registry_with_no_seal_file_serves_normally(tmp_path, monkeypatch):
+    """The one PRODUCTION seal codepath every other test here skips: a
+    bare SealRegistry() with no path override, resolving DEFAULT_SEAL_PATH,
+    when the seals file does not exist yet — which is the real state until
+    the first seal is ever written (configs/sealed_ranges.json is absent).
+    A missing file must mean 'zero seals', and get_bars() with no
+    seal_registry override (so it constructs SealRegistry() itself) must
+    serve normally, no token required.
+
+    DEFAULT_SEAL_PATH is monkeypatched to a guaranteed-missing location so
+    this stays hermetic and green even after real seals eventually create
+    the production file — we are testing the missing-file branch, not the
+    literal path string."""
+    missing = tmp_path / "no_such_dir" / "sealed_ranges.json"
+    monkeypatch.setattr("chronos.oceanus.seal.DEFAULT_SEAL_PATH", missing)
+    assert not missing.exists()
+
+    # Bare SealRegistry() -> DEFAULT_SEAL_PATH -> missing file -> zero seals.
+    assert SealRegistry().sealed_ranges() == []
+
+    # get_bars() with NO seal_registry override exercises the real default.
+    bars = get_bars("BTC/USDT", Timeframe.H1, START, START + timedelta(hours=24),
+                    root=tmp_path, exchange=fake_bars(n=24))
+    assert len(bars) == 24
