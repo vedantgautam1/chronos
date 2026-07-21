@@ -1,8 +1,8 @@
 # CHRONOS — Hephaestus Build Brief
 
 **For:** Claude Code, operated by the developer (with the quant reviewing).
-**Prerequisite:** `HEPHAESTUS_SPEC.md` is the contract. Read it fully before
-Phase 0. Where this brief and the spec disagree, the spec wins.
+**Prerequisite:** `docs/SPEC_HEPHAESTUS.md` is the contract. Read it fully
+before Phase 0. Where this brief and the spec disagree, the spec wins.
 **Prerequisite:** Oceanus exists, is tested, and is the ONLY data source
 (via `get_bars()`).
 
@@ -46,7 +46,7 @@ Phase 0. Where this brief and the spec disagree, the spec wins.
 Goal: the engine's home exists; nothing is built yet.
 
 Do:
-* Read `HEPHAESTUS_SPEC.md` end to end. Read Oceanus's `access.py`,
+* Read `docs/SPEC_HEPHAESTUS.md` end to end. Read Oceanus's `access.py`,
   `model.py`, and `HANDOFF.md` (its decisions — e.g. the numeric policy —
   bind here).
 * Create the module skeleton:

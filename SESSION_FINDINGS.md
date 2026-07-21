@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-16
 **Status:** permanent record — not scratch work. Cross-references
-`HEPHAESTUS_SPEC.md` (Moirai boundary, §10) and `HANDOFF.md` (I6
+`docs/SPEC_HEPHAESTUS.md` (Moirai boundary, §10) and `HANDOFF.md` (I6
 trial-ontology open question).
 
 ## The trial-ontology distinction
@@ -73,7 +73,7 @@ as indistinguishable from noise.
 # Session finding: R6 (slippage) measured, and trial #4's corrected framing
 
 **Date:** 2026-07-17. Cross-references `HANDOFF.md` (2026-07-17 R6 entry,
-full method/drift-confound/limitation detail) and `HEPHAESTUS_SPEC.md`
+full method/drift-confound/limitation detail) and `docs/SPEC_HEPHAESTUS.md`
 §16 (Assumptions Register, R6).
 
 Six months of real Binance BTC/USDT aggTrades (Jan–Jun 2026, 4,344

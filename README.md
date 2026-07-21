@@ -4,8 +4,8 @@ A systematic trading research system, built in components. This repository
 contains **Oceanus** (the data layer) and **Hephaestus** (the event-driven
 backtesting engine), both complete as review-ready first drafts. See
 [HANDOFF.md](HANDOFF.md) for decisions, open questions, and known
-limitations; [HEPHAESTUS_SPEC.md](HEPHAESTUS_SPEC.md) is the engine's
-contract.
+limitations; [docs/SPEC_HEPHAESTUS.md](docs/SPEC_HEPHAESTUS.md) is the
+engine's contract.
 
 ## Hephaestus in one paragraph
 
@@ -122,7 +122,7 @@ dropped, each drop reported.
 ## Tests
 
 ```sh
-uv run pytest -v        # 56 tests; test_acceptance.py is the contract
+uv run pytest -v        # 67 tests; test_acceptance.py is the contract
 ```
 
 ## Diagnostic tools
