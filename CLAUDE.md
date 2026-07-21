@@ -68,18 +68,38 @@ unfilled remainders · cost defaults: taker 10bps, slippage 1bps
 to an explicit 10bps and must not be "updated") · `uv` for env,
 `pip install` never; `uv run --with` for one-off deps.
 
-## Where the truth lives
+## The documentation system — what each file is for, and its update rhythm
 
-- `HANDOFF.md` — dated decisions log; the ground truth of why things are
-  the way they are. Append dated entries for every structural change.
-- `HEPHAESTUS_SPEC.md` — engine spec; §10 is the Moirai boundary
-  contract; §15/§16 the split registers; Appendix A the metric rules.
-- `SESSION_FINDINGS.md` — the empirical results (V[{SR_n}]=8.66e-05, the
-  0.563-vs-0.054 DSR laundering demo, detection floor ≈2.3 annualized).
-- `chronos_math_probe.py` — verified statistical implementations with
-  28 known-answer checks; promotion to `tests/statistics/` is a planned
-  task.
+The repo is the single source of truth. Nothing is "decided" until it is
+committed here. Each file has ONE job; keep them in their lanes.
 
-When a request conflicts with anything above, say so and stop. The founder
-is non-technical; your caution is part of the review process, not an
-obstacle to it.
+- `CLAUDE.md` (this file) — rules of engagement. You auto-read it. Changes
+  rarely, only when a rule changes.
+- `docs/STATE.md` — the living dashboard: where the project is today
+  (built / in-progress / next / blocked). The first thing any session
+  reads. Updated at the END of every session; kept to one page.
+- `HANDOFF.md` — the dated, append-only decisions log: WHY things are the
+  way they are. Append a dated entry for every structural change; never
+  rewrite or delete history.
+- `docs/SPEC_*.md` — the specifications: WHAT to build, at full rigor.
+  (`SPEC_HEPHAESTUS` done — engine spec, §10 = Moirai boundary contract,
+  §15/§16 = split registers, Appendix A = metric rules; `SPEC_MOIRAI`
+  next.)
+- `SESSION_FINDINGS.md` — the empirical NUMBERS measured on real project
+  data (V[{SR_n}]=8.66e-05, the 0.563-vs-0.054 DSR laundering demo,
+  detection floor ≈2.3 annualized). Update when a new measurement lands.
+- `docs/handoffs/YYYY-MM-DD-*.md` — the full closing handoff per session;
+  heavy, complete, permanent. The deep "why/how" a session reads when
+  STATE.md isn't enough. Never edited after being written.
+- `chronos_math_probe.py` — verified statistical implementations, 28
+  known-answer checks; promotion to `tests/statistics/` is a planned task.
+
+**At the end of every session you help close:** update `docs/STATE.md`,
+append a dated entry to `HANDOFF.md` for any decision, write the closing
+handoff to `docs/handoffs/`, and commit. This is how the next session
+inherits context without being re-explained to.
+
+**Precedence:** STATE.md and the newest HANDOFF.md entry win over older
+planning docs. When a request conflicts with anything above, or documents
+disagree, say so and stop. The founder is non-technical; your caution is
+part of the review process, not an obstacle to it.
