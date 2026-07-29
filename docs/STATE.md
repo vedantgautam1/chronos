@@ -39,7 +39,7 @@ follow the stale side.
 
 ---
 
-Last updated: 2026-07-18 (end of the Oceanus/Hephaestus hardening + R6 session)
+Last updated: 2026-07-28 (Jesse audit + scope/architecture decisions session)
 Test suite: **152 passing**
 Current stage: **Stage 0 — building the instrument. Nearly at Gate 0→1.**
 
@@ -47,9 +47,10 @@ Current stage: **Stage 0 — building the instrument. Nearly at Gate 0→1.**
 
 ## The one-line status
 
-Hephaestus and Oceanus are built and hardened; the trial-ontology, seal,
-and five invariant amendments are done and tested; R6 is measured and
-closed. **Next: specify and build the Moirai (the validation gauntlet).**
+Scope clarified (Chronos = full trading system; Stage-0 rigor unchanged);
+Jesse audited in full — NOT adopted as backtester; integration plan
+committed (`docs/JESSE_INTEGRATION_MASTER_PLAN.md`); **Moirai-lite is the
+decided v1 gauntlet. Next: specify and build the Moirai-lite.**
 
 ## Built and green
 
@@ -72,10 +73,16 @@ closed. **Next: specify and build the Moirai (the validation gauntlet).**
 
 ## Next task (owns the next chat)
 
-**Specify then build the Moirai.** Full brief:
-`docs/handoffs/2026-07-18-moirai.md`. Spec in a Claude chat → approval →
-build in Claude Code. Deliverables: `docs/SPEC_MOIRAI.md`,
-`MOIRAI_BUILD_BRIEF.md`, then the phased build.
+**Specify then build the Moirai-LITE** (founder decision 2026-07-28 —
+see that HANDOFF.md entry). v1 gauntlet = DSR at honest N + walk-forward
++ cost stress + signal-only null gate (re-derived under R5); the full
+touchstone/power-curve machinery is Moirai v2. Base brief:
+`docs/handoffs/2026-07-18-moirai.md` (read as the v2 source; cut scope
+per the 2026-07-28 entry). Jesse-derived design inputs M-a…M-d:
+`docs/JESSE_INTEGRATION_MASTER_PLAN.md` §4. Spec in a Claude chat →
+approval → build in Claude Code. Deliverables: `docs/SPEC_MOIRAI.md`
+(lite, with v2 clearly marked deferred), `MOIRAI_BUILD_BRIEF.md`, then
+the phased build.
 
 ## Blocking / needed before or during that task
 
@@ -89,6 +96,15 @@ build in Claude Code. Deliverables: `docs/SPEC_MOIRAI.md`,
 
 ## Deferred (deliberately, not forgotten)
 
+- **Moirai v2** (touchstone ladder, seeded-realization calibration,
+  published power curve) — after Moirai-lite + Gate 0→1.
+- **Jesse-integration E-phases** (post-gate, in order): E1 1m ground
+  truth in Oceanus → E2 intrabar fills/stops in the broker → E3
+  Mnemosyne hardening (SQLite) then parallel runs → E4 metrics/indicator
+  conveniences. Plan: `docs/JESSE_INTEGRATION_MASTER_PLAN.md` §4.
+- **Stage-2 execution rail decision** (build Hermes vs Jesse's licensed
+  live plugin) — deliberately deferred until a strategy passes the
+  gauntlet. Do not re-open earlier.
 - Results-viewer UI — until the gauntlet produces results worth viewing
   (revisit after Gate 0→1).
 - Drift-neutral slippage re-measurement (mid-price, both book sides) —
@@ -104,14 +120,16 @@ build in Claude Code. Deliverables: `docs/SPEC_MOIRAI.md`,
       are enforced by tests elsewhere in the suite; I9 is anchor-only,
       enforcement is a Moirai deliverable — note: probe count ≠
       invariant count, do not assume 9 numbered probes).
-- [ ] Moirai built; all planned tests implemented.
-- [ ] Touchstones return pre-registered verdicts; flipping any fails CI.
-- [ ] Every register method (R1,R3,R4,R5) passing known-answer tests in CI
-      before it influences any verdict.
-- [ ] Milestone runs end-to-end THROUGH the full gauntlet, writing a
+- [ ] Moirai-LITE built (DSR at honest N, walk-forward, cost stress,
+      signal-only null gate) — re-cut from full Moirai per the
+      2026-07-28 HANDOFF entry.
+- [ ] Every register method the lite gauntlet uses (R1, R3, R4, R5)
+      passing known-answer tests in CI before it influences any verdict.
+- [ ] Milestone runs end-to-end THROUGH the lite gauntlet, writing a
       complete immutable record (expected: a logged rejection = success).
-- [ ] Detection-floor power curve published.
 - [ ] Reproducible from the five coordinates.
+- [ ] *(moved to Moirai v2, post-gate:)* touchstone pre-registered
+      verdicts flipping-fails-CI; detection-floor power curve published.
 
 ## The founder's non-negotiables (for any model reading this)
 

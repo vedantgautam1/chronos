@@ -1,5 +1,87 @@
 # HANDOFF
 
+## PROJECT SCOPE & JESSE INTEGRATION — decisions of 2026-07-28
+
+**2026-07-28.** Full comparative audit of `jesse-ai/jesse` (v2.4.1, MIT,
+full source clone) against this repo, requested by the founder. The
+complete analysis lives in `docs/JESSE_INTEGRATION_MASTER_PLAN.md`
+(committed same date). Founder decisions recorded here; per STATE.md
+precedence, this entry supersedes older planning language where they
+conflict.
+
+1. **Scope clarified — Chronos is the whole trading system, not a
+   research project.** End state: research → backtesting → journaling
+   (Mnemosyne) → live simulation → live trading → risk monitoring
+   (Themis/Nemesis/Argus). This was always the Stage-2 roadmap; the
+   "instrument honest enough to reject almost everything" framing
+   describes Stage 0's rigor and is unchanged as a build discipline.
+
+2. **Jesse is NOT adopted as the backtester.** Verified in source: the
+   Jesse engine has no slippage model, no spread, no participation cap,
+   no liquidity check — market orders fill at the touched price with a
+   flat fee only. Its optimizer selects the max of hundreds of Optuna
+   trials with zero selection-bias accounting (the exact N-laundering
+   quantified in SESSION_FINDINGS.md). Its live plugin is closed-source
+   and license-keyed. Hephaestus remains the trust core.
+
+3. **Architecture decision: "Chronos core + rail TBD."** The Stage-2
+   execution rail — build Hermes in-house vs adopt Jesse's licensed live
+   plugin as the execution layer for Chronos-validated strategies — is
+   deliberately DEFERRED until the gauntlet passes a deployable
+   candidate. Do not re-open before then.
+
+4. **Moirai scope decision: Moirai-lite first.** v1 gauntlet = DSR at
+   honest N (`compute_search_n`) + walk-forward + cost-sensitivity +
+   signal-only null gate (see item 5). The full touchstone ladder,
+   seeded-realization calibration, and published power curve move to
+   Moirai v2. Gate 0→1's touchstone/power-curve checklist items are
+   re-cut to v2 accordingly. Rationale: founder wants a
+   capital-protecting gate on the shortest honest path to Stage 2;
+   the 2026-07-18 Moirai handoff remains the v2 spec source.
+
+5. **Jesse integration plan adopted** (full detail, J1–J13 with
+   verification notes, in the plan doc). Summary of what enters and when:
+   - **Phase M (now, into the Moirai-lite spec, as ideas only):**
+     signal-only null test (re-derived on R5's stationary bootstrap, NOT
+     Jesse's i.i.d. resampling), trade-order-shuffle Monte Carlo, and
+     the candle-pipeline harness pattern (as the v2 calibration
+     mechanism; synthetic data enters via a marked test-fixture door,
+     never a second data path — I7).
+   - **Phase E1 (post-gate):** Oceanus stores 1m as ground truth; all
+     higher timeframes derived by one tested aggregation function.
+   - **Phase E2 (after E1):** intrabar fill resolution — broker walks 1m
+     candles between decisions; strict trade-through at 1m; protective
+     stops become expressible; ambiguous same-bar sequences resolve to
+     the ADVERSE ordering. Protected path; hand-computed fixtures.
+   - **Phase E3:** Mnemosyne hardening THEN parallel `run_experiment`
+     (workers → single writer; every point `kind=SEARCH` under one
+     registered hypothesis). Chosen store: SQLite (ACID, autoincrement
+     trial index); `flock` locking acceptable as a quick fix. The
+     current JSONL stub is single-process only — two parallel workers
+     would duplicate trial indices (I6 violation) and interleave
+     appends.
+   - **Phase E4:** descriptive-metrics battery + vetted indicator subset
+     (reporting only — nothing enters verdicts without a register
+     entry); Oceanus exchange touchpoint behind a small CandleSource
+     protocol.
+   - **Phase L (Stage 2):** Jesse's OSS driver interfaces and
+     forming-candle semantics as reference material for the rail
+     decision (item 3).
+   - **Rejected outright:** Jesse's global mutable store, optimizer
+     fitness methodology, unlogged `research.backtest()` pattern, web
+     dashboard layer, unsourced statistics in verdicts, fantasy-fill
+     model. **No Jesse code import ever ships in `src/chronos/`** —
+     patterns are re-derived under the invariants; licensing surface
+     stays zero.
+
+6. **Barriers assessed (plan doc §1):** MIT license — no restriction on
+   patterns; compute — no barrier at any planned scale (heaviest
+   workload is an overnight laptop job or ~$1–3 cloud burst); running
+   costs ≈ $0 through Stage 1, VPS-scale at Stage 2. The real
+   constraints: Mnemosyne single-process (item 5/E3), team bandwidth,
+   and scope-creep risk — which this entry's phase gating exists to
+   contain.
+
 ## HEPHAESTUS (engine) — status: BUILD COMPLETE, awaiting dev+quant review
 
 **2026-07-08.** The developer is confirmed as operator/reviewer of this
