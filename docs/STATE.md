@@ -18,8 +18,10 @@ re-explained to. The files and their ONE job each:
 | `CLAUDE.md` (root) | Rules of engagement — invariants, protected paths, conventions. Every Claude Code session auto-reads it. | Rarely; only when a rule changes. |
 | `docs/STATE.md` (this file) | The living dashboard. Where are we: built / in-progress / next / blocked. The FIRST thing any session reads. | End of every session. Always current. Keep it to one page. |
 | `HANDOFF.md` (root) | The dated decisions log — the append-only history of WHY things are the way they are. | Append a dated entry for every decision. Never rewrite or delete. |
-| `docs/SPEC_*.md` | The specifications — WHAT to build, at full rigor (HEPHAESTUS done; MOIRAI next). | When a component is designed or amended. |
+| `docs/SPEC_*.md` | The specifications — WHAT to build, at full rigor (HEPHAESTUS done; MOIRAI done and approved). | When a component is designed or amended. |
+| `MOIRAI_BUILD_BRIEF.md` (root) | The phased build sequence for the gauntlet — the spec is the contract, this is the order. | When a phase's scope changes. |
 | `SESSION_FINDINGS.md` (root) | The empirical results — the NUMBERS measured on real project data. | When a new measurement is produced. |
+| `docs/calibration/CAL-*.md` | The versioned calibration reports — the measured power curve per config version. | One per activated GauntletConfig. |
 | `docs/handoffs/YYYY-MM-DD-*.md` | The full closing handoff for each session — heavy, complete, permanent. The deep context a new chat reads when STATE.md isn't enough. | One per session, at close. Never edited after. |
 
 **The loop that ends re-explaining:**
@@ -39,97 +41,88 @@ follow the stale side.
 
 ---
 
-Last updated: 2026-07-28 (Jesse audit + scope/architecture decisions session)
+Last updated: 2026-07-29 (Moirai spec approved; build brief written)
 Test suite: **152 passing**
-Current stage: **Stage 0 — building the instrument. Nearly at Gate 0→1.**
+Current stage: **Stage 0 — building the instrument. Gauntlet build begins.**
 
 ---
 
 ## The one-line status
 
-Scope clarified (Chronos = full trading system; Stage-0 rigor unchanged);
-Jesse audited in full — NOT adopted as backtester; integration plan
-committed (`docs/JESSE_INTEGRATION_MASTER_PLAN.md`); **Moirai-lite is the
-decided v1 gauntlet. Next: specify and build the Moirai-lite.**
+`docs/SPEC_MOIRAI.md` is **approved and final**; D-01 through D-09 are
+founder-decided; `MOIRAI_BUILD_BRIEF.md` sequences the build in nine
+phases. **Next: Phase 0 (repo housekeeping), then Phase 1 (statistics to
+CI).** Build runs on Opus throughout.
+
+## Scope note — there is no "lite" gauntlet
+
+The 2026-07-28 Moirai-lite / v2 split is **REVERTED** (D-06, founder
+decision 2026-07-28, reaffirmed 2026-07-29). The full Moirai — every
+stage, the touchstones, the calibration harness, and the published power
+curve — is specified and built as **one deliverable**. Rationale: a
+gauntlet with unmeasured thresholds is a plausible gate, not an honest
+one, and "honest" in Chronos means measured. Any document still
+describing a lite v1 is stale; this line wins.
 
 ## Built and green
 
 - **Oceanus** — data layer, one door (`get_bars`), 67 tests. Sealed-range
-  registry added (I4 now enforceable; nothing sealed yet).
-- **Hephaestus** — event-driven engine + cost model, invariant probes in
-  CI. Milestone MA-crossover run twice (−15.40% at old costs, −9.08% under
-  measured 1bps costs — trial #285).
+  registry in place (I4 enforceable; **nothing sealed yet**).
+- **Hephaestus** — event-driven engine + cost model, 7 invariant probes
+  CI-required. Milestone MA-crossover run twice (−15.40% at old costs,
+  −9.08% under measured 1 bps costs — trial #285).
 - **Mnemosyne (stub)** — append-only JSONL, execution counter, full
-  per-bar returns stored (no pre-baked stats).
+  per-bar returns stored (no pre-baked statistics, by design).
 - **RunKind machinery** — SEARCH/VERIFICATION on every run;
   `compute_search_n()` derives the DSR's N from the log;
   `register_search()` for sweeps.
 - **chronos_math_probe.py** — 28 known-answer checks (Lo, Newey-West,
-  Politis-Romano, PSR/DSR). Not yet promoted to `tests/statistics/`.
+  Politis-Romano, PSR/DSR). Still at repo root; **promotion to
+  `tests/statistics/` is Phase 1.**
 
 ## In progress
 
-- Nothing actively mid-edit. Clean stopping point.
+- Nothing mid-edit. Clean stopping point before Phase 0.
 
-## Next task (owns the next chat)
+## Next task (owns the next Claude Code session)
 
-**Specify then build the Moirai-LITE** (founder decision 2026-07-28 —
-see that HANDOFF.md entry). v1 gauntlet = DSR at honest N + walk-forward
-+ cost stress + signal-only null gate (re-derived under R5); the full
-touchstone/power-curve machinery is Moirai v2. Base brief:
-`docs/handoffs/2026-07-18-moirai.md` (read as the v2 source; cut scope
-per the 2026-07-28 entry). Jesse-derived design inputs M-a…M-d:
-`docs/JESSE_INTEGRATION_MASTER_PLAN.md` §4. Spec in a Claude chat →
-approval → build in Claude Code. Deliverables: `docs/SPEC_MOIRAI.md`
-(lite, with v2 clearly marked deferred), `MOIRAI_BUILD_BRIEF.md`, then
-the phased build.
+**Phase 0 of `MOIRAI_BUILD_BRIEF.md`** — documentation only, no `src/`
+changes: commit the spec, replace this file, append the D-decisions to
+HANDOFF.md, amend CLAUDE.md (add I10/I11; extend protected paths with
+`configs/gauntlet/` and `tests/statistics/`), create the directory
+skeleton. Then Phase 1: promote the math probe into CI and add the four
+JPM known-answer assertions — R1 goes FORMULA-SOURCED → SOURCED.
 
-## Blocking / needed before or during that task
+## Blocking / needed
 
-- **Bailey & López de Prado (2014) JPM paper** — R1's primary source;
-  build phase gates on its worked example. Big Dawg to obtain.
-- **Promote chronos_math_probe.py → tests/statistics/** — early build task.
-- **Cost-stress form decision** (R6 closure created this): 2×/5× of 1bps
-  is weak stress; decide multipliers-on-base vs absolute levels.
-- **~12 open threshold decisions** — see the Moirai handoff §8. Protocol:
-  propose a default WITH derivation, mark provisional, founder approves.
+- **Bailey & López de Prado (2014) JPM paper** — R1's primary. The four
+  known-answer values are already transcribed into SPEC_MOIRAI §4.3 and
+  the brief's Phase 1, so Phase 1 is not blocked on obtaining the PDF;
+  the paper is needed to *audit* those values, not to use them.
+- **The Phase 6 calibration budget decision** — the spec's compute
+  estimate does not account for stage 4.9's ~200 null runs per candidate
+  under full-evaluation mode; the gap is roughly three orders of
+  magnitude. Phase 5 now measures actual engine throughput and the
+  founder picks a resolution (options A/B/C in the brief) before Phase 6
+  is scoped. **This is the one genuinely open item in the build.**
+- **Every §14 threshold is provisional until Phase 6 calibrates it.** The
+  weakest-derived numbers, flagged honestly: `mc_shuffle.ruin_dd 0.40`
+  (a placeholder for Themis), `capacity.max_degradation_frac 0.3`,
+  `capacity.max_remainder_frac 0.2`, `eligibility.min_round_trips 30`.
 
 ## Deferred (deliberately, not forgotten)
 
-- **Moirai v2** (touchstone ladder, seeded-realization calibration,
-  published power curve) — after Moirai-lite + Gate 0→1.
-- **Jesse-integration E-phases** (post-gate, in order): E1 1m ground
-  truth in Oceanus → E2 intrabar fills/stops in the broker → E3
-  Mnemosyne hardening (SQLite) then parallel runs → E4 metrics/indicator
-  conveniences. Plan: `docs/JESSE_INTEGRATION_MASTER_PLAN.md` §4.
-- **Stage-2 execution rail decision** (build Hermes vs Jesse's licensed
-  live plugin) — deliberately deferred until a strategy passes the
-  gauntlet. Do not re-open earlier.
-- Results-viewer UI — until the gauntlet produces results worth viewing
-  (revisit after Gate 0→1).
-- Drift-neutral slippage re-measurement (mid-price, both book sides) —
-  Stage 2, needs live fills.
-- Stages 1 (Prometheus/Metis research) and 2 (execution) — not started.
-- Multi-symbol Stage 0 — killed: 20 correlated majors ≈ 1.23 independent
-  bets. Single-symbol is correct for now.
+- **The Atropos seal** — protocol and sizing proposal land in Phase 8;
+  the seal itself is a separate founder act, gated on Phase 6's measured
+  power curve (D-02 as amended 2026-07-29). Sealing is one-way.
+- **E-phases** (E1 1m ground truth, E2 intrabar fills, E3 Mnemosyne
+  hardening + parallelism, E4) — all post-Gate 0→1.
+- **Results-viewer UI** — until there are results worth viewing.
+- **R2 purged/embargoed CV** — until ML labelling exists (no ML labels at
+  Stage 0).
+- **Stage 1** — Prometheus debate patterns, Themis veto. Out of scope.
 
-## Gate 0→1 checklist (when this is all green, Stage 0 is done)
-
-- [ ] All invariant probes green and CI-required (7 numbered probes in
-      tests/hephaestus/invariants/ cover the core invariants; I4/I7/I8
-      are enforced by tests elsewhere in the suite; I9 is anchor-only,
-      enforcement is a Moirai deliverable — note: probe count ≠
-      invariant count, do not assume 9 numbered probes).
-- [ ] Moirai-LITE built (DSR at honest N, walk-forward, cost stress,
-      signal-only null gate) — re-cut from full Moirai per the
-      2026-07-28 HANDOFF entry.
-- [ ] Every register method the lite gauntlet uses (R1, R3, R4, R5)
-      passing known-answer tests in CI before it influences any verdict.
-- [ ] Milestone runs end-to-end THROUGH the lite gauntlet, writing a
-      complete immutable record (expected: a logged rejection = success).
-- [ ] Reproducible from the five coordinates.
-- [ ] *(moved to Moirai v2, post-gate:)* touchstone pre-registered
-      verdicts flipping-fails-CI; detection-floor power curve published.
+---
 
 ## The founder's non-negotiables (for any model reading this)
 

@@ -763,3 +763,107 @@ nothing here is sacred.
 - [x] Silent gap — `validate()` reports; `clean()` explicit policy (Phases 4, 5)
 - [x] Timezone drift — tz-aware UTC mandated (Phases 1, 4)
 - [x] Back-door reads — one-door guard test (Phase 7)
+
+---
+
+**2026-07-29 — Moirai specification approved; D-01 through D-09 decided;
+build brief written.**
+
+`docs/SPEC_MOIRAI.md` is approved as final and becomes the contract for the
+gauntlet build. `MOIRAI_BUILD_BRIEF.md` sequences it in nine phases. Model
+routing for the entire build: **Opus throughout** — essentially every phase
+touches `moirai/`, `configs/gauntlet/`, or `tests/statistics/`, and there is
+no mechanical Sonnet-safe sub-task in this component.
+
+**D-06 reaffirmed — the lite/v2 split is REVERTED.** The full Moirai is
+specified and built as one deliverable: every stage, the touchstones, the
+calibration harness, and the published power curve. Rationale: a gauntlet
+with unmeasured thresholds is a plausible gate, not an honest one, and
+"honest" in Chronos means measured. The 2026-07-28 Moirai-lite entry is
+superseded and `docs/STATE.md` is updated accordingly; any document still
+describing a lite v1 is stale.
+
+**The nine founder decisions, as approved:**
+
+| ID | Decision | Status |
+|---|---|---|
+| D-01 | Verdict bindingness — no founder override of a FAIL; the only lever is changing the judge, which visibly invalidates every verdict the old judge issued | APPROVED as proposed |
+| D-02 | Atropos seal — S=2.0 sizing, ~1.6 years, most-recent contiguous block | APPROVED **as amended**, see below |
+| D-03 | Canonical verdict window = full history minus seal; the 6-month window is demoted to dev-only and is never verdict-grade | APPROVED as proposed |
+| D-04 | Capacity (4.6) and shifted-window (4.7) adopted as gates; cross-asset trace descriptive-only; regime decomposition deferred-with-math | APPROVED as proposed |
+| D-05 | Cost-stress form — absolute levels {5, 10, 25} bps, gate at 10 with margin | APPROVED as proposed |
+| D-06 | Full-Moirai-in-one-go supersedes the 2026-07-28 lite decision | APPROVED as proposed |
+| D-07 | Screener counting — screens are non-trials; they never promote and never count toward N. Recorded as FINAL | APPROVED as proposed |
+| D-08 | R7 partial promotion via JPM Appendix C with the M < T/2 guard; **the gate stays on raw N**, N̂ is evidence only | APPROVED as proposed |
+| D-09 | 1/e search discipline recorded as culture, not a hard cap | APPROVED as proposed |
+
+**D-02 amendment — the seal is gated on the measured power curve, not merely
+on Phase B completion.** The spec proposed executing the seal at the end of
+the build phase. Amended: the seal executes only *after* the Mode E
+calibration report exists and the founder has read the **measured
+end-to-end detection floor**. Reason: the ~1.6-year / S=2.0 sizing is
+derived from a floor of ≈2.3 that was measured by the statistics-only Monte
+Carlo, not by the full pipeline under real costs, fills, and caps. If the
+measured end-to-end floor differs materially from 2.3, the sizing must be
+re-derived *before* sealing. Sealing is one-way; there is no unseal method
+and there never will be. This places the seal in Phase 8, after Phase 6.
+
+**Rationale notes on the decisions that were argued rather than
+rubber-stamped:**
+
+- **D-05.** Multipliers on the measured 1 bps base (2×/5× = 2 and 5 bps)
+  stress essentially nothing given a ~0.1 bps measured median impact.
+  Absolute levels anchor to scenario space instead: 10 bps ≈ the old
+  conservative placeholder ≈ a thinner venue or a stressed book; 25 bps ≈
+  regime-break territory. The margin criterion (per-bar Sharpe ≥ 0.005 at
+  the 10 bps gate rather than merely > 0) is the softest element and is left
+  for calibration to adjudicate — it is provisional, like every threshold.
+- **D-04.** The capacity thresholds (30% max Sharpe degradation at 10×, 20%
+  max remainder cancellation) are weakly derived and flagged as such; they
+  sit alongside `mc_shuffle.ruin_dd 0.40` as the least-grounded numbers in
+  the spec. Accepted anyway, because the alternative — no capacity gate —
+  means promoting strategies with zero information about whether they
+  survive at size. Calibration's attribution table will show whether these
+  bind or are decorative.
+- **D-08.** The governance risk, recorded so a future session cannot claim
+  it was unforeseen: someone reads the evidence bracket, sees DSR@N̂ > 0.95,
+  and argues for promotion on the effective-N figure. The gate is raw N by
+  construction and stays that way. N̂ ≤ M always, so raw N is strictly
+  conservative.
+- **D-09.** A hard 1/e cap would create a perverse incentive to fragment
+  searches across hypotheses — the exact laundering pattern 4.0's
+  fragmentation screen exists to catch. The real discipline is structural:
+  every trial permanently raises `SR*`, so searching more is expensive by
+  construction. The 1/e rule is the name for "search less than you think you
+  need to," not an enforced wall.
+
+**One open item created by this session, recorded so it is not lost: the
+Phase 6 calibration budget.** Spec §7.5 estimates Mode E's pre-registered
+posture at 500 × 7 = 3,500 engine runs ≈ 3–5 laptop hours. That count
+excludes stage 4.9's ~200 null runs per candidate. Under short-circuit
+semantics only survivors reach 4.9, which is tolerable — but §7.4 requires
+**full-evaluation mode** for the per-stage attribution table, and full-eval
+runs every stage on every realization regardless of failure: 3,500 × 200 ≈
+700,000 null engine runs for the pre-registered posture alone, before the
+searched posture. Stages 4.5–4.8 add ~16 further verification runs per
+candidate. Separately, the per-run cost is itself unmeasured — the canonical
+window is ~15× the milestone's bar count, so even 30 seconds per run puts
+3,500 candidate runs at ~29 hours rather than 3–5. *(The per-run figure is
+an inference from bar counts, not a measurement.)*
+
+This does not break the design. It means the ladder's parameters must be set
+from measured throughput rather than the spec's estimate — setting them by
+guess would yield either an infeasible overnight job or a quietly-truncated
+calibration whose power curve overstates what was actually measured, which is
+precisely the failure this component exists to prevent. **Resolution:** Phase
+5 now includes a blocking throughput measurement (full-window run, pipeline
+short-circuit, pipeline full-eval), and the founder selects a resolution at
+the Phase 5 checkpoint. Recommended: option A (split modes — headline curve
+short-circuit at full R, attribution from a subsample in full-eval) combined
+with option B (reduced `n_nulls` during calibration, documented in the
+report). Option C (shorten the synthetic window) is rejected: A and B degrade
+precision in ways the report can state honestly, while C degrades validity by
+measuring the instrument on a window that is not the window it judges on —
+and V shrinks with T, so it biases the measurement.
+
+---

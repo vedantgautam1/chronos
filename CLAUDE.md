@@ -26,13 +26,22 @@ helpfulness. When in doubt: stop and flag, don't guess.
 - **I9** The judge is fixed before the trial — gauntlet thresholds are a
   hashed, versioned artifact (`gauntlet_config_hash`); enforcement lives
   in the Moirai.
+- **I10 — Verdict determinism.** Identical (judged result's five coordinates,
+  gauntlet_config_hash, moirai_code_version, gauntlet seed) → byte-identical
+  serialized verdict. Every stochastic element in the gauntlet draws from one
+  injected, seeded RNG. No global random/np.random calls anywhere in moirai/.
+- **I11 — Every judgment recorded.** Gauntlet evaluation writes one outcome
+  record per executed stage plus one verdict record, on every exit path
+  including crashes (try/finally). There is no unlogged judgment and no
+  verdict-record mutation.
 
 ## Hard rules for any Claude Code session
 
 1. **Protected paths — show a full diff and WAIT for explicit approval:**
-   `moirai/` (when it exists), cost model & fill logic in `hephaestus/`,
-   Oceanus validation & `seal.py`, the Mnemosyne schema, everything under
-   `tests/hephaestus/invariants/`, and the hand-computed fixtures.
+   `moirai/`, `configs/gauntlet/`, `tests/statistics/`, cost model & fill
+   logic in `hephaestus/`, Oceanus validation & `seal.py`, the Mnemosyne
+   schema, everything under `tests/hephaestus/invariants/`, and the
+   hand-computed fixtures.
 2. **Read files fresh before editing.** Never edit from memory of an
    earlier view.
 3. **Never loosen a test assertion to make it pass.** Fix the cause.
@@ -91,6 +100,11 @@ committed here. Each file has ONE job; keep them in their lanes.
 - `docs/handoffs/YYYY-MM-DD-*.md` — the full closing handoff per session;
   heavy, complete, permanent. The deep "why/how" a session reads when
   STATE.md isn't enough. Never edited after being written.
+- `docs/calibration/CAL-*.md` — the versioned calibration reports; one per
+  activated GauntletConfig version. The measured power curve lives here.
+- `docs/promotions/` — promotion artifacts for strategies that pass the
+  full gauntlet. Each is a committed markdown with the full verdict,
+  evidence, validity coordinates, and the Atropos expectation template.
 - `chronos_math_probe.py` — verified statistical implementations, 28
   known-answer checks; promotion to `tests/statistics/` is a planned task.
 

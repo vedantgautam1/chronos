@@ -17,10 +17,17 @@ project convention.
 >    (build Hermes vs adopt Jesse's licensed closed-source live plugin)
 >    is DEFERRED until a strategy passes validation. Jesse is never the
 >    backtester (no slippage/spread/liquidity model exists in its engine).
-> 3. **Moirai-lite first.** v1 gauntlet = DSR at honest N + walk-forward
->    + cost stress + signal-only null gate. The full touchstone ladder /
->    power-curve calibration machinery becomes Moirai v2. The Gate 0→1
->    checklist is re-cut accordingly (see STATE.md).
+> 3. **Full Moirai, built as one deliverable.** *(This 2026-07-28 line
+>    originally scoped a reduced "v1-first" gauntlet with the
+>    touchstone/power-curve machinery deferred; that split was REVERTED by
+>    D-06 — founder decision 2026-07-28, reaffirmed 2026-07-29. Superseded
+>    text retained per the append-only/no-silent-rewrite discipline; the
+>    live decision follows.)* The v1 gauntlet is the complete validation
+>    set — DSR at honest N, walk-forward, cost stress, the signal-only null
+>    gate, the touchstone ladder, the calibration harness, and the
+>    published power curve — with nothing deferred to a later gauntlet
+>    version. The Gate 0→1 acceptance list lives in `docs/SPEC_MOIRAI.md`
+>    §15. See HANDOFF.md (2026-07-29) and STATE.md.
 > 4. **Mnemosyne hardening path:** SQLite store (ACID; autoincrement =
 >    trial index) when parallelism is needed (Phase E3); `flock` file
 >    locking is the acceptable quick fallback.
