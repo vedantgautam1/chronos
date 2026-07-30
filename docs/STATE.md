@@ -41,9 +41,9 @@ follow the stale side.
 
 ---
 
-Last updated: 2026-07-30 (Phase 2 — GauntletConfig hashed artifact, I9 enforcement)
-Test suite: **197 passing** (152 + 34 statistics + 11 moirai)
-Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–2 done.**
+Last updated: 2026-07-30 (Phase 3 — pipeline skeleton, verdict records, G1/G4)
+Test suite: **213 passing** (152 + 34 statistics + 27 moirai)
+Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–3 done.**
 
 ---
 
@@ -51,10 +51,11 @@ Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–2 done
 
 `docs/SPEC_MOIRAI.md` is **approved and final**; D-01 through D-09 are
 founder-decided; `MOIRAI_BUILD_BRIEF.md` sequences the build in nine
-phases. Phases 0 (housekeeping), 1 (statistics → CI, R1 SOURCED), and 2
-(GauntletConfig hashed artifact, I9 enforcement) are **done**. **Next:
-Phase 3 — pipeline skeleton, verdict records, probes G1 (determinism) and
-G4 (no unlogged judgment).** Build runs on Opus throughout.
+phases. Phases 0 (housekeeping), 1 (statistics → CI, R1 SOURCED), 2
+(GauntletConfig hashed artifact, I9 enforcement), and 3 (pipeline skeleton,
+verdict/outcome records, probes G1/G4) are **done**. **Next: Phase 4a — the
+free stages: 4.0 eligibility, 4.3 DSR, 4.4 trade-shuffle.** Build runs on
+Opus throughout.
 
 ## Scope note — there is no "lite" gauntlet
 
@@ -92,28 +93,35 @@ describing a lite v1 is stale; this line wins.
   until Phase 6 produces `CAL-001.md` (the §5.2 activation guard, working
   as designed). `scripts/moirai_verify.py` renders verdict validity at read
   time; probes G2 (fixed judge) and G3 (visible invalidation) green.
+- **Moirai pipeline skeleton (Phase 3)** — the machine that runs tests,
+  records everything on every exit path, and is byte-deterministic before any
+  real test exists. `moirai/types.py` (`TestOutcome`, `GauntletVerdict`,
+  `serialize_verdict`, `verdict_determinism_view`); `moirai/context.py`
+  (`GauntletContext`, `ctx.run` — forces explicit `kind=`, stamps
+  `gauntlet_config_hash` closing the I9 anchor, holds the post-4.2 SEARCH
+  refusal flag); `moirai/pipeline.py` (`Moira` protocol, DAG runner,
+  short-circuit + full-eval, five statuses, try/finally on every exit path).
+  Un-executed stages recorded `executed=false` (unknown, not passed); verdicts
+  stamped `NO_AUTHORITY` until Phase 6. Probes **G1** (verdict determinism,
+  cross-process byte-compare) and **G4** (no unlogged judgment, crash persists
+  partial outcomes + `ERRORED` verdict) green. Two throwaway no-op Moirai
+  exercise the DAG; deleted in Phase 4a.
 
 ## In progress
 
-- Nothing mid-edit. Clean stopping point after Phase 2, before Phase 3.
+- Nothing mid-edit. Clean stopping point after Phase 3, before Phase 4a.
 
 ## Next task (owns the next Claude Code session)
 
-**Phase 3 of `MOIRAI_BUILD_BRIEF.md`** — the pipeline skeleton, records,
-and determinism. `moirai/types.py` (`TestOutcome`, `GauntletVerdict`,
-frozen, canonical serialization shared with the engine); `moirai/context.py`
-(`GauntletContext` — injected seeded `rng`, `store`, `config`, and `ctx.run`,
-the thin `run_experiment()` wrapper that forces explicit `kind=`, stamps
-`gauntlet_config_hash` into the `RunConfig`, and holds the post-4.2 SEARCH
-refusal flag); `moirai/pipeline.py` (the `Moira` protocol, DAG runner with
-short-circuit + `full_evaluation_mode`, the five verdict statuses,
-`cause_of_death`, un-executed stages recorded `executed: false`, try/finally
-on every path). Verdict/outcome records append to `records/runs.jsonl` (no
-new storage). Two no-op Moirai to exercise the DAG (deleted in Phase 4a).
-Probes G1 (verdict determinism, I10 — byte-identical across a fresh process)
-and G4 (no unlogged judgment, I11 — crash → per-stage outcomes + `ERRORED`
-verdict persisted, re-raised). Protected path (`moirai/`) — full diff and
-founder approval before it lands.
+**Phase 4a of `MOIRAI_BUILD_BRIEF.md`** — the free stages (zero engine runs):
+4.0 eligibility & breadth, 4.3 deflated Sharpe at honest N, 4.4 trade-shuffle
+Monte Carlo. These share one pattern — read the `BacktestResult`, compute,
+compare to a config threshold. Consumes `moirai/statistics.py` (Phase 1) for
+4.3 — no reimplementation. Stage 4.0's unsafe-flag path sets
+`evidence["terminal_status"] = "NON_PROMOTABLE"` (the Phase 3 terminal-status
+signalling mechanism); its breadth gate uses `INSUFFICIENT_BREADTH`. Adds
+probe G8 (unsafe non-promotability). **Deletes the Phase 3 no-op Moirai.**
+Protected path (`moirai/`) — full diff and founder approval before it lands.
 
 ## Blocking / needed
 

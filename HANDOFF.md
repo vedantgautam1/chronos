@@ -920,3 +920,68 @@ Two decisions of record:
   INVALIDATED — never the reverse.
 
 ---
+
+## PHASE 3 — pipeline skeleton, verdict records, G1/G4 — 2026-07-30
+
+**2026-07-30 — Phase 3 complete: pipeline skeleton, verdict records, G1/G4.**
+
+`moirai/types.py` (`TestOutcome`, `GauntletVerdict`, `serialize_verdict`,
+`verdict_determinism_view`), `moirai/context.py` (`GauntletContext`, `ctx.run`
+wrapper — forces explicit `kind=`, stamps `gauntlet_config_hash` closing the I9
+anchor, holds the post-4.2 SEARCH refusal flag via `freeze_search()` /
+`SearchFrozenError`), `moirai/pipeline.py` (`Moira` protocol, DAG runner,
+short-circuit + full-eval semantics, five statuses, try/finally on every exit
+path). Un-executed stages recorded `executed=false` (unknown, not passed).
+Verdicts stamped `authority=NO_AUTHORITY` until Phase 6 (propagated from Phase 2's
+`load_active_config` `is_calibrated`). Probes G1 (verdict determinism,
+cross-process byte-compare) and G4 (no unlogged judgment — crash persists partial
+outcomes + `ERRORED` verdict, exception re-raised) passing in CI. Two throwaway
+no-op Moirai (`tests/moirai/_noop.py`) exercise the DAG; deleted in Phase 4a.
+Total tests: 197 → 213 (+16 moirai pipeline).
+
+**Design decision — `verdict_determinism_view` strip-set.** Stripped as
+bookkeeping/wall-clock: `verdict_id` (monotonic store id, like the engine's
+`trial_index`), `judged_at` (wall-clock; `serialize_result` deliberately carries
+none), and each outcome's `runtime_s` (wall-clock-derived). EVERYTHING else is
+byte-compared: `status`, `cause_of_death`, every outcome's `passed`/`score`/
+`evidence`/`executed`, all five judged-result coordinates, `gauntlet_config_hash`,
+`moirai_code_version`, `gauntlet_seed`, `search_n`, `effective_n`,
+`evaluation_window`, `authority`. This mirrors the engine's `determinism_view`
+reasoning exactly (it strips `run_id`/`trial_index`, keeps everything else including
+a recomputed `candidate_n`). One deliberate divergence from the engine's view: it
+RECOMPUTES `candidate_n` from the store at read time because that coordinate is not
+in the serialized result; the verdict instead carries `search_n` as a STORED,
+byte-compared field (it is a fixed input finalized by stage 4.2), so nothing is
+recomputed in the verdict view. The mirror is faithful; the judged result's
+coordinates made no exception necessary.
+
+**Design decision — terminal-status signalling mechanism.** A Moira tells the
+runner "this is NON_PROMOTABLE / INSUFFICIENT_BREADTH, not a plain FAIL" by
+stamping a reserved key into its outcome's `evidence`:
+`evidence["terminal_status"] = "NON_PROMOTABLE"` (or `"INSUFFICIENT_BREADTH"`);
+the module constant is `types.TERMINAL_STATUS_KEY`. Chosen over adding a field/enum
+to `TestOutcome` because (a) it keeps `TestOutcome` at exactly the spec §2 shape,
+(b) the signal rides in `evidence`, already the audited and serialized channel, so
+it is on the record automatically, and (c) Phase 4a's stage 4.0 sets one dict key
+rather than threading a new type through every Moira. Runner semantics: NON_PROMOTABLE
+is terminal even under `full_evaluation_mode` (zero downstream execution, per spec
+§3.2 "terminal at stage 4.0"); INSUFFICIENT_BREADTH is a non-passing outcome that
+short-circuits in default mode and continues under full-eval like any failure, but
+elevates the verdict status. Status precedence: NON_PROMOTABLE > INSUFFICIENT_BREADTH
+> FAIL > PASS, computed over EXECUTED outcomes only (`executed=false` placeholders
+never count toward a failure). **Phase 4a's stage 4.0 depends on this key.**
+
+**Note — the "engine determinism probe spawns a subprocess" description is
+imprecise.** The brief (Step 1/Step 6) says to copy the engine probe's subprocess
+pattern; in fact `tests/hephaestus/invariants/test_probes.py::test_probe_3` re-runs
+IN-PROCESS. The real cross-process pattern in the repo is
+`tests/moirai/test_config.py::test_config_hash_cross_process`
+(`subprocess.run([sys.executable, "-c", code])`). G1 copies THAT — a true fresh
+interpreter — satisfying spec §9's "fresh process second time." No behavior change;
+recorded so the next session isn't sent looking for a subprocess in probe 3.
+
+**Note — engine-door guard is a naive substring match.** The Phase 3 helper was
+first named `_not_executed`, which contains the substring `_execute` and tripped
+`test_engine_door_guard_nothing_else_touches_execute` (a protected invariant probe
+that greps `src/` for `_execute`/`_RUN_TOKEN`). Fixed the CAUSE, not the test:
+renamed to `_skipped_outcome`. Future moirai code must avoid those two substrings.
