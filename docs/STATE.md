@@ -41,9 +41,9 @@ follow the stale side.
 
 ---
 
-Last updated: 2026-07-29 (Moirai spec approved; build brief written)
-Test suite: **152 passing**
-Current stage: **Stage 0 — building the instrument. Gauntlet build begins.**
+Last updated: 2026-07-29 (Phase 1 — statistics promoted to CI, R1 SOURCED)
+Test suite: **186 passing** (152 + 34 statistics)
+Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–1 done.**
 
 ---
 
@@ -51,8 +51,9 @@ Current stage: **Stage 0 — building the instrument. Gauntlet build begins.**
 
 `docs/SPEC_MOIRAI.md` is **approved and final**; D-01 through D-09 are
 founder-decided; `MOIRAI_BUILD_BRIEF.md` sequences the build in nine
-phases. **Next: Phase 0 (repo housekeeping), then Phase 1 (statistics to
-CI).** Build runs on Opus throughout.
+phases. Phases 0 (housekeeping) and 1 (statistics → CI, R1 SOURCED) are
+**done**. **Next: Phase 2 — `GauntletConfig`, hashing, ACTIVE pointer,
+verify script (I9 enforcement).** Build runs on Opus throughout.
 
 ## Scope note — there is no "lite" gauntlet
 
@@ -76,22 +77,31 @@ describing a lite v1 is stale; this line wins.
 - **RunKind machinery** — SEARCH/VERIFICATION on every run;
   `compute_search_n()` derives the DSR's N from the log;
   `register_search()` for sweeps.
-- **chronos_math_probe.py** — 28 known-answer checks (Lo, Newey-West,
-  Politis-Romano, PSR/DSR). Still at repo root; **promotion to
-  `tests/statistics/` is Phase 1.**
+- **`src/chronos/moirai/statistics.py`** — the pure-math core (Lo,
+  Newey-West, Politis-Romano, PSR/DSR + calibration support), no
+  engine/data/I/O imports. Promoted from the probe in Phase 1; pinned by
+  **34 CI-required known-answer tests** in `tests/statistics/`, including
+  the four JPM (2014) assertions. **R1 SOURCED.** The original
+  `chronos_math_probe.py` remains at repo root as a historical artifact,
+  unchanged (still runs 28/28 standalone).
 
 ## In progress
 
-- Nothing mid-edit. Clean stopping point before Phase 0.
+- Nothing mid-edit. Clean stopping point after Phase 1, before Phase 2.
 
 ## Next task (owns the next Claude Code session)
 
-**Phase 0 of `MOIRAI_BUILD_BRIEF.md`** — documentation only, no `src/`
-changes: commit the spec, replace this file, append the D-decisions to
-HANDOFF.md, amend CLAUDE.md (add I10/I11; extend protected paths with
-`configs/gauntlet/` and `tests/statistics/`), create the directory
-skeleton. Then Phase 1: promote the math probe into CI and add the four
-JPM known-answer assertions — R1 goes FORMULA-SOURCED → SOURCED.
+**Phase 2 of `MOIRAI_BUILD_BRIEF.md`** — the hashed judge (I9
+enforcement). `moirai/config.py`: the frozen `GauntletConfig` dataclass
+(§2) with canonical serialization → `gauntlet_config_hash`;
+`configs/gauntlet/v001.json` at the §14 provisional defaults; the
+`configs/gauntlet/ACTIVE` pointer; the §5.2 activation guard (v001 *fails*
+it until Phase 6 produces the calibration report — correct behavior; until
+then the gauntlet runs in a loudly-labelled `uncalibrated` mode stamping
+`NO_AUTHORITY` into every verdict); `scripts/moirai_verify.py` skeleton;
+probes G2 (threshold mutation → hash mismatch → refusal to judge) and G3
+(visible invalidation). Protected paths (`moirai/`, `configs/gauntlet/`) —
+full diff and founder approval before it lands.
 
 ## Blocking / needed
 

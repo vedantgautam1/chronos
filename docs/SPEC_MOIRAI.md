@@ -963,7 +963,7 @@ CI-required before any verdict has authority (§1 hard rule).
 
 | Register | Consumed by | Status / action |
 |---|---|---|
-| **R1** DSR/PSR (Bailey & López de Prado 2014, JPM 40(5) — *primary now in hand*) | 4.3; §8.4 (PSR arm) | FORMULA-SOURCED → **SOURCED** when the four §4.3 known-answer assertions pass in CI. Build gate. |
+| **R1** DSR/PSR (Bailey & López de Prado 2014, JPM 40(5) — *primary now in hand*) | 4.3; §8.4 (PSR arm) | **SOURCED** (2026-07-29, Phase 1) — the four §4.3 JPM known-answer assertions pass in CI (`tests/statistics/test_psr_dsr.py`). Build gate cleared. |
 | **R3** Lo 2002 | 4.10 reporting; §8.2 sizing | SOURCED (Tables 1 & 2 pinned) |
 | **R4** Newey–West 1987 | 4.8 gate (ii); §8.4 (t arm) | SOURCED structurally. **D-R4-m (documented decision, the paper gives none):** m = ⌈T^⅓⌉; evidence brackets at {m/2, 2m}; provisional. |
 | **R5** Politis–Romano 1994 | 4.1 bootstrap; (4.9's permutation is design-adjacent, not a bootstrap — no R5 claim) | SOURCED (Lemma 1 pinned). **D-R5-p (documented decision, per the paper's own §5 procedure):** mean block 1/p = smallest lag L at which the research-window returns' sample autocorrelations sit inside the two-sided 95% band for 5 consecutive lags (floor 1, cap T/50), recomputed per evaluation window; evidence brackets at {p/2, 2p}; provisional. |

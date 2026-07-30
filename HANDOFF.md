@@ -867,3 +867,22 @@ measuring the instrument on a window that is not the window it judges on —
 and V shrinks with T, so it biases the measurement.
 
 ---
+
+**2026-07-29 — Phase 1 complete: statistics promoted to CI, JPM known-answers added, R1 SOURCED.**
+
+`chronos_math_probe.py` implementations promoted to `src/chronos/moirai/statistics.py`
+(pure-math: numpy + scipy.stats only; no engine/data/I-O imports). The probe's 28
+known-answer checks + the four JPM (2014) worked-example assertions + the unfloored-SR*
+trap test + property/determinism tests were ported to `tests/statistics/` as four
+CI-required pytest modules — 34 tests total, all green (run twice in fresh processes;
+deterministic). R1 register status: FORMULA-SOURCED → SOURCED (SPEC §10 row updated).
+`scipy` added to `pyproject.toml` / `uv.lock` — the DSR/PSR math needs `scipy.stats.norm`
+and it was not previously a declared dependency (so `uv sync --frozen` in CI would not
+have had it). The original probe script remains at the repo root as a historical
+artifact, unchanged (still runs 28/28 standalone). Total test count: 152 → 186.
+
+JPM known-answer results (computed vs published): SR* 0.113172 vs 0.1132; DSR(N=100)
+0.900397 vs 0.9004; DSR(N=46) 0.950502 vs 0.9505; DSR(N=88, normal) 0.950491 vs 0.9505.
+All within tolerance — no implementation discrepancy found.
+
+---
