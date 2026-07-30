@@ -886,3 +886,37 @@ JPM known-answer results (computed vs published): SR* 0.113172 vs 0.1132; DSR(N=
 All within tolerance — no implementation discrepancy found.
 
 ---
+
+**2026-07-30 — Phase 2 complete: GauntletConfig, I9 enforcement, verify script.**
+
+`src/chronos/moirai/config.py`: frozen GauntletConfig dataclass with canonical
+serialization → sha256 (mechanism identical to `run.serialize_result`).
+`configs/gauntlet/v001.json`: provisional thresholds from SPEC §14, every spec §4
+key present (33 keys, 11-stage pipeline_order). `configs/gauntlet/ACTIVE` points to
+v001. Activation guard: v001 returns is_calibrated=False (CAL-001.md does not
+exist); verdicts stamp NO_AUTHORITY until Phase 6 calibrates. Probes G2 (fixed
+judge — hash mismatch detection + no hardcoded gate literals in moirai/ gate code)
+and G3 (visible invalidation — INVALIDATED(judge_changed) rendered at read time,
+record bytes byte-compared untouched) passing in CI. `scripts/moirai_verify.py`
+skeleton runs against the empty verdict set (exit 0, NO_AUTHORITY banner).
+v001 config hash: fd65c27497d35fa17e2c2fbf441a10d2b701d64ca1f5fdea129b7528170a827d.
+Total tests: 186 → 197 (+11 moirai).
+
+Two decisions of record:
+- **`_canonical` copied into config.py, not imported from `run.py`.** Importing
+  `chronos.run` transitively pulls the whole engine + Oceanus + ccxt; the judge and
+  the read-only verify tool must stay importable without any of that. The copy is
+  byte-identical and pinned to `run._canonical` by
+  `test_serialization_mechanism_matches_run` (fails CI if either drifts). config.py
+  imports stdlib only — zero chronos imports.
+- **Added `src/chronos/moirai/verify.py`** (beyond the brief's file list): the §5.3
+  read-time validity computation as a pure, injectable function
+  (`verdict_validity(record, *, active_config_hash, current_moirai_version,
+  current_engine_version) → (is_valid, reasons)`), shared by `moirai_verify.py` and
+  any future viewer, and directly unit-testable (G3) without subprocessing the CLI.
+  The CLI computes the engine SHA locally via git rather than importing the engine,
+  keeping the read-only tool light. Data-restatement staleness (needs Oceanus
+  snapshot infra) is deferred, documented, and can only ever move a valid verdict to
+  INVALIDATED — never the reverse.
+
+---

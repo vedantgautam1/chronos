@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "thresholds": {
+    "eligibility.min_round_trips": 30,
+    "eligibility.fragmentation_window_days": 90,
+
+    "null_signal.alpha": 0.05,
+    "null_signal.B": 2000,
+
+    "plateau.median_frac": 0.5,
+    "plateau.max_cliff": 0.25,
+    "plateau.steps": 2,
+
+    "dsr.confidence": 0.95,
+
+    "mc_shuffle.n_shuffles": 1000,
+    "mc_shuffle.ruin_dd": 0.40,
+    "mc_shuffle.luck_threshold": 0.05,
+
+    "cost_stress.levels_bps": [5, 10, 25],
+    "cost_stress.gate_level_bps": 10,
+    "cost_stress.margin_per_bar_sharpe": 0.005,
+
+    "capacity.scale_factors": [10, 100],
+    "capacity.gate_scale": 10,
+    "capacity.max_degradation_frac": 0.3,
+    "capacity.max_remainder_frac": 0.2,
+
+    "shift.offsets_w": [-2, -1, 1, 2],
+    "shift.pass_fraction": 0.8,
+    "shift.max_sharpe_deviation_pct": 50,
+
+    "subperiod.window_months": 12,
+    "subperiod.positive_sharpe_frac": 0.6,
+    "subperiod.hac_t_threshold": 1.645,
+    "subperiod.max_single_window_pnl_frac": 0.6,
+
+    "null_bench.n_nulls": 200,
+    "null_bench.percentile_gate": 95,
+
+    "calibration.ladder_S": [0, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0],
+    "calibration.R": 500,
+    "calibration.target_fpr": 0.05,
+    "calibration.synthetic_vol": 0.60,
+
+    "nw_lag.formula": "ceil_cbrt_T",
+    "bootstrap_p.formula": "autocov_procedure"
+  },
+  "pipeline_order": [
+    "M4.0-eligibility",
+    "M4.1-signal-null",
+    "M4.2-plateau",
+    "M4.3-dsr",
+    "M4.4-shuffle",
+    "M4.5-cost-stress",
+    "M4.6-capacity",
+    "M4.7-shift",
+    "M4.8-subperiod",
+    "M4.9-null-bench",
+    "M4.10-descriptive"
+  ],
+  "full_evaluation_mode": false,
+  "cost_defaults_version": "R6-measured-2026-07-17",
+  "calibration_report": "docs/calibration/CAL-001.md"
+}

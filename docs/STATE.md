@@ -41,9 +41,9 @@ follow the stale side.
 
 ---
 
-Last updated: 2026-07-29 (Phase 1 — statistics promoted to CI, R1 SOURCED)
-Test suite: **186 passing** (152 + 34 statistics)
-Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–1 done.**
+Last updated: 2026-07-30 (Phase 2 — GauntletConfig hashed artifact, I9 enforcement)
+Test suite: **197 passing** (152 + 34 statistics + 11 moirai)
+Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–2 done.**
 
 ---
 
@@ -51,9 +51,10 @@ Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–1 done
 
 `docs/SPEC_MOIRAI.md` is **approved and final**; D-01 through D-09 are
 founder-decided; `MOIRAI_BUILD_BRIEF.md` sequences the build in nine
-phases. Phases 0 (housekeeping) and 1 (statistics → CI, R1 SOURCED) are
-**done**. **Next: Phase 2 — `GauntletConfig`, hashing, ACTIVE pointer,
-verify script (I9 enforcement).** Build runs on Opus throughout.
+phases. Phases 0 (housekeeping), 1 (statistics → CI, R1 SOURCED), and 2
+(GauntletConfig hashed artifact, I9 enforcement) are **done**. **Next:
+Phase 3 — pipeline skeleton, verdict records, probes G1 (determinism) and
+G4 (no unlogged judgment).** Build runs on Opus throughout.
 
 ## Scope note — there is no "lite" gauntlet
 
@@ -84,24 +85,35 @@ describing a lite v1 is stale; this line wins.
   the four JPM (2014) assertions. **R1 SOURCED.** The original
   `chronos_math_probe.py` remains at repo root as a historical artifact,
   unchanged (still runs 28/28 standalone).
+- **`GauntletConfig` v001 (I9)** — the judge as a frozen, hashed artifact.
+  `configs/gauntlet/v001.json` (all §4 thresholds at §14 provisional
+  defaults) + `ACTIVE` pointer; canonical serialization → sha256
+  `fd65c274…0a827d`. **Uncalibrated → every verdict stamps `NO_AUTHORITY`**
+  until Phase 6 produces `CAL-001.md` (the §5.2 activation guard, working
+  as designed). `scripts/moirai_verify.py` renders verdict validity at read
+  time; probes G2 (fixed judge) and G3 (visible invalidation) green.
 
 ## In progress
 
-- Nothing mid-edit. Clean stopping point after Phase 1, before Phase 2.
+- Nothing mid-edit. Clean stopping point after Phase 2, before Phase 3.
 
 ## Next task (owns the next Claude Code session)
 
-**Phase 2 of `MOIRAI_BUILD_BRIEF.md`** — the hashed judge (I9
-enforcement). `moirai/config.py`: the frozen `GauntletConfig` dataclass
-(§2) with canonical serialization → `gauntlet_config_hash`;
-`configs/gauntlet/v001.json` at the §14 provisional defaults; the
-`configs/gauntlet/ACTIVE` pointer; the §5.2 activation guard (v001 *fails*
-it until Phase 6 produces the calibration report — correct behavior; until
-then the gauntlet runs in a loudly-labelled `uncalibrated` mode stamping
-`NO_AUTHORITY` into every verdict); `scripts/moirai_verify.py` skeleton;
-probes G2 (threshold mutation → hash mismatch → refusal to judge) and G3
-(visible invalidation). Protected paths (`moirai/`, `configs/gauntlet/`) —
-full diff and founder approval before it lands.
+**Phase 3 of `MOIRAI_BUILD_BRIEF.md`** — the pipeline skeleton, records,
+and determinism. `moirai/types.py` (`TestOutcome`, `GauntletVerdict`,
+frozen, canonical serialization shared with the engine); `moirai/context.py`
+(`GauntletContext` — injected seeded `rng`, `store`, `config`, and `ctx.run`,
+the thin `run_experiment()` wrapper that forces explicit `kind=`, stamps
+`gauntlet_config_hash` into the `RunConfig`, and holds the post-4.2 SEARCH
+refusal flag); `moirai/pipeline.py` (the `Moira` protocol, DAG runner with
+short-circuit + `full_evaluation_mode`, the five verdict statuses,
+`cause_of_death`, un-executed stages recorded `executed: false`, try/finally
+on every path). Verdict/outcome records append to `records/runs.jsonl` (no
+new storage). Two no-op Moirai to exercise the DAG (deleted in Phase 4a).
+Probes G1 (verdict determinism, I10 — byte-identical across a fresh process)
+and G4 (no unlogged judgment, I11 — crash → per-stage outcomes + `ERRORED`
+verdict persisted, re-raised). Protected path (`moirai/`) — full diff and
+founder approval before it lands.
 
 ## Blocking / needed
 
