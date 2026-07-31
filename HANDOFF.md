@@ -985,3 +985,81 @@ first named `_not_executed`, which contains the substring `_execute` and tripped
 `test_engine_door_guard_nothing_else_touches_execute` (a protected invariant probe
 that greps `src/` for `_execute`/`_RUN_TOKEN`). Fixed the CAUSE, not the test:
 renamed to `_skipped_outcome`. Future moirai code must avoid those two substrings.
+
+## PHASE 4a — free stages 4.0/4.3/4.4, probe G8 — 2026-07-30
+
+**2026-07-30 — Phase 4a complete: eligibility, deflated Sharpe, trade-shuffle.**
+
+Three zero-engine-run stages under `moirai/stages/` (new package):
+`eligibility.py` (M4.0-eligibility), `deflated_sharpe.py` (M4.3-dsr),
+`trade_shuffle.py` (M4.4-shuffle) — moira_ids byte-matching v001.json
+`pipeline_order`. `moirai/round_trips.py` — shared FIFO round-trip
+reconstruction (buy→sell, per-unit fee, `Fill.price` already slippage/spread-
+adjusted so those are not re-applied; diagnostic, proportional-sizing, not
+accounting-grade — spec §4.4). All statistics from `statistics.py`; nothing
+reimplemented in a Moira. Probe **G8** green (unsafe → NON_PROMOTABLE, zero
+downstream even under full_evaluation_mode). Total tests: 213 → 234
+(+10 statistics N̂, +11 moirai stages/G8).
+
+**N̂ (effective-N) was ADDED this phase.** `statistics.py` had `dsr/psr/sr_star`
+but no JPM Appendix C estimator and no store V-reader. Added as pure math:
+`effective_trials(rho_bar, M) = rho_bar + (1-rho_bar)*M`,
+`mean_pairwise_correlation`, `per_bar_sharpe`, `sample_skewness`,
+`sample_kurtosis` — pinned by `tests/statistics/test_effective_trials.py`
+(10 known-answers: rho=0→N̂=M, rho=1→N̂=1, rho=0.5,M=100→50.5, N̂≤M property,
+identical/negated-series correlations). R7 stays evidence-only (D-08); the gate
+is raw N.
+
+**Design decision — N handling when `compute_search_n == 0` (the milestone).**
+The milestone (trial #285) is a standalone `kind=VERIFICATION` run; the 280-sweep
+that selected it is legacy (`kind=None`, ≤#284) and excluded by construction, so
+`compute_search_n("H-003-ma-crossover-milestone")` returns **0** — there are zero
+SEARCH records in the entire store. 4.3 records `search_n_raw: 0` verbatim but
+floors the DEFLATION N to 1 (`max(raw_n, 1)`): a candidate is always at least one
+trial (itself), and at N=1 SR* floors to 0 so DSR degenerates to a plain PSR — the
+honest "no logged search breadth to deflate against" answer, and exactly the T-e
+N=1 case. Evidence stamps `n_frozen: false` (no 4.2 upstream yet). A real numeric
+trap was fixed here: `sr_star(V=0, N=1)` computes `sqrt(0)*norm.ppf(0) = 0*-inf =
+nan`; the stage's `_deflated()` helper short-circuits N<2 (or non-estimable V) to
+`psr(sr_hat, 0)` so the DSR is well-defined, never nan. Result: the milestone DSR
+is small and FAILING (0.349), not wrong — so NOT the brief's stop-and-flag "wrong
+rather than merely small" case. Phase 7 re-runs the sweep live under `kind=SEARCH`
+to re-establish N=280.
+
+**Design decision — kept the two no-op Moirai (deviation from the brief).** The
+brief said delete `AlwaysPass`/`AlwaysFail`. They are load-bearing across ~20
+assertions in `test_pipeline.py`'s generic DAG-mechanics probes (G1 determinism,
+ordering, short-circuit, full-eval, terminal-status) — controllable pass/fail
+doubles the real fixed-behaviour stages cannot express. Deleting them would couple
+pure-DAG tests to stage semantics and cut coverage, and "every test stays green" is
+a hard constraint. The brief's own logic ("keep … if pipeline tests still use
+them") points the same way. KEPT as permanent scaffolding; `_noop.py` docstring
+updated to say so.
+
+**Brief/artifact imprecisions found (append-only record):**
+- **`mc_shuffle.luck_pct` vs `mc_shuffle.luck_threshold`.** Spec §4.4 names the
+  key `mc_shuffle.luck_pct`; the frozen `v001.json` (Phase 2) ships it as
+  `mc_shuffle.luck_threshold`. v001 is hashed and must not be re-keyed (that
+  changes the judge's hash), so `trade_shuffle.py` binds to the artifact's actual
+  key. Phase 6's v002 should reconcile the name. (Same family of spec-vs-v001 key
+  drift exists for 4b's keys: spec `plateau.max_cliff_frac`/`neighborhood_steps`
+  vs v001 `plateau.max_cliff`/`plateau.steps`, and spec `null_signal.bootstrap_B`
+  vs v001 `null_signal.B` — 4b's problem, noted here so it isn't a surprise.)
+- **The p95 risk-band percentile** is derived as `100*(1-luck_threshold)` so both
+  the risk band (95) and the luck percentile (5) tie to one config key rather than
+  hardcoding 95/5 (also keeps them off the G2 gate-literal grep).
+
+**Milestone judged end-to-end (checkpoint, real output).** Dev config via
+`context_for_config()` (v001.json untouched), `pipeline_order` = the three stages,
+`full_evaluation_mode=True` so all run. Verdict: **FAIL**, cause **M4.3-dsr**,
+**authority=NO_AUTHORITY**. 4.0 PASS (42 round trips ≥ 30, `provisional_cost_
+constants: true` stamped). 4.3 FAIL (per-bar SR −0.0059, T=4344, skew 0.287, raw
+kurt 15.2, DSR@raw-N 0.349 < 0.95, N̂ not_estimable under D-08 with M=0). 4.4 PASS
+(p95 shuffled maxDD 0.221 ≤ 0.40, realized 0.136, terminal equity 0.904). The
+stored `gauntlet_verdict` line carried every reproducibility coordinate. Numbers →
+SESSION_FINDINGS.md.
+
+**For Phase 4b:** 4.3 reads N live and stamps `n_frozen: false`. Once 4.2 exists
+and calls `ctx.freeze_search()`, 4.3 must consume the FROZEN N and flip that flag.
+4.0's fragmentation screen and 4.3's union-N evidence both parse grid axes from
+`param_grid_description` via `eligibility._grid_axes` — reused, kept in one place.

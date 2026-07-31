@@ -41,9 +41,9 @@ follow the stale side.
 
 ---
 
-Last updated: 2026-07-30 (Phase 3 — pipeline skeleton, verdict records, G1/G4)
-Test suite: **213 passing** (152 + 34 statistics + 27 moirai)
-Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–3 done.**
+Last updated: 2026-07-30 (Phase 4a — free stages 4.0/4.3/4.4, probe G8)
+Test suite: **234 passing** (152 + 44 statistics + 38 moirai)
+Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–4a done.**
 
 ---
 
@@ -52,10 +52,10 @@ Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–3 done
 `docs/SPEC_MOIRAI.md` is **approved and final**; D-01 through D-09 are
 founder-decided; `MOIRAI_BUILD_BRIEF.md` sequences the build in nine
 phases. Phases 0 (housekeeping), 1 (statistics → CI, R1 SOURCED), 2
-(GauntletConfig hashed artifact, I9 enforcement), and 3 (pipeline skeleton,
-verdict/outcome records, probes G1/G4) are **done**. **Next: Phase 4a — the
-free stages: 4.0 eligibility, 4.3 DSR, 4.4 trade-shuffle.** Build runs on
-Opus throughout.
+(GauntletConfig hashed artifact, I9 enforcement), 3 (pipeline skeleton,
+verdict/outcome records, probes G1/G4), and 4a (the free stages 4.0/4.3/4.4,
+probe G8) are **done**. **Next: Phase 4b — signal null (4.1), parameter
+plateau (4.2), and the finalization of N.** Build runs on Opus throughout.
 
 ## Scope note — there is no "lite" gauntlet
 
@@ -104,24 +104,41 @@ describing a lite v1 is stale; this line wins.
   Un-executed stages recorded `executed=false` (unknown, not passed); verdicts
   stamped `NO_AUTHORITY` until Phase 6. Probes **G1** (verdict determinism,
   cross-process byte-compare) and **G4** (no unlogged judgment, crash persists
-  partial outcomes + `ERRORED` verdict) green. Two throwaway no-op Moirai
-  exercise the DAG; deleted in Phase 4a.
+  partial outcomes + `ERRORED` verdict) green. Two no-op Moirai kept as
+  generic DAG-mechanics test scaffolding (see 4a handoff — brief said delete,
+  but test_pipeline.py's probes depend on them).
+- **Moirai free stages (Phase 4a)** — the three zero-engine-run gates.
+  `moirai/stages/eligibility.py` (4.0 — completeness → unsafe→NON_PROMOTABLE →
+  provisional flag → data-quality → breadth→INSUFFICIENT_BREADTH → warn-only
+  fragmentation screen with union N); `moirai/stages/deflated_sharpe.py` (4.3 —
+  DSR at raw N gated on `dsr.confidence`, N/V from SEARCH records, N̂ evidence
+  under the D-08 guard, all math from `statistics.py`); `moirai/stages/
+  trade_shuffle.py` (4.4 — p95 shuffled maxDD gate + sequence-luck warn, full
+  percentile table, order-invariance/proportional-sizing limitations stamped).
+  `moirai/round_trips.py` (shared FIFO round-trip reconstruction). N̂ estimator
+  (`effective_trials`, `mean_pairwise_correlation`, `per_bar_sharpe`, sample
+  moments) added to `statistics.py` with 10 known-answer tests. Probe **G8**
+  (unsafe → NON_PROMOTABLE, zero downstream even in full-eval) green. Milestone
+  judged end-to-end: FAIL at 4.3 (DSR 0.349 at honest N=1), authority
+  NO_AUTHORITY (see SESSION_FINDINGS).
 
 ## In progress
 
-- Nothing mid-edit. Clean stopping point after Phase 3, before Phase 4a.
+- Nothing mid-edit. Clean stopping point after Phase 4a, before Phase 4b.
 
 ## Next task (owns the next Claude Code session)
 
-**Phase 4a of `MOIRAI_BUILD_BRIEF.md`** — the free stages (zero engine runs):
-4.0 eligibility & breadth, 4.3 deflated Sharpe at honest N, 4.4 trade-shuffle
-Monte Carlo. These share one pattern — read the `BacktestResult`, compute,
-compare to a config threshold. Consumes `moirai/statistics.py` (Phase 1) for
-4.3 — no reimplementation. Stage 4.0's unsafe-flag path sets
-`evidence["terminal_status"] = "NON_PROMOTABLE"` (the Phase 3 terminal-status
-signalling mechanism); its breadth gate uses `INSUFFICIENT_BREADTH`. Adds
-probe G8 (unsafe non-promotability). **Deletes the Phase 3 no-op Moirai.**
-Protected path (`moirai/`) — full diff and founder approval before it lands.
+**Phase 4b of `MOIRAI_BUILD_BRIEF.md`** — the two stages with genuinely new
+machinery: 4.1 signal-only null gate (a `SignalCapture` wrapper — the
+`_DecisionRecorder` pattern — through `ctx.run`, stationary bootstrap from
+`statistics.py`, no engine change) and 4.2 parameter plateau, **the only stage
+permitted to spend N**: neighbors not yet run are executed `kind=SEARCH`, N
+increases, and after 4.2 `ctx.freeze_search()` is called so `ctx.run` refuses
+further SEARCH (the mechanism already lands in `context.py`). Probe G6 (a
+fragmentation union-N, b SEARCH refused after 4.2, c plateau neighbor ⇒ N+1 ⇒
+SR* strictly up). NOTE for 4b: 4.3 currently reads N live and stamps
+`n_frozen: false`; once 4.2 exists it must read the frozen N and 4.3 flip that
+flag. Protected path (`moirai/`) — full diff and founder approval before it lands.
 
 ## Blocking / needed
 

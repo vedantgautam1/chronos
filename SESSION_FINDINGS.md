@@ -111,3 +111,40 @@ therefore does not overturn the milestone's own stated purpose.
 any run made after the 2026-07-17 default change without re-running —
 do not compare a pre-284 Sharpe/return against a post-284 one and
 attribute the difference to strategy or parameter changes alone.
+
+---
+
+## Moirai Phase 4a — the milestone judged through the three free stages (2026-07-30)
+
+First real gauntlet numbers. The milestone MA-crossover (trial #285,
+`H-003-ma-crossover-milestone`, canonical dev window 2026-01-01→2026-07-01,
+4344 H1 bars, 42 completed round trips) run through stages 4.0/4.3/4.4 under
+v001's provisional thresholds. **Verdict: FAIL, cause M4.3-dsr, authority
+NO_AUTHORITY** (uncalibrated — a smoke test, not a judgment).
+
+**4.3 Deflated Sharpe (the number this project exists to compute honestly):**
+- per-bar Sharpe (non-annualized, ddof=1): **−0.005895** — a losing strategy.
+- T = 4344; sample skew 0.287; raw kurtosis 15.21.
+- honest search N: **compute_search_n = 0** — the 280-sweep that selected the
+  milestone is legacy (`kind=None`, ≤#284), excluded by construction; there are
+  zero SEARCH records in the store. Deflation N floored to 1 (a candidate is ≥1
+  trial); at N=1 SR*→0 so DSR degenerates to PSR (no deflation to apply).
+- **DSR @ raw N = 0.349** (< the 0.95 confidence gate → FAIL). Well-defined and
+  small, not nan — the N=1/V=0 `0*-inf` trap is guarded.
+- V, N̂ (JPM App. C): both **not_estimable** (D-08 guard: M=0). Phase 7 re-runs
+  the sweep live under `kind=SEARCH` to re-establish N=280, at which point the
+  0.563-vs-0.054 laundering counterfactual (T-e) becomes measurable end to end.
+
+**4.4 Trade-shuffle Monte Carlo (1000 shuffles, ctx.rng seeded):**
+- realized max-drawdown: **0.1365**.
+- p95 shuffled max-drawdown (THE drawdown expectation): **0.2212** (≤ 0.40
+  provisional ruin gate → PASS; the gate is a Themis placeholder, weakest-derived
+  threshold, little information until Phase 6).
+- no sequence-luck warning (realized DD not below the 5th percentile).
+- terminal equity under proportional reinvestment: **0.9044** (−9.6%), order-
+  invariant across all shuffles — close to the record's −9.08% ledger return, the
+  gap being exactly the documented proportional-sizing approximation.
+
+**4.0 Eligibility:** PASS — 42 round trips ≥ 30 min; `provisional_cost_constants:
+true` recorded for stage 4.5 (a later phase); no unsafe flag; fragmentation screen
+skipped (the milestone carries no `param_grid_description`).

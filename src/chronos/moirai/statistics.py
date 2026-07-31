@@ -127,6 +127,70 @@ def dsr(sr_hat, T, V, N, skew=0.0, kurt=3.0, floor_at_zero=True):
 
 
 # =====================================================================
+# SAMPLE MOMENTS AND EFFECTIVE-N  (consumed by stage 4.3; pure math)
+# =====================================================================
+
+def per_bar_sharpe(returns, ddof=1):
+    """Non-annualized Sharpe of one return series at its native frequency:
+    mean / std(ddof=1). Zero std -> 0.0 (a flat series has no edge to measure).
+    This is the SR_hat the DSR consumes (Appendix A: native H1, never annualized)
+    and the per-trial statistic V is the cross-trial variance of."""
+    r = np.asarray(returns, float)
+    if r.size == 0:
+        return 0.0
+    sd = r.std(ddof=ddof)
+    return float(r.mean() / sd) if sd > 0 else 0.0
+
+
+def sample_skewness(returns):
+    """Biased sample skewness g1 (scipy default). Feeds the PSR denominator's
+    gamma_3 term; normal -> 0."""
+    from scipy.stats import skew as _skew
+
+    r = np.asarray(returns, float)
+    if r.size < 2 or r.std() == 0:
+        return 0.0
+    return float(_skew(r, bias=True))
+
+
+def sample_kurtosis(returns):
+    """Biased RAW sample kurtosis (scipy `fisher=False`); normal -> 3. Feeds the
+    PSR denominator's gamma_4 term. Raw, not excess — the DSR form here expects
+    the normal baseline at 3 (see `psr`)."""
+    from scipy.stats import kurtosis as _kurtosis
+
+    r = np.asarray(returns, float)
+    if r.size < 2 or r.std() == 0:
+        return 3.0
+    return float(_kurtosis(r, fisher=False, bias=True))
+
+
+def mean_pairwise_correlation(trial_returns):
+    """Average off-diagonal Pearson correlation across a set of trial return
+    series (rows = trials, columns = aligned observations). Undefined with fewer
+    than two trials -> NaN. Used by the JPM Appendix C effective-N estimator."""
+    mat = np.asarray(trial_returns, float)
+    M = mat.shape[0]
+    if M < 2:
+        return float("nan")
+    C = np.corrcoef(mat)
+    iu = np.triu_indices(M, k=1)
+    return float(np.nanmean(C[iu]))
+
+
+def effective_trials(rho_bar, M):
+    """Bailey & Lopez de Prado (2014), JPM 40(5), Appendix C:
+        N_hat = rho_bar + (1 - rho_bar) * M
+    the effective number of INDEPENDENT trials among M correlated ones. At
+    rho_bar = 0 (independent) N_hat = M; at rho_bar = 1 (identical) N_hat = 1.
+    Pure formula; the paper's own guard (compute only when M < T/2, else the
+    estimate is unreliable) lives in the caller (stage 4.3, D-08), not here.
+    R7 register: partial promotion per D-08 — gate stays on raw N; N_hat is
+    evidence only."""
+    return float(rho_bar + (1.0 - rho_bar) * M)
+
+
+# =====================================================================
 # CALIBRATION SUPPORT  (used by the Phase 5 calibration harness)
 # =====================================================================
 
