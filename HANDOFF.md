@@ -1063,3 +1063,151 @@ SESSION_FINDINGS.md.
 and calls `ctx.freeze_search()`, 4.3 must consume the FROZEN N and flip that flag.
 4.0's fragmentation screen and 4.3's union-N evidence both parse grid axes from
 `param_grid_description` via `eligibility._grid_axes` — reused, kept in one place.
+
+## PHASE 4b — signal null 4.1, plateau 4.2, N finalization, probe G6 — 2026-08-03
+
+**2026-08-03 — Phase 4b complete: 4.1 signal-only null gate, 4.2 parameter plateau
++ N finalization, 4.3 frozen-N carryover, probe G6.** (Brief drafted 2026-07-30; the
+decisions below were taken and the code written 2026-08-03.) Two new stages under
+`moirai/stages/`: `signal_null.py` (M4.1-signal-null) and `plateau.py`
+(M4.2-plateau), byte-matching `v001.json` `pipeline_order`. Plus: the D-R5-p block
+selector in `statistics.py`, the re-run `Candidate` bundle + `search_frozen` property
+on `context.py`, the grid-geometry parser in `eligibility.py`, and the frozen-N
+recompute + divergence invariant in `pipeline.py`. Total tests 234 → **258**
+(+7 statistics D-R5-p, +7 moirai signal-null, +10 moirai plateau/G6). Engine-door
+grep clean (no `_execute`/`_RUN_TOKEN`); G2 gate-literal grep clean.
+
+**Stage 4.1 (spec §4.1).** `SignalCapture` wraps the candidate strategy, calls its
+REAL `on_bar(view, ctx)` (the spec's `inner.on_bar(view, ctx)` shorthand matches the
+actual `_DecisionRecorder` pattern in `tests/hephaestus/invariants/test_probes.py` —
+verified, no divergence), records the per-bar net-BUY intent `s_t ∈ {+1,0}`, and
+returns `[]` so the engine executes nothing (portfolio flat throughout). It also
+captures each bar's close from the same bounded view, so the market series and the
+signals align by construction — no second data-door read. The capture runs through
+`ctx.run(kind=VERIFICATION)` (one logged, counted execution; never toward N).
+`flat_portfolio_assumption: true` is stamped (exact for the MA milestone whose
+long/flat signal is state-independent; approximate otherwise — 4.9 is the state-aware
+backstop). Statistic θ̂ = mean(s_i·(fr_i − fr̄)), one-sided bootstrap p-value = fraction
+of null θ ≥ θ̂; gate p ≤ `null_signal.alpha`. Mandatory {p/2, 2p} bracket;
+`fragile_to_block_length` when the gate call flips across it. RNG = `ctx.rng` only (I10).
+
+**A real bug fixed during 4.1 tests (recorded because it matters).** The first
+implementation pre-detrended the returns once and resampled the detrended values;
+under the null this over-dispersed the bootstrap θ relative to θ̂'s true variability
+(θ̂ carries a mean-subtraction constraint that shrinks its variance), so the test
+turned CONSERVATIVE — empirical rejection ≈ 0.005 at α=0.05 (10× too few), not a seed
+miss. Fix: detrend INSIDE the statistic, re-imposing the same mean-subtraction on
+every bootstrap replicate → rejection ≈ α (measured 0.063 over 300 reps; the
+CI test asserts ≈α over 200 seeded reps within ±2σ, fixed seed, no seed-shopping).
+Second fix in the same pass: `np.diff(np.log(closes))` is START-indexed, so signal
+`s_j` pairs DIRECTLY with `forward_returns[j]` (return over bar j→j+1), not `[j+1]`;
+the off-by-one is corrected and the last signal (no following bar) is dropped.
+
+**D-R5-p block length (`statistics.block_p_from_returns`).** Pure math consuming
+`circ_autocov`: the mean block 1/p is the smallest lag L at which the sample
+autocorrelations sit inside the ±1.96/√T band for 5 consecutive lags, clamped to
+[1, T/50]; uncorrelated returns settle at L=1 → block 1 → p=1 (i.i.d.), the honest
+default when there is no dependence to preserve; if they never settle, the cap is
+used (longest block, smallest p — conservative for autocorrelated data). Pinned by
+`tests/statistics/test_block_p.py` (behaviour + both clamp bounds + affine invariance
++ determinism) — this is a DOCUMENTED DECISION (Politis–Romano §5), provisional, not
+a primary-source known-answer, and the tests say so.
+
+**Stage 4.2 (spec §4.2) — the only stage that spends N.** ±1…±`plateau.steps` grid
+neighbors per axis, parsed via the new `eligibility.parse_grid_geometry` (kept beside
+`_grid_axes`, one place). Neighbors already in the store as `kind=SEARCH` records of
+this hypothesis are read free; neighbors not yet run are executed
+`ctx.run(kind=SEARCH)` — **N increases, and that is the point** (not optimized away).
+Pass: median neighbor Sharpe ≥ `plateau.median_frac`×candidate AND ≤ `plateau.max_cliff`
+of neighbors negative while candidate positive. `ctx.freeze_search()` fires on EVERY
+exit path of `evaluate` (pass/fail/unparseable/no-grid) — 4.2 is the N-finalization
+stage, so no later stage may spend SEARCH regardless of its verdict.
+
+**No-grid 4.2 semantics — FOUNDER-APPROVED (2026-08-03).** A candidate with NO
+`param_grid_description` (a genuinely pre-registered single point, e.g. the milestone)
+has no neighborhood to check — DISTINCT from `grid_unparseable`. Resolution
+(founder Option 1 + two conditions): (a) no countable SEARCH breadth
+(`compute_search_n == 0`) and no grid-bearing fragmentation siblings → PASS, reason
+`no_neighborhood_defined`, with a note that states plainly there is no search breadth
+to deflate and NEVER implies the point is exempt/blessed; (b) BUT if the store shows
+`kind=SEARCH` breadth under this hypothesis, or a grid-bearing fragmentation sibling →
+FAIL, reason `undeclared_search_breadth` (a searched point wearing a pre-registered
+label). The FAIL trigger fires ONLY on `kind=SEARCH` or grid-bearing siblings —
+NEVER on legacy `kind=None` (already excluded by `compute_search_n`). **Empirically
+confirmed the milestone takes branch (a):** `H-003-ma-crossover-milestone` carries
+`param_grid_description: null` → 4.0's fragmentation screen skips at the candidate
+check; the legacy `H-SWEEP-*` runs carry no `kind` key → `compute_search_n = 0`. So
+neither FAIL trigger fires; the milestone gets the honest `no_neighborhood_defined`
+PASS. `grid_unparseable` also covers a candidate whose own params are not located on
+its parsed grid (an ambiguity, never guessed).
+
+**4.3 frozen-N carryover (load-bearing).** 4.3 now stamps `n_frozen = ctx.search_frozen`
+— True only when 4.2 actually froze upstream, False honestly when 4.2 is absent from
+`pipeline_order` (dev subsets) or was short-circuited before. It still reads
+`compute_search_n` LIVE; the value is STABLE post-4.2 because `ctx.run` refuses further
+SEARCH, so no cached frozen-N field was introduced (the clean path from the brief).
+The deflation-note wording is now conditional on `n_frozen` (the "un-frozen this phase"
+categorical from 4a is gone); the "Phase 7" and "N floored" phrases stay only in the
+degenerate branch so the real-deflation branch never mentions degenerate concepts.
+
+**Verdict N finalization — FOUNDER-APPROVED (2026-08-03).** `run_gauntlet` now
+resolves the verdict's headline `search_n` AFTER the pipeline loop (not before):
+`search_n=None` (the real path) stamps the post-loop, frozen
+`compute_search_n(hypothesis_id)`; an explicit `search_n=<int>` override is honored
+verbatim and is used ONLY by the pure DAG-mechanics tests whose fixtures carry no
+SEARCH records (so the 4a/Phase-3 probes are unchanged). Divergence invariant
+(`_assert_n_coincides` → `VerdictNMismatch`): whenever stage 4.3 executed, the
+verdict's N, 4.3's `search_n_raw`, and the post-loop `compute_search_n` MUST coincide,
+else it raises (surfacing as an ERRORED verdict per I11, then re-raising) — a broken
+freeze→4.3→verdict wiring can never publish an inconsistent verdict.
+
+**Re-run candidate bundle.** `Moira.evaluate(result, ctx)` receives only the
+`BacktestResult` (evidence), which cannot reconstruct the strategy object. The re-run
+stages (4.1's capture, 4.2's neighbors, later 4.5–4.9) need the live strategy + base
+`RunConfig` + hypothesis, so a `context.Candidate(strategy, base_config, hypothesis)`
+bundle is carried on the (already-injected) `GauntletContext`; free stages ignore it,
+a re-run stage with no candidate raises rather than guessing. `make_context` /
+`context_for_config` gain an optional `candidate=`. This is the channel Phase 4c's
+re-run gates consume.
+
+**v002 key-drift reconciliation list (documented mapping — v001 is the frozen hashed
+judge and was NOT re-keyed; the stages bind to v001's actual names):**
+
+| spec name | v001 actual key | stage |
+|---|---|---|
+| `null_signal.bootstrap_B` | `null_signal.B` | 4.1 (known from 4a) |
+| `null_signal.p_block` | `bootstrap_p.formula` (`"autocov_procedure"`) | 4.1 — **NEW this phase**; nominal only, v001 carries no numeric p — D-R5-p computes p per window |
+| `plateau.max_cliff_frac` | `plateau.max_cliff` | 4.2 (known from 4a) |
+| `plateau.neighborhood_steps` | `plateau.steps` | 4.2 (known from 4a) |
+| `mc_shuffle.luck_pct` | `mc_shuffle.luck_threshold` | 4.4 (recorded in 4a) |
+
+**Scoped deviation — structured `param_grid` sidecar deferred to Phase 7
+(FOUNDER-APPROVED 2026-08-03).** The brief's 4.2 DO named a structured `param_grid`
+sidecar for new searches; adding it means a field on the `Hypothesis`/Mnemosyne
+record (a protected path beyond `moirai/`). `parse_grid_geometry` is THE single
+documented grid parser for 4b and covers every grid in the repo and the tests. The
+structured field lands in **Phase 7**, with the live sweep re-run — when new
+`kind=SEARCH` records first make stringly-parsing a live risk rather than
+hypothetical. Until then, any new search relying on grid geometry goes through the
+string parser, and ambiguous geometry still returns `grid_unparseable` rather than
+guessing.
+
+**Probe G6 (CI-required).** (a) fragmentation fixture → 4.0 stamps
+`possible_search_fragmentation` with the union N (the 4a mechanism, confirmed still
+holds). (b) `ctx.run(kind=SEARCH)` after 4.2 → `SearchFrozenError`. (c) THE CRITICAL
+ONE — a synthetic candidate with 3 of 4 neighbors pre-seeded as SEARCH (N=3): 4.2 runs
+the one missing neighbor (N→4) and freezes; 4.3 reads the FROZEN N=4 (`search_n_raw`),
+`n_frozen: true`; SR*(V, 4) > SR*(V, 3), so a broken freeze→4.3 wiring (which would
+leave `search_n_raw=3`) fails the test — as does the `VerdictNMismatch` invariant.
+Frozen N (4) ≠ pre-4.2 N (3) by construction, so the test cannot pass on stale wiring.
+
+**Checkpoints (real output, both in SESSION_FINDINGS).** (1) 4.1 on the REAL milestone
+(#285): p = **0.1045** > α=0.05 → fails the pre-cost signal gate; bracket {0.103, 0.122}
+stable, not fragile; `block_p = 1.0` (verified genuine — BTC hourly acf[1..10] all
+inside the ±0.030 band, hourly BTC returns are near-white in linear autocorrelation).
+Unremarkable as the brief predicted, not a "looks wrong" flag. (2) Synthetic 4.2→4.3
+in a temp store: N 3→4 (exactly +1 from the fast=30 neighbor run), freeze fired, 4.3
+read frozen N=4 with `n_frozen: true`, SR* rose 0.457→0.564, `verdict.search_n = 4`
+(invariant held). (The 4.2 flat-plateau PASSed; 4.3 DSR was 0 because the FakeExchange
+monotonic ramp gives the run neighbor an inflated Sharpe ≈1.17 → large V — a
+synthetic-data artifact, not a stage behaviour.)

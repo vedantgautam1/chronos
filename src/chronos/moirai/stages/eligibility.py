@@ -13,6 +13,7 @@ Reads thresholds `eligibility.min_round_trips` and
 `eligibility.fragmentation_window_days` from config (I9). No numeric gate literals.
 """
 
+import re
 from datetime import datetime, timedelta
 
 from chronos.hephaestus.types import BacktestResult
@@ -48,6 +49,73 @@ def _grid_axes(param_grid_description) -> frozenset:
         if len(token) == 2 and token[0].strip():
             axes.add(token[0].strip())
     return frozenset(axes)
+
+
+class GridUnparseable(ValueError):
+    """A `param_grid_description` cannot be turned into unambiguous axis→values
+    geometry. Stage 4.2 catches this and records `executed: true, passed: false`
+    with reason `grid_unparseable` — it never guesses the geometry (§4.2,
+    CLAUDE.md rule 8). Distinct from the *no-grid* case (a `None`/absent
+    description), which the caller handles before ever calling the parser."""
+
+
+# "axis in range(a,b[,step])" or "axis in [v1, v2, ...]"; axes joined by " x ".
+_RANGE_RE = re.compile(r"^range\(\s*(-?\d+)\s*,\s*(-?\d+)\s*(?:,\s*(-?\d+)\s*)?\)$")
+
+
+def parse_grid_geometry(param_grid_description) -> dict[str, list[int]]:
+    """THE documented legacy-string grid parser (§4.2), kept in one place with
+    `_grid_axes`. Parses e.g. "fast in range(5,55,5) x slow in range(60,200,5)"
+    into `{"fast": [5,10,…,50], "slow": [60,65,…,195]}` — each axis a sorted list
+    of the integer grid points along it.
+
+    Strictness is deliberate: any segment that is not `<axis> in <range()/[list]>`
+    of integers raises `GridUnparseable` rather than yielding a half-guessed
+    geometry. Axes are split on " x " (space-delimited) so an axis name containing
+    the letter x does not fracture. The structured `param_grid` sidecar (for new
+    searches) is preferred by the caller when present; this parser is the fallback
+    for legacy string descriptions."""
+    if not param_grid_description or not str(param_grid_description).strip():
+        raise GridUnparseable("empty/absent param_grid_description")
+    geometry: dict[str, list[int]] = {}
+    for part in str(param_grid_description).split(" x "):
+        token = part.strip()
+        if not token:
+            raise GridUnparseable(f"empty grid segment in {param_grid_description!r}")
+        name, sep, spec = token.partition(" in ")
+        if not sep or not name.strip():
+            raise GridUnparseable(f"segment is not '<axis> in <spec>': {token!r}")
+        axis = name.strip()
+        if axis in geometry:
+            raise GridUnparseable(f"duplicate axis {axis!r}")
+        geometry[axis] = _parse_axis_values(spec.strip())
+    if not geometry:
+        raise GridUnparseable(f"no axes parsed from {param_grid_description!r}")
+    return geometry
+
+
+def _parse_axis_values(spec: str) -> list[int]:
+    """One axis's integer grid points from a `range(a,b[,step])` or `[v1,v2,…]`
+    spec. Any deviation → GridUnparseable."""
+    m = _RANGE_RE.match(spec)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        step = int(m.group(3)) if m.group(3) is not None else 1
+        if step == 0:
+            raise GridUnparseable(f"range step is 0 in {spec!r}")
+        values = list(range(a, b, step))
+        if not values:
+            raise GridUnparseable(f"empty range {spec!r}")
+        return sorted(values)
+    if spec.startswith("[") and spec.endswith("]"):
+        inner = spec[1:-1].strip()
+        if not inner:
+            raise GridUnparseable(f"empty value list {spec!r}")
+        try:
+            return sorted(int(tok.strip()) for tok in inner.split(","))
+        except ValueError as exc:
+            raise GridUnparseable(f"non-integer value in list {spec!r}") from exc
+    raise GridUnparseable(f"unrecognized axis spec {spec!r}")
 
 
 class Eligibility:

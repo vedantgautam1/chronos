@@ -148,3 +148,43 @@ NO_AUTHORITY** (uncalibrated — a smoke test, not a judgment).
 **4.0 Eligibility:** PASS — 42 round trips ≥ 30 min; `provisional_cost_constants:
 true` recorded for stage 4.5 (a later phase); no unsafe flag; fragmentation screen
 skipped (the milestone carries no `param_grid_description`).
+
+---
+
+## Phase 4b — signal-only null gate (4.1) and parameter plateau / N finalization (4.2), measured 2026-08-03
+
+**Checkpoint 1 — stage 4.1 on the REAL milestone (trial #285, MA 20/50 BTC/USDT 1h,
+H1 2026, gauntlet_seed 12345, `null_signal.B` = 2000):**
+- θ̂ = mean(s_t·(fr_t − fr̄)) = **+4.52e-05** (small positive).
+- **p-value = 0.1045** (one-sided, fraction of stationary-bootstrap θ ≥ θ̂) —
+  **> α=0.05 → the entry rule does NOT beat noise before costs even enter (FAIL).**
+  Unremarkable, exactly as the brief anticipated for a losing MA rule; not a
+  "looks-wrong" result.
+- D-R5-p block parameter **p_block = 1.0 (mean block 1.0, i.i.d.)** — VERIFIED
+  genuine, not a mis-scaled selector: the window's log-return autocorrelations
+  acf[1..10] are all inside the ±1.96/√T = ±0.0297 band (acf[1]=−0.008, acf[2]=−0.022,
+  …), so the procedure settles at lag 1. Hourly BTC returns are near-white in linear
+  autocorrelation, so i.i.d. resampling is the honest null here.
+- Sensitivity bracket {p/2, 2p}: p(block 0.5) = **0.103**, p(block 1.0, 2p clamped to
+  a valid probability) = **0.122**. All three ≥ α → the FAIL is stable;
+  `fragile_to_block_length = false`.
+- n_bars = 4344; n_long_bars = 2109 (≈48.5% long); `flat_portfolio_assumption: true`
+  (exact for this state-independent MA entry).
+
+**Checkpoint 2 — stage 4.2 → freeze → 4.3 on a SYNTHETIC candidate (temp store, grid
+`fast in range(10,35,5)`, candidate fast=20/slow=50, 3 of 4 neighbors pre-seeded as
+SEARCH):** the N-finalization machinery, end to end:
+- pre-4.2 `compute_search_n` = **3** (neighbors fast=10/15/25 pre-seeded; fast=30 not
+  yet run).
+- 4.2 read the 3 present neighbors free and executed the one missing neighbor
+  (fast=30) as `kind=SEARCH` → post-4.2 `compute_search_n` = **4** (incremented by
+  **exactly 1**). `ctx.freeze_search()` fired; `search_frozen` False→True.
+- 4.3 read the FROZEN N = **4** live (`search_n_raw = 4`, `n_used_for_deflation = 4`,
+  `n_frozen: true`).
+- **SR\* rose with the frozen N: SR\*(V, N=3) = 0.4573 → SR\*(V, N=4) = 0.5641** — a
+  broken freeze→4.3 wiring that read the stale N=3 would set a strictly lower bar and
+  fail the probe.
+- `verdict.search_n = 4` == 4.3's N == post-freeze `compute_search_n` (the
+  `VerdictNMismatch` divergence invariant held). 4.2 PASSed the plateau; the 4.3 DSR
+  was 0 (V inflated to 0.287 by the FakeExchange monotonic-ramp neighbor's Sharpe
+  ≈1.17 — a synthetic-data artifact, not a stage behaviour). This is probe G6c.

@@ -41,9 +41,9 @@ follow the stale side.
 
 ---
 
-Last updated: 2026-07-30 (Phase 4a — free stages 4.0/4.3/4.4, probe G8)
-Test suite: **234 passing** (152 + 44 statistics + 38 moirai)
-Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–4a done.**
+Last updated: 2026-08-03 (Phase 4b — signal null 4.1, plateau 4.2, N finalization, probe G6)
+Test suite: **258 passing** (152 + 51 statistics + 55 moirai)
+Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–4b done.**
 
 ---
 
@@ -53,9 +53,10 @@ Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–4a don
 founder-decided; `MOIRAI_BUILD_BRIEF.md` sequences the build in nine
 phases. Phases 0 (housekeeping), 1 (statistics → CI, R1 SOURCED), 2
 (GauntletConfig hashed artifact, I9 enforcement), 3 (pipeline skeleton,
-verdict/outcome records, probes G1/G4), and 4a (the free stages 4.0/4.3/4.4,
-probe G8) are **done**. **Next: Phase 4b — signal null (4.1), parameter
-plateau (4.2), and the finalization of N.** Build runs on Opus throughout.
+verdict/outcome records, probes G1/G4), 4a (the free stages 4.0/4.3/4.4,
+probe G8), and 4b (signal null 4.1, plateau 4.2, N finalization, probe G6) are
+**done**. **Next: Phase 4c — the re-run gates 4.5–4.10** (cost stress, capacity,
+shifted-window, sub-period, full-engine null, descriptive). Build runs on Opus throughout.
 
 ## Scope note — there is no "lite" gauntlet
 
@@ -121,24 +122,38 @@ describing a lite v1 is stale; this line wins.
   (unsafe → NON_PROMOTABLE, zero downstream even in full-eval) green. Milestone
   judged end-to-end: FAIL at 4.3 (DSR 0.349 at honest N=1), authority
   NO_AUTHORITY (see SESSION_FINDINGS).
+- **Moirai re-run stages 4.1 + 4.2 (Phase 4b)** — the two stages with genuinely
+  new machinery. `moirai/stages/signal_null.py` (4.1 — `SignalCapture` wrapper via
+  the real `on_bar` `_DecisionRecorder` pattern, emits no orders; θ̂ =
+  mean(s·(fr−fr̄)); stationary-bootstrap null with the D-R5-p block length
+  `statistics.block_p_from_returns`; mandatory {p/2, 2p} bracket +
+  `fragile_to_block_length`; `ctx.rng` only). `moirai/stages/plateau.py` (4.2 — the
+  ONLY stage that spends N: ±1/±2 grid neighbors, reads existing SEARCH neighbors
+  free, runs missing ones `kind=SEARCH`, then `ctx.freeze_search()` on every exit;
+  branches: flat-plateau PASS, overfit FAIL, `grid_unparseable`,
+  `no_neighborhood_defined` PASS, `undeclared_search_breadth` FAIL). 4.3 now stamps
+  `n_frozen = ctx.search_frozen`. `run_gauntlet` recomputes the verdict's frozen N
+  post-loop and enforces a divergence invariant (verdict N == 4.3's N == post-freeze
+  `compute_search_n`, else `VerdictNMismatch`). Candidate re-run bundle
+  (`context.Candidate`) carries strategy+base config+hypothesis for re-run stages.
+  Probe **G6** (a fragmentation union-N, b SEARCH refused after 4.2, c neighbor
+  run ⇒ N+1 ⇒ 4.3 reads FROZEN N ⇒ SR* strictly up) green. Milestone 4.1 and the
+  synthetic 4.2→4.3 demo measured (SESSION_FINDINGS). +24 tests → 258.
 
 ## In progress
 
-- Nothing mid-edit. Clean stopping point after Phase 4a, before Phase 4b.
+- Nothing mid-edit. Clean stopping point after Phase 4b, before Phase 4c.
 
 ## Next task (owns the next Claude Code session)
 
-**Phase 4b of `MOIRAI_BUILD_BRIEF.md`** — the two stages with genuinely new
-machinery: 4.1 signal-only null gate (a `SignalCapture` wrapper — the
-`_DecisionRecorder` pattern — through `ctx.run`, stationary bootstrap from
-`statistics.py`, no engine change) and 4.2 parameter plateau, **the only stage
-permitted to spend N**: neighbors not yet run are executed `kind=SEARCH`, N
-increases, and after 4.2 `ctx.freeze_search()` is called so `ctx.run` refuses
-further SEARCH (the mechanism already lands in `context.py`). Probe G6 (a
-fragmentation union-N, b SEARCH refused after 4.2, c plateau neighbor ⇒ N+1 ⇒
-SR* strictly up). NOTE for 4b: 4.3 currently reads N live and stamps
-`n_frozen: false`; once 4.2 exists it must read the frozen N and 4.3 flip that
-flag. Protected path (`moirai/`) — full diff and founder approval before it lands.
+**Phase 4c of `MOIRAI_BUILD_BRIEF.md`** — the re-run gates 4.5 cost stress
+(3 VERIFICATION runs, absolute levels {5,10,25} bps, D-05), 4.6 capacity, 4.7
+shifted-window stability, 4.8 sub-period stability (HAC aggregate), 4.9 full-engine
+null benchmark (~200 VERIFICATION runs — the expensive wall; the calibration-budget
+open item lives here), 4.10 descriptive reporting (no gates). All consume the
+`Candidate` re-run bundle landed in 4b and run through `ctx.run`
+(`kind=VERIFICATION`; SEARCH is frozen after 4.2). Protected path (`moirai/`) —
+full diff and founder approval before it lands.
 
 ## Blocking / needed
 

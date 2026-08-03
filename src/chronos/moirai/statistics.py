@@ -103,6 +103,50 @@ def stationary_bootstrap_indices(N, p, rng):
     return (jump[seg] + (np.arange(N) - seg)) % N
 
 
+def block_p_from_returns(returns, *, consecutive=5, z=1.96, cap_divisor=50):
+    """D-R5-p (spec SPEC_MOIRAI.md s.10): the stationary-bootstrap mean block
+    length, chosen per Politis & Romano's own s.5 procedure, returned as the
+    block probability p = 1 / mean_block that `stationary_bootstrap_indices`
+    consumes.
+
+    Procedure (documented decision, PROVISIONAL — not a primary-source
+    known-answer): the mean block 1/p is the SMALLEST lag L at which the
+    series' sample autocorrelations sit inside the two-sided 95% white-noise
+    band (|acf| <= z/sqrt(T)) for `consecutive` consecutive lags. Clamped to
+    [floor 1, cap T/`cap_divisor`]. If the autocorrelations never settle, the
+    cap is used (largest block, smallest p — the conservative choice for
+    autocorrelated data). Uncorrelated returns settle at L=1 -> mean block 1
+    -> p=1, i.e. i.i.d. resampling, which is exactly right when there is no
+    dependence to preserve.
+
+    Pure math: consumes `circ_autocov`; no resampling, no I/O, no RNG. The
+    band and lag rule are recomputed per evaluation window (T-dependent), as
+    the decision requires. Evidence brackets at {p/2, 2p} live in the caller
+    (stage 4.1), not here."""
+    x = np.asarray(returns, float)
+    T = x.size
+    if T < 3:
+        return 1.0  # too short to estimate dependence — i.i.d. is the honest default
+    C = circ_autocov(x)
+    c0 = C[0]
+    if c0 <= 0.0:
+        return 1.0  # zero-variance / degenerate series — no dependence to preserve
+    acf = C / c0
+    band = z / np.sqrt(T)
+    cap = max(1.0, T / cap_divisor)
+
+    settled_lag = None
+    for lag in range(1, T):
+        window = acf[lag:lag + consecutive]
+        if window.size < consecutive:
+            break  # not enough lags left to confirm `consecutive` in-band
+        if np.all(np.abs(window) <= band):
+            settled_lag = lag
+            break
+    mean_block = cap if settled_lag is None else min(max(float(settled_lag), 1.0), cap)
+    return 1.0 / mean_block
+
+
 def sr_star(V, N):
     """AFML s.14.7.3.  Expected max Sharpe across N trials under H0: SR = 0.
     V is the CROSS-TRIAL VARIANCE of the estimated Sharpes, in the

@@ -33,6 +33,7 @@ from typing import Mapping, Protocol, runtime_checkable
 from chronos.hephaestus.types import BacktestResult
 from chronos.moirai.config import moirai_code_version
 from chronos.moirai.context import GauntletContext
+from chronos.run import compute_search_n
 from chronos.moirai.types import (
     AUTHORITATIVE,
     ERRORED,
@@ -50,6 +51,18 @@ from chronos.moirai.types import (
 class MoiraRegistryError(ValueError):
     """A moira_id appears in `pipeline_order` with no registered Moira. A
     config/registry mismatch — raised clearly, never silently skipped (spec §3.2)."""
+
+
+class VerdictNMismatch(RuntimeError):
+    """The verdict's headline `search_n`, the N stage 4.3 actually used, and the
+    post-freeze `compute_search_n` disagree (spec §4.2; founder decision
+    2026-07-31). The three MUST coincide once N is finalized — a divergence means
+    the freeze→4.3→verdict wiring is broken, so we raise rather than publish an
+    inconsistent verdict. Surfaces as an ERRORED verdict record (I11) then re-raises."""
+
+
+# The N-finalization stage (4.3 reads N; must match the config's moira_id).
+_DSR_MOIRA_ID = "M4.3-dsr"
 
 
 @runtime_checkable
@@ -126,6 +139,27 @@ def _verdict_record(verdict: GauntletVerdict) -> dict:
     return {"type": "gauntlet_verdict", **_verdict_payload(verdict)}
 
 
+def _assert_n_coincides(resolved_search_n, outcomes, computed_search_n) -> None:
+    """Divergence invariant (spec §4.2; founder 2026-07-31): whenever stage 4.3
+    executed, the verdict's headline N, the N 4.3 recorded (`search_n_raw`), and the
+    post-loop `compute_search_n` must all coincide. Raises `VerdictNMismatch`
+    otherwise. Skipped when 4.3 did not run (pure DAG-mechanics pipelines, or a
+    short-circuit before 4.3) — there is no 4.3-side N to compare against."""
+    dsr = next((o for o in outcomes
+                if o.executed and o.moira_id == _DSR_MOIRA_ID), None)
+    if dsr is None:
+        return
+    n_43 = (dsr.evidence or {}).get("search_n_raw")
+    if n_43 is None:
+        return
+    if not (resolved_search_n == n_43 == computed_search_n):
+        raise VerdictNMismatch(
+            f"verdict search_n={resolved_search_n}, stage 4.3 search_n_raw={n_43}, "
+            f"post-loop compute_search_n={computed_search_n} disagree — the "
+            f"freeze→4.3→verdict N wiring is broken (spec §4.2)."
+        )
+
+
 def _next_verdict_id(store) -> str:
     """Monotonic verdict id derived from the store (bookkeeping, like the engine's
     trial_index). Counts existing `gauntlet_verdict` records; stripped in the
@@ -139,13 +173,25 @@ def run_gauntlet(
     moirai: Mapping[str, Moira],
     ctx: GauntletContext,
     *,
-    search_n: int,
+    search_n: int | None = None,
     effective_n: float | None = None,
 ) -> GauntletVerdict:
     """Run the pipeline in `ctx.config.pipeline_order`, short-circuiting on the
     first failure unless `full_evaluation_mode`. Writes one `gauntlet_outcome`
     record per EXECUTED stage plus one `gauntlet_verdict` record on every exit
     path, including crashes (I11). Returns the verdict.
+
+    **N finalization (spec §4.2; founder 2026-07-31).** Stage 4.2 spends N during
+    the pipeline (its plateau neighbors are `kind=SEARCH`) and then freezes it, so
+    the verdict's headline `search_n` is resolved AFTER the loop, not before:
+      - `search_n=None` (the real path) → the verdict stamps the post-loop
+        `compute_search_n(hypothesis_id)` — the frozen N.
+      - `search_n=<int>` → an explicit override, used only by pure DAG-mechanics
+        tests whose fixtures carry no SEARCH records; honored verbatim.
+    Divergence invariant: whenever stage 4.3 executed, the verdict's `search_n`,
+    the N 4.3 recorded (`search_n_raw`), and the post-loop `compute_search_n` MUST
+    coincide — otherwise `VerdictNMismatch` is raised (a broken freeze→4.3→verdict
+    wiring must never publish an inconsistent verdict).
 
     A crash mid-pipeline persists every per-stage outcome gathered so far plus an
     `ERRORED` verdict carrying the error text, then re-raises — the caller sees
@@ -168,7 +214,6 @@ def run_gauntlet(
         engine_core_version=result.core_version,
         data_snapshot_hash=result.data_snapshot_hash,
         gauntlet_seed=ctx.gauntlet_seed,
-        search_n=search_n,
         effective_n=effective_n,
         evaluation_window=(
             result.date_range[0].isoformat(),
@@ -177,10 +222,19 @@ def run_gauntlet(
         authority=authority,
     )
 
+    def _resolve_search_n() -> int:
+        """The verdict's headline N: the caller's override if given, else the
+        post-loop (frozen) `compute_search_n`. Read from the store, so on the crash
+        path it reflects exactly whatever ran."""
+        if search_n is not None:
+            return search_n
+        return compute_search_n(result.hypothesis_id, ctx.store)
+
     outcomes: list[TestOutcome] = []
     verdict: GauntletVerdict | None = None
 
-    def _make_verdict(status: str, cause_of_death: str | None) -> GauntletVerdict:
+    def _make_verdict(status: str, cause_of_death: str | None,
+                      resolved_search_n: int) -> GauntletVerdict:
         from datetime import datetime, timezone
 
         return GauntletVerdict(
@@ -191,6 +245,7 @@ def run_gauntlet(
             cause_of_death=cause_of_death,
             outcomes=tuple(outcomes),
             judged_at=datetime.now(timezone.utc).isoformat(),
+            search_n=resolved_search_n,
             **coords,
         )
 
@@ -227,11 +282,14 @@ def run_gauntlet(
         status, cause_of_death = _determine_status(
             tuple(outcomes), full_evaluation_mode=ctx.config.full_evaluation_mode
         )
-        verdict = _make_verdict(status, cause_of_death)
+        resolved_search_n = _resolve_search_n()
+        _assert_n_coincides(resolved_search_n, tuple(outcomes),
+                            compute_search_n(result.hypothesis_id, ctx.store))
+        verdict = _make_verdict(status, cause_of_death, resolved_search_n)
         return verdict
     except Exception as exc:
         error_text = f"{type(exc).__name__}: {exc}"
-        verdict = _make_verdict(ERRORED, error_text)
+        verdict = _make_verdict(ERRORED, error_text, _resolve_search_n())
         raise  # the caller MUST see the crash — but the record persists (finally)
     finally:
         # I11: exactly one verdict record on every exit path. If verdict is still
@@ -246,6 +304,7 @@ def run_gauntlet(
                 cause_of_death="verdict construction failed",
                 outcomes=tuple(outcomes),
                 judged_at="",
+                search_n=_resolve_search_n(),
                 **coords,
             )
         ctx.store.append(_verdict_record(verdict))

@@ -11,15 +11,22 @@ Gate: DSR at RAW N >= thresholds["dsr.confidence"]. Evidence carries DSR at N-ha
 (JPM Appendix C, D-08 guard), DSR at union-N if 4.0 flagged fragmentation, and V's
 measurement window alongside the verdict window (§3.1). N-hat is EVIDENCE ONLY.
 
---- N handling this phase (design decision, see HANDOFF) ----------------------
-There is no stage 4.2 upstream yet (Phase 4b), so N is UN-FROZEN: this stage reads
-`compute_search_n(hypothesis_id)` live and stamps `n_frozen: false`. For a candidate
-drawn from NO logged search (compute_search_n == 0 — e.g. the milestone, whose
-selecting 280-sweep is legacy `kind=None`), the deflation N is floored to 1: a
-candidate is always at least one trial (itself), and DSR@N=1 floors SR* to 0 so the
-DSR degenerates to a plain PSR (the honest "no logged search breadth to deflate
-against" answer, and exactly the T-e N=1 case). The verdict's `search_n` still
-records the raw compute_search_n value verbatim.
+--- N handling (design decision, see HANDOFF) ---------------------------------
+This stage always reads `compute_search_n(hypothesis_id)` LIVE from the store. What
+changed in Phase 4b: stage 4.2 now runs upstream, spends N (its plateau neighbors
+are `kind=SEARCH`) and then calls `ctx.freeze_search()`. Because `ctx.run` refuses
+further SEARCH after that, the live `compute_search_n` value is STABLE once 4.2 has
+run — so reading it live here yields the frozen N without caching it. This stage
+stamps `n_frozen = ctx.search_frozen`: True when 4.2 actually froze upstream, False
+honestly when 4.2 is absent from the pipeline (dev subsets) or was never reached
+(short-circuit before it).
+
+For a candidate drawn from NO logged search (compute_search_n == 0 — e.g. the
+milestone, whose selecting 280-sweep is legacy `kind=None`), the deflation N is
+floored to 1: a candidate is always at least one trial (itself), and DSR@N=1 floors
+SR* to 0 so the DSR degenerates to a plain PSR (the honest "no logged search breadth
+to deflate against" answer, and exactly the T-e N=1 case). The verdict's `search_n`
+still records the raw compute_search_n value verbatim.
 """
 
 import numpy as np
@@ -35,15 +42,26 @@ MOIRA_ID = "M4.3-dsr"
 _CONFIDENCE_KEY = "dsr.confidence"
 
 
-def _deflation_note(raw_n, n_deflation, v_estimable) -> str:
+def _deflation_note(raw_n, n_deflation, v_estimable, n_frozen) -> str:
     """Plain-English audit of how N was handled — worded to match `_deflated`
     exactly (the explicit guard, not just the math). Two branches, discriminated
     by the SAME condition `_deflated` guards on (`N < 2 or not v_estimable`):
 
       - degenerate: no real search breadth → the guard returns PSR(SR*=0) directly
-        (mentions the guard AND why it exists — the nan-fix); Phase 7 re-establishes N.
+        (mentions the guard AND why it exists — the nan-fix).
       - real deflation: >= 2 aligned siblings → statistics.dsr with the actual N and V.
-    """
+
+    `n_frozen` reports whether stage 4.2 froze N upstream this pipeline (True) or is
+    absent/unreached (False) — the note states which honestly rather than assuming.
+    The freeze clause is deliberately free of the words "Phase 7"/"N floored" so the
+    real-deflation branch never mentions degenerate-case concepts."""
+    frozen_clause = (
+        "Upstream stage 4.2 froze N (ctx.freeze_search fired; no later stage may "
+        "spend SEARCH), so this live compute_search_n is the finalized verdict N."
+        if n_frozen else
+        "N is not frozen this pipeline (stage 4.2 absent from pipeline_order or not "
+        "reached before this stage); compute_search_n is read live."
+    )
     if n_deflation < 2 or not v_estimable:
         return (
             f"search_n_raw={raw_n}: fewer than 2 SEARCH records for this hypothesis "
@@ -53,15 +71,15 @@ def _deflation_note(raw_n, n_deflation, v_estimable) -> str:
             f"explicit N<2-or-V-not-estimable guard in the stage (_deflated) returns "
             f"PSR(SR*=0) DIRECTLY rather than computing SR* — this both encodes 'no "
             f"multiple-testing deflation applied' and avoids the sqrt(0)*Phi_inv(0) = "
-            f"0*-inf = nan that sr_star hits at N=1. N is un-frozen this phase (no "
-            f"stage 4.2 upstream). Honest N is re-established live in Phase 7, which "
-            f"re-runs the 280-point sweep under kind=SEARCH."
+            f"0*-inf = nan that sr_star hits at N=1. Honest N is re-established live "
+            f"in Phase 7, which re-runs the 280-point sweep under kind=SEARCH. "
+            f"{frozen_clause}"
         )
     return (
         f"search_n_raw={raw_n}, used as the deflation N (n_used_for_deflation="
         f"{n_deflation}); V estimated from >= 2 aligned SEARCH-sibling per-bar "
         f"Sharpes. Real multiple-testing deflation applied via statistics.dsr "
-        f"(SR* floored at 0)."
+        f"(SR* floored at 0). {frozen_clause}"
     )
 
 
@@ -112,6 +130,9 @@ class DeflatedSharpe:
         confidence = ctx.config.thresholds[_CONFIDENCE_KEY]
         passed = bool(dsr_raw >= confidence)
 
+        # n_frozen: True only when stage 4.2 actually froze N upstream (spec §4.2).
+        n_frozen = ctx.search_frozen
+
         evidence = {
             "sr_hat_per_bar": sr_hat,
             "T": T,
@@ -119,7 +140,7 @@ class DeflatedSharpe:
             "kurt": kurt,
             "search_n_raw": raw_n,
             "n_used_for_deflation": n_deflation,
-            "n_frozen": False,  # no stage 4.2 upstream this phase
+            "n_frozen": n_frozen,
             "V": v_value if v_estimable else "not_estimable",
             "V_estimable": v_estimable,
             "V_measurement_window": v_window,
@@ -127,7 +148,8 @@ class DeflatedSharpe:
                                result.date_range[1].isoformat()],
             "dsr_at_raw_n": dsr_raw,
             "dsr_confidence_threshold": confidence,
-            "deflation_note": _deflation_note(raw_n, n_deflation, v_estimable),
+            "deflation_note": _deflation_note(raw_n, n_deflation, v_estimable,
+                                              n_frozen),
         }
 
         # Effective N-hat (JPM Appendix C, R7/D-08) — EVIDENCE ONLY, never the gate.
