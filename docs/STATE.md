@@ -41,9 +41,9 @@ follow the stale side.
 
 ---
 
-Last updated: 2026-08-03 (Phase 4b — signal null 4.1, plateau 4.2, N finalization, probe G6)
-Test suite: **258 passing** (152 + 51 statistics + 55 moirai)
-Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–4b done.**
+Last updated: 2026-08-03 (Phase 4c session 1 — cost stress 4.5, capacity 4.6, shifted-window 4.7, shared re-run helper)
+Test suite: **284 passing** (152 + 51 statistics + 81 moirai)
+Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–4c(s1) done.**
 
 ---
 
@@ -54,9 +54,10 @@ founder-decided; `MOIRAI_BUILD_BRIEF.md` sequences the build in nine
 phases. Phases 0 (housekeeping), 1 (statistics → CI, R1 SOURCED), 2
 (GauntletConfig hashed artifact, I9 enforcement), 3 (pipeline skeleton,
 verdict/outcome records, probes G1/G4), 4a (the free stages 4.0/4.3/4.4,
-probe G8), and 4b (signal null 4.1, plateau 4.2, N finalization, probe G6) are
-**done**. **Next: Phase 4c — the re-run gates 4.5–4.10** (cost stress, capacity,
-shifted-window, sub-period, full-engine null, descriptive). Build runs on Opus throughout.
+probe G8), 4b (signal null 4.1, plateau 4.2, N finalization, probe G6), and **4c
+session 1 (cost stress 4.5, capacity 4.6, shifted-window 4.7 + the shared re-run
+helper)** are **done**. **Next: Phase 4c session 2 — 4.8 sub-period, 4.9 full-engine
+null (~200 runs — the expensive wall), 4.10 descriptive.** Build runs on Opus throughout.
 
 ## Scope note — there is no "lite" gauntlet
 
@@ -139,21 +140,40 @@ describing a lite v1 is stale; this line wins.
   Probe **G6** (a fragmentation union-N, b SEARCH refused after 4.2, c neighbor
   run ⇒ N+1 ⇒ 4.3 reads FROZEN N ⇒ SR* strictly up) green. Milestone 4.1 and the
   synthetic 4.2→4.3 demo measured (SESSION_FINDINGS). +24 tests → 258.
+- **Moirai re-run gates 4.5/4.6/4.7 (Phase 4c session 1)** — the first three re-run
+  gates, all sharing ONE helper. `moirai/rerun.py` (`rerun_candidate` → a single
+  `kind=VERIFICATION` engine re-run of `ctx.candidate` at a caller-modified RunConfig,
+  wall-clock timed; `net_return`/`per_bar_sharpe` from the returns series as-is; raises
+  with no candidate; data-supply verbatim with 4.1/4.2). `moirai/stages/cost_stress.py`
+  (4.5 — 3 VERIFICATION re-runs at absolute slippage {5,10,25} bps, spread scaled in
+  proportion, taker held; NEVER a `cost_summary` rescale — a CI spy proves 3 real
+  `ctx.run` calls with distinct config hashes / one data hash; margin criterion active
+  under `provisional_cost_constants`; `non_monotone_cost_response` when a dominated
+  level fails). `moirai/stages/capacity.py` (4.6 — 10×/100× cash scaled in Decimal;
+  Sharpe-degradation floor + remainder-notional fraction via order_id→fill-price
+  matching; 100× reporting-only). `moirai/stages/shift.py` (4.7 — ±1/±2-week shifts,
+  pass-fraction-of-Sharpe gate on v001 keys; forward guards REFUSE sealed / past-data
+  shifts, never clip; spec §4.7 sign-agreement sub-gate built **dormant** — reads
+  `shift.min_sign_agree`, absent under v001 so inactive, activated + calibrated at
+  v002). Read-only `oceanus.access.available_range` added for the past-data guard (I7).
+  Milestone judged end-to-end through 4.0–4.7 in full-eval mode; per-run wall-clock
+  measured (SESSION_FINDINGS). +26 tests → 284.
 
 ## In progress
 
-- Nothing mid-edit. Clean stopping point after Phase 4b, before Phase 4c.
+- Nothing mid-edit. Clean stopping point after Phase 4c session 1, before session 2.
 
 ## Next task (owns the next Claude Code session)
 
-**Phase 4c of `MOIRAI_BUILD_BRIEF.md`** — the re-run gates 4.5 cost stress
-(3 VERIFICATION runs, absolute levels {5,10,25} bps, D-05), 4.6 capacity, 4.7
-shifted-window stability, 4.8 sub-period stability (HAC aggregate), 4.9 full-engine
-null benchmark (~200 VERIFICATION runs — the expensive wall; the calibration-budget
-open item lives here), 4.10 descriptive reporting (no gates). All consume the
-`Candidate` re-run bundle landed in 4b and run through `ctx.run`
-(`kind=VERIFICATION`; SEARCH is frozen after 4.2). Protected path (`moirai/`) —
-full diff and founder approval before it lands.
+**Phase 4c session 2 of `MOIRAI_BUILD_BRIEF.md`** — 4.8 sub-period stability (K
+year-long windows + one-sided HAC t via Newey–West, first pre-Atropos NW consumer),
+4.9 full-engine null benchmark (~200 cadence-matched VERIFICATION nulls — the
+expensive wall; the calibration-budget open item bites here), 4.10 descriptive
+reporting (no gates). All inherit the `moirai/rerun.py` VERIFICATION re-run helper
+built in session 1 and run through `ctx.run` (`kind=VERIFICATION`; SEARCH frozen after
+4.2). Protected path (`moirai/`) — full diff and founder approval before it lands.
+Measured throughput ≈ **1.4 s/engine-run**, so the ~200-run 4.9 checkpoint ≈ 4.7 min
+(feasible); the Phase 5/6 calibration budget should size against that number.
 
 ## Blocking / needed
 
@@ -164,9 +184,13 @@ full diff and founder approval before it lands.
 - **The Phase 6 calibration budget decision** — the spec's compute
   estimate does not account for stage 4.9's ~200 null runs per candidate
   under full-evaluation mode; the gap is roughly three orders of
-  magnitude. Phase 5 now measures actual engine throughput and the
-  founder picks a resolution (options A/B/C in the brief) before Phase 6
-  is scoped. **This is the one genuinely open item in the build.**
+  magnitude. **First real throughput sample now in hand (Phase 4c s1):
+  ≈ 1.4 s/engine-run** over a 4344-bar H1 window. So a single 4.9
+  (~200 runs) ≈ 4.7 min — feasible; the wall is calibration's nested loop
+  (calibration.R=500 × 7 ladder points × ~200 nulls × 1.4 s ≈ ~11 days
+  naive). Founder picks a resolution (options A/B/C in the brief), now
+  sized against 1.4 s, before Phase 6 is scoped. **The one genuinely open
+  item in the build.**
 - **Every §14 threshold is provisional until Phase 6 calibrates it.** The
   weakest-derived numbers, flagged honestly: `mc_shuffle.ruin_dd 0.40`
   (a placeholder for Themis), `capacity.max_degradation_frac 0.3`,

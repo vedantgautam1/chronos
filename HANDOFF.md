@@ -1211,3 +1211,95 @@ read frozen N=4 with `n_frozen: true`, SR* rose 0.457→0.564, `verdict.search_n
 (invariant held). (The 4.2 flat-plateau PASSed; 4.3 DSR was 0 because the FakeExchange
 monotonic ramp gives the run neighbor an inflated Sharpe ≈1.17 → large V — a
 synthetic-data artifact, not a stage behaviour.)
+
+## PHASE 4c SESSION 1 — cost stress 4.5, capacity 4.6, shifted-window 4.7 — 2026-08-03
+
+**Model:** Opus · **Protected paths touched:** `moirai/`, `tests/moirai/`, plus ONE
+read-only addition to `oceanus/access.py` (full diff shown, founder-approved before
+commit). **Tests: 258 → 284, all green.** The first three re-run gates.
+
+### What landed
+
+| moira_id (byte-matches v001 `pipeline_order`) | file | gate |
+|---|---|---|
+| `M4.5-cost-stress` | `moirai/stages/cost_stress.py` | at 10 bps: net>0 AND per-bar Sharpe ≥ margin (0.005/bar, provisional-active); 5 bps must also pass (else `non_monotone_cost_response`); 25 bps reporting-only |
+| `M4.6-capacity` | `moirai/stages/capacity.py` | at 10×: per-bar Sharpe degrades ≤ 0.3 of base AND remainder-cancelled notional ≤ 0.2 of intended; 100× reporting-only |
+| `M4.7-shift` | `moirai/stages/shift.py` | ≥ 0.8 of the 4 offsets have per-bar Sharpe within 50% of base; forward guards refuse sealed / past-data shifts |
+
+**The shared re-run helper (built ONCE, `moirai/rerun.py`).** `rerun_candidate(ctx,
+config, **kwargs) -> Rerun(result, wall_clock_s)`: derives nothing itself — the stage
+hands it an already-modified `RunConfig` (via `dataclasses.replace`) — calls
+`ctx.run(kind=VERIFICATION, config=…, strategy=ctx.candidate.strategy,
+hypothesis=ctx.candidate.hypothesis, **kwargs)`, wall-clock-times it, and raises if
+`ctx.candidate is None`. The data-supply pattern is **verbatim with 4.1/4.2**: no data
+kwargs in production (data comes from the config through the one Oceanus door);
+`**kwargs` is only the data_root/exchange test seam. Also carries `net_return()` (from
+returns as-is: prod(1+r)−1) and `per_bar_sharpe()`. 4.5/4.6/4.7 call ONLY this helper
+to re-run; 4.8/4.9 (session 2) inherit it. Naming avoids the engine's internal run
+tokens (one-door grep stays clean).
+
+**Read-only Oceanus coverage helper (the one out-of-`moirai/` change).**
+`access.available_range(symbol, timeframe) -> (first_open, last_open+1bar) | None` —
+no fetch, no network, no seal bypass. 4.7's "past available data" forward guard needs
+to know what is on disk, and I7 forbids the Moirai from reading `data/`, so the query
+lives in Oceanus. Founder-approved as a scoped, read-only addition.
+
+### The two founder decisions taken this phase (2026-08-03)
+
+1. **cost_summary is never scaled (trap #6).** Every cost level is a full engine
+   re-run at that absolute `CostConfig`; the stage ignores `cost_summary` for
+   stressing. Verified by a CI test that spies **three real VERIFICATION `ctx.run`
+   calls** with distinct config hashes and one identical data hash — structurally
+   proving no line-item shortcut. Spread scaled in proportion
+   (`half_spread_bps = base_half × L/base_slippage`), taker fee held; rule stamped
+   into evidence.
+2. **4.7 sign-agreement sub-gate built DORMANT (dropped spec gate, not a rename).**
+   See the v002 list below. Reads `shift.min_sign_agree` from config; absent under
+   v001 → the sub-gate reports `active:false` with a note and does NOT touch the
+   verdict. No hardcoded literal (G2-clean), no v001 re-key (I9/hash untouched). v002
+   activates it by adding + calibrating the one key. Founder-directed.
+
+### v002 key-drift reconciliation — now 7 renames + 1 dropped spec gate
+
+Two 4.5 renames added (list is now **7**):
+
+| spec name | v001 actual key | stage |
+|---|---|---|
+| `cost_stress.gate_level` | `cost_stress.gate_level_bps` | 4.5 — **NEW this phase** |
+| `cost_stress.margin_sharpe` | `cost_stress.margin_per_bar_sharpe` | 4.5 — **NEW this phase** |
+
+(plus 4.7's two renames, recorded as renames: `shift.offsets_weeks`→`shift.offsets_w`;
+`shift.sharpe_band`→`shift.max_sharpe_deviation_pct` + `shift.pass_fraction`.)
+
+**DROPPED SPEC GATE (logged SEPARATELY — NOT a rename; do not collapse into the list
+above).** Spec §4.7 also requires the **sign of net return** to agree with the base in
+≥ `shift.min_sign_agree` of (base + shifts). v001 carries **no such key**, so under
+v001 the gate is genuinely dropped. Built dormant this phase (see decision 2).
+**v002 action is design + build + calibrate, NOT a rename:** add `shift.min_sign_agree`
+to the config, confirm the sub-gate wiring (already present), and **calibrate its
+threshold in Phase 6**. A future reader must not mistake this for "just add a key."
+
+### Checkpoint (real output, milestone 4.0–4.7, full-evaluation mode; SESSION_FINDINGS)
+
+- **4.5:** base net −9.08% (reproduces trial #285's scar exactly), monotone to
+  −14.72% / −21.29% / −38.18% at 5/10/25 bps → **FAIL `cost_gate_fail`** (losing at
+  every level). Margin active (floor 0.005/bar).
+- **4.6:** base per-bar Sharpe −0.0059; 10× essentially unchanged (degradation
+  ≈4.7e-08, remainder 0.0) → **PASS**; 100× Sharpe −0.00507, remainder 3.28%
+  (reporting). Capacity is not the milestone's binding constraint.
+- **4.7:** only **+1w** evaluable (within band, dev 0.412); **−2w/−1w/+2w REFUSED
+  (past_available_data)** — the milestone's 6-month dev window sits at the cached-data
+  edge (2026-01-01 → 2026-07-08). 1/4 < 0.8 → **FAIL**. Forward guard working as
+  designed; sign-agreement sub-gate dormant (no v001 key), verdict unchanged.
+- **Throughput (FIRST real per-engine-run samples):** 6 re-runs via the shared helper,
+  **median 1.415 s/run** (~4344-bar H1 window). Implication: session 2's ~200-run 4.9
+  checkpoint ≈ **4.7 min — FEASIBLE, not a blocker**. The real Phase 6 budget wall is
+  calibration's nested loop (calibration.R=500 × 7 ladder points × ~200 nulls × 1.4 s
+  ≈ ~11 days if run naively) — the Phase 5 budget decision should size against 1.4 s.
+
+### For Phase 4c session 2 (next)
+
+Stages 4.8 (sub-period stability, HAC aggregate — Newey–West consumed pre-Atropos),
+4.9 (full-engine null benchmark, ~200 VERIFICATION runs — the expensive wall; the
+calibration-budget open item bites here), 4.10 (descriptive, no gates). All inherit
+`moirai/rerun.py`. `scripts/moirai_phase4c_checkpoint.py` extends to the full pipeline.

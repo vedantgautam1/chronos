@@ -146,6 +146,32 @@ def get_bars(
     return bars
 
 
+def available_range(
+    symbol: str,
+    timeframe: Timeframe,
+    root=None,  # internal: overridden only by tests
+) -> tuple[datetime, datetime] | None:
+    """The half-open span [first_open, last_open + one bar) of COMPLETED bars
+    already on disk for (symbol, timeframe) — READ-ONLY: no fetch, no network, no
+    seal check (it reports what is stored, nothing more). Returns None when nothing
+    is stored.
+
+    This exists so a re-run gate (stage 4.7's shifted window) can ask "is this window
+    inside what we actually have?" and REFUSE a window that runs past the stored data,
+    rather than trip get_bars() into a live edge-fetch or silently truncate. It lives
+    here, not in the Moirai, because only Oceanus may read data/ (invariant I7). A
+    window [start, end) is fully covered iff start >= first and end <= second.
+    """
+    from chronos.oceanus.store import load_stored
+
+    stored = load_stored(symbol, timeframe, root=root)
+    if stored.empty:
+        return None
+    first = stored["open_time"].iloc[0].to_pydatetime()
+    end = (stored["open_time"].iloc[-1] + timeframe.duration).to_pydatetime()
+    return (first, end)
+
+
 def universe_at(as_of: datetime | date) -> list[str]:
     """The symbols tradeable as of `as_of` — and only those.
 

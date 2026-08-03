@@ -188,3 +188,69 @@ SEARCH):** the N-finalization machinery, end to end:
   `VerdictNMismatch` divergence invariant held). 4.2 PASSed the plateau; the 4.3 DSR
   was 0 (V inflated to 0.287 by the FakeExchange monotonic-ramp neighbor's Sharpe
   ≈1.17 — a synthetic-data artifact, not a stage behaviour). This is probe G6c.
+
+# Session finding: Phase 4c s1 — cost/capacity/shift on the milestone + first engine throughput
+
+**Date:** 2026-08-03
+**Status:** permanent record. Milestone MA(20/50) BTC/USDT 1h, H1 2026 dev window
+(2026-01-01 → 2026-07-01), judged through stages 4.0–4.7 in full-evaluation mode under
+v001 thresholds (uncalibrated → `NO_AUTHORITY`). Reproduce:
+`uv run python scripts/moirai_phase4c_checkpoint.py` (temp store; records/ untouched).
+
+## 4.5 cost stress — the losing rule loses harder, monotonically
+
+Net return / per-bar Sharpe at each absolute slippage level (spread scaled in
+proportion `half_spread = 1 × L/1`, taker held at 10 bps):
+
+| level | net return | per-bar Sharpe | |
+|---|---|---|---|
+| base (1 bps) | **−9.08%** | −0.00590 | reproduces trial #285's scar exactly |
+| 5 bps | −14.72% | −0.01081 | |
+| 10 bps | −21.29% | −0.01687 | **gate** — net<0 → FAIL |
+| 25 bps | −38.18% | −0.03425 | reporting-only |
+
+`cost_gate_fail` (not `non_monotone` — every level loses; net return is monotone
+non-increasing as cost rises). Margin criterion active (`provisional_cost_constants`
+present; floor 0.005/bar). The −8.6%-linear-vs-−9.08%-actual scar is why each level is
+a full engine re-run and `cost_summary` is never scaled — a CI spy confirms three real
+VERIFICATION `ctx.run` calls with distinct config hashes and one identical data hash.
+
+## 4.6 capacity — the cap does not bind; capacity is not the milestone's problem
+
+Base per-bar Sharpe −0.00590. **10×** cash: Sharpe −0.00590 (degradation ≈ 4.7e-08),
+remainder-cancelled notional **0.0** → **PASS** (degradation ≤ 0.3, remainder ≤ 0.2).
+**100×** (reporting-only): Sharpe −0.00507, remainder fraction **3.28%**. At BTC/USDT
+hourly depth the 5% participation cap barely bites even at $1M; the milestone is
+size-agnostic, so its unprofitability is a signal/cost problem (4.5/4.3), not capacity.
+
+## 4.7 shifted window — the dev window sits at the cached-data edge
+
+Base per-bar Sharpe −0.00590. Stored H1 coverage is **2026-01-01 → 2026-07-08 04:00**,
+so of the four shifts only **+1w** is inside it:
+
+| offset | outcome |
+|---|---|
+| −2w | REFUSED (past_available_data — starts before 2026-01-01) |
+| −1w | REFUSED (past_available_data) |
+| +1w | per-bar Sharpe −0.00347, deviation 0.412 < 0.50 → within band |
+| +2w | REFUSED (past_available_data — ends after 2026-07-08) |
+
+1 of 4 within band → 0.25 < 0.80 → **FAIL**. This is the forward guard working, not a
+crash: shifts past the stored data are refused, never silently truncated or sent to a
+live fetch. The honest reading — a stability gate a window cannot even demonstrate does
+not pass. (Spec §4.7's sign-agreement sub-gate is dormant: no v001 key.)
+
+## First real engine throughput — the number Phase 5/6's budget hangs on
+
+Six re-runs through the shared `rerun_candidate` helper (3 cost + 2 capacity + 1 shift),
+each a ~4344-bar H1 backtest:
+
+- per-run seconds: **[1.413, 1.454, 1.414, 1.416, 1.426, 1.406]**
+- **median 1.415 s/run** (min 1.406, max 1.454).
+
+Until now the per-engine-run cost was only *inferred* from bar counts. Implications:
+a single stage 4.9 (~200 cadence-matched nulls) ≈ **4.7 min — feasible on this
+hardware, NOT a session-2 blocker.** The genuine wall is Phase 6 calibration's nested
+loop: `calibration.R`=500 × 7 ladder points × ~200 nulls × 1.4 s ≈ **~11 days** run
+naively — this is the calibration-budget decision (STATE.md "Blocking"), now sizable
+against a measured 1.4 s rather than a guess.
