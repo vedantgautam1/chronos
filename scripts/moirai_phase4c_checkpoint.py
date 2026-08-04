@@ -29,10 +29,13 @@ from chronos.moirai.stages import (
     Capacity,
     CostStress,
     DeflatedSharpe,
+    Descriptive,
     Eligibility,
+    NullBenchmark,
     Plateau,
     ShiftedWindow,
     SignalNull,
+    SubPeriod,
     TradeShuffle,
 )
 from chronos.run import RunKind, run_experiment
@@ -42,12 +45,15 @@ from chronos.strategies.ma_crossover import MACrossover
 PIPELINE_4C = (
     "M4.0-eligibility", "M4.1-signal-null", "M4.2-plateau", "M4.3-dsr",
     "M4.4-shuffle", "M4.5-cost-stress", "M4.6-capacity", "M4.7-shift",
+    "M4.8-subperiod", "M4.9-null-bench", "M4.10-descriptive",
 )
 REGISTRY = {
     "M4.0-eligibility": Eligibility(), "M4.1-signal-null": SignalNull(),
     "M4.2-plateau": Plateau(), "M4.3-dsr": DeflatedSharpe(),
     "M4.4-shuffle": TradeShuffle(), "M4.5-cost-stress": CostStress(),
     "M4.6-capacity": Capacity(), "M4.7-shift": ShiftedWindow(),
+    "M4.8-subperiod": SubPeriod(), "M4.9-null-bench": NullBenchmark(),
+    "M4.10-descriptive": Descriptive(),
 }
 
 
@@ -67,7 +73,7 @@ def main() -> None:
 
     print("=" * 74)
     print("PHASE 4c CHECKPOINT — MA(20/50) BTC/USDT 1h, H1 2026 dev window")
-    print("full_evaluation_mode=True; v001 thresholds; pipeline 4.0–4.7")
+    print("full_evaluation_mode=True; v001 thresholds; full pipeline 4.0–4.10")
     print("=" * 74)
 
     # The verdict-grade base run (measured costs), then judge it.
@@ -116,14 +122,54 @@ def main() -> None:
     print(f"  evaluated {ev7['n_evaluated']}/{ev7['n_offsets']}, "
           f"refused {ev7['n_refused']}; passed: {_outcome(verdict, 'M4.7-shift').passed}")
 
-    # --- throughput ---
-    per_run = (ev["run_wall_clock_s"] + ev6["run_wall_clock_s"] + ev7["run_wall_clock_s"])
+    # --- 4.8 sub-period ---
+    ev8 = _outcome(verdict, "M4.8-subperiod").evidence
+    print("\n--- 4.8 SUB-PERIOD STABILITY (per-window Sharpe + pooled HAC t) ---")
+    print(f"  n_windows: {ev8['n_windows']} ({ev8['window_months']}-month windows)")
+    for w in ev8["per_window"]:
+        print(f"  [{w['start'][:10]}..{w['end'][:10]}) per-bar Sharpe {w['per_bar_sharpe']:+.5f}"
+              f"  net {w['net_return']:+.4%}")
+    if ev8.get("reason") == "insufficient_subperiods":
+        print(f"  {ev8['insufficient_note']}")
+    else:
+        print(f"  pooled mean {ev8['pooled_mean_return']:+.2e}  HAC t {ev8['hac_t']}"
+              f"  (m={ev8['nw_lag_m']}); bracket {ev8['hac_t_bracket']}")
+    print(f"  passed: {_outcome(verdict, 'M4.8-subperiod').passed}  reason: {ev8.get('reason')}")
+
+    # --- 4.9 null benchmark ---
+    ev9 = _outcome(verdict, "M4.9-null-bench").evidence
+    print("\n--- 4.9 FULL-ENGINE NULL BENCHMARK ---")
+    print(f"  candidate net {ev9['candidate_net_return']:+.4%}; {ev9['n_nulls']} nulls, "
+          f"{ev9['n_entries']} entries over {ev9['n_bars']} bars")
+    if "null_distribution" in ev9:
+        d = ev9["null_distribution"]
+        print(f"  null net dist: min {d['min']:+.4%}  median {d['median']:+.4%}  "
+              f"p95 {d['p95']:+.4%}  max {d['max']:+.4%}")
+        print(f"  candidate percentile in null dist: {ev9['candidate_percentile_in_null_dist']:.1f}"
+              f"  (gate {ev9['percentile_gate']}th pct = {ev9['gate_threshold_net_return']:+.4%})")
+    print(f"  passed: {_outcome(verdict, 'M4.9-null-bench').passed}  reason: {ev9.get('reason')}")
+
+    # --- 4.10 descriptive ---
+    ev10 = _outcome(verdict, "M4.10-descriptive").evidence
+    print("\n--- 4.10 DESCRIPTIVE (no gates) ---")
+    print(f"  per-calendar-year: {ev10['regime_per_calendar_year']}")
+    print(f"  above/below 200d MA: {ev10['regime_above_below_200d_ma']}")
+    print(f"  cross-asset (ETH): {ev10['cross_asset_trace']}")
+    ann = ev10["annualized"]
+    print(f"  annualized Sharpe over {ann['window']}: naive √k {ann['annualized_sharpe_naive_sqrt_k']:+.4f}"
+          f"  Lo AR(1) {ann['annualized_sharpe_lo_ar1']:+.4f} (rho {ann['ar1_rho']:+.3f})")
+    print(f"  metrics: {ev10['metrics']}")
+
+    # --- throughput (all re-run stages) ---
+    per_run = (ev["run_wall_clock_s"] + ev6["run_wall_clock_s"] + ev7["run_wall_clock_s"]
+               + ev8["run_wall_clock_s"] + ev9["run_wall_clock_s"])
     print("\n--- THROUGHPUT (per-engine-run wall-clock, shared helper) ---")
-    print(f"  {len(per_run)} re-runs via rerun_candidate")
-    print(f"  per-run seconds: {[round(x, 3) for x in per_run]}")
+    print(f"  {len(per_run)} re-runs via rerun_candidate (4.5+4.6+4.7+4.8+4.9)")
     if per_run:
         print(f"  median: {pystats.median(per_run):.3f}s   "
               f"min {min(per_run):.3f}s  max {max(per_run):.3f}s")
+        print(f"  4.9 alone: {len(ev9['run_wall_clock_s'])} runs, "
+              f"median {pystats.median(ev9['run_wall_clock_s']):.3f}s")
     print("\n(temp store: %s)" % (tmp / "records"))
 
 

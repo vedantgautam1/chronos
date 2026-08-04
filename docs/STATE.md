@@ -41,9 +41,9 @@ follow the stale side.
 
 ---
 
-Last updated: 2026-08-03 (Phase 4c session 1 — cost stress 4.5, capacity 4.6, shifted-window 4.7, shared re-run helper)
-Test suite: **284 passing** (152 + 51 statistics + 81 moirai)
-Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–4c(s1) done.**
+Last updated: 2026-08-04 (Phase 4c session 2 — sub-period 4.8, null benchmark 4.9, descriptive 4.10, probe G7 — Phase 4c COMPLETE)
+Test suite: **303 passing** (152 + 51 statistics + 100 moirai)
+Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–4c done; the full eleven-stage pipeline (4.0–4.10) exists.**
 
 ---
 
@@ -55,9 +55,11 @@ phases. Phases 0 (housekeeping), 1 (statistics → CI, R1 SOURCED), 2
 (GauntletConfig hashed artifact, I9 enforcement), 3 (pipeline skeleton,
 verdict/outcome records, probes G1/G4), 4a (the free stages 4.0/4.3/4.4,
 probe G8), 4b (signal null 4.1, plateau 4.2, N finalization, probe G6), and **4c
-session 1 (cost stress 4.5, capacity 4.6, shifted-window 4.7 + the shared re-run
-helper)** are **done**. **Next: Phase 4c session 2 — 4.8 sub-period, 4.9 full-engine
-null (~200 runs — the expensive wall), 4.10 descriptive.** Build runs on Opus throughout.
+(session 1: cost stress 4.5, capacity 4.6, shifted-window 4.7 + the shared re-run
+helper; session 2: sub-period 4.8, null benchmark 4.9, descriptive 4.10, probe G7)**
+are **done** — the **full eleven-stage pipeline (4.0–4.10) now exists**. **Next: Phase 5
+— touchstones, the calibration harness, and throughput measurement.** Build runs on
+Opus throughout.
 
 ## Scope note — there is no "lite" gauntlet
 
@@ -158,21 +160,36 @@ describing a lite v1 is stale; this line wins.
   v002). Read-only `oceanus.access.available_range` added for the past-data guard (I7).
   Milestone judged end-to-end through 4.0–4.7 in full-eval mode; per-run wall-clock
   measured (SESSION_FINDINGS). +26 tests → 284.
+- **Moirai re-run gates 4.8/4.9/4.10 + probe G7 (Phase 4c session 2)** — the pipeline
+  completes. `moirai/stages/subperiod.py` (4.8 — 12-month partition, gate (i)
+  positive-Sharpe fraction, gate (ii) one-sided HAC t via `statistics.newey_west` at
+  m=⌈K^⅓⌉ with {m/2,2m} bracket, gate (iii) window-PnL concentration; K<2 →
+  `insufficient_subperiods`; N-laundering warning carried verbatim; **gate (ii) is an
+  OPEN/UNRATIFIED methodology decision** — per-window-means as built, pooled-per-bar
+  rejected for warmup-seam contamination, quant ratifies at v002/Phase 6).
+  `moirai/nulls.py` + `moirai/stages/null_bench.py` (4.9 — `place_null_entries` is
+  **price-blind by construction** (no price parameter) and deterministic under
+  `ctx.rng`; 200 cadence-matched nulls via the shared helper's strategy/hypothesis
+  override, tagged `:null:`; gate = candidate net > the 95th percentile, read as a
+  percentile not a fraction). `moirai/stages/descriptive.py` (4.10 — never gates;
+  per-year + guarded 200d-MA regime, guarded cross-asset, Lo Eq.22 + naive annualized
+  naming their window, Appendix-A metrics). Probe **G7** (`tests/moirai/
+  test_seal_respect.py`): a sealed evaluation window → `SealedDataError` propagates
+  uncaught → verdict ERRORED (distinct from 4.7's graceful shift refusal). `rerun.py`
+  gained keyword-only `strategy`/`hypothesis` overrides for the nulls. Full 11-stage
+  checkpoint measured (SESSION_FINDINGS). +19 tests → 303.
 
 ## In progress
 
-- Nothing mid-edit. Clean stopping point after Phase 4c session 1, before session 2.
+- Nothing mid-edit. Clean stopping point: Phase 4c complete, before Phase 5.
 
 ## Next task (owns the next Claude Code session)
 
-**Phase 4c session 2 of `MOIRAI_BUILD_BRIEF.md`** — 4.8 sub-period stability (K
-year-long windows + one-sided HAC t via Newey–West, first pre-Atropos NW consumer),
-4.9 full-engine null benchmark (~200 cadence-matched VERIFICATION nulls — the
-expensive wall; the calibration-budget open item bites here), 4.10 descriptive
-reporting (no gates). All inherit the `moirai/rerun.py` VERIFICATION re-run helper
-built in session 1 and run through `ctx.run` (`kind=VERIFICATION`; SEARCH frozen after
-4.2). Protected path (`moirai/`) — full diff and founder approval before it lands.
-Measured throughput ≈ **1.4 s/engine-run**, so the ~200-run 4.9 checkpoint ≈ 4.7 min
+**Phase 5 of `MOIRAI_BUILD_BRIEF.md`** — the touchstones (the regression set, §6), the
+calibration harness (§7 — synthetic-path power curve across `calibration.ladder_S`),
+and throughput measurement feeding the Phase 6 calibration-budget decision. The full
+eleven-stage gauntlet now exists to calibrate. Protected path (`moirai/`,
+`configs/gauntlet/`) — full diff and founder approval before it lands.
 (feasible); the Phase 5/6 calibration budget should size against that number.
 
 ## Blocking / needed
@@ -183,14 +200,23 @@ Measured throughput ≈ **1.4 s/engine-run**, so the ~200-run 4.9 checkpoint ≈
   the paper is needed to *audit* those values, not to use them.
 - **The Phase 6 calibration budget decision** — the spec's compute
   estimate does not account for stage 4.9's ~200 null runs per candidate
-  under full-evaluation mode; the gap is roughly three orders of
-  magnitude. **First real throughput sample now in hand (Phase 4c s1):
-  ≈ 1.4 s/engine-run** over a 4344-bar H1 window. So a single 4.9
-  (~200 runs) ≈ 4.7 min — feasible; the wall is calibration's nested loop
-  (calibration.R=500 × 7 ladder points × ~200 nulls × 1.4 s ≈ ~11 days
-  naive). Founder picks a resolution (options A/B/C in the brief), now
-  sized against 1.4 s, before Phase 6 is scoped. **The one genuinely open
-  item in the build.**
+  under full-evaluation mode. **Throughput now measured over 207 real
+  re-runs (Phase 4c s2): median ≈ 0.566 s/engine-run** (faster than s1's
+  1.4 s — the nulls trade at random cadence and run warm). A single 4.9
+  (~200 runs) ≈ **1.9 min**; the wall is calibration's nested loop
+  (calibration.R=500 × 7 ladder points × ~200 nulls × 0.566 s ≈ **~4.5
+  days naive**, down from the ~11-day figure at 1.4 s). Founder picks a
+  resolution (options A/B/C in the brief), now sized against 0.566 s,
+  before Phase 6 is scoped. **The one genuinely open item in the build.**
+- **Stage 4.8 gate (ii) statistical form — OPEN/UNRATIFIED methodology
+  decision** (founder 2026-08-04). As built: one-sided HAC t on the K
+  per-window mean returns (T=K) — at K≈6 the Newey–West is near-empty. The
+  pooled-per-bar alternative is more powered but contaminated by K−1
+  warmup-reset seams (splicing artifacts into the autocorrelation), the
+  worse failure for this project, so it was NOT defaulted to. The quant
+  ratifies the form AND calibrates the threshold at v002/Phase 6; gate (ii)
+  is reported but provisional until then (gates (i)/(iii) and the {m/2,2m}
+  bracket stand).
 - **Every §14 threshold is provisional until Phase 6 calibrates it.** The
   weakest-derived numbers, flagged honestly: `mc_shuffle.ruin_dd 0.40`
   (a placeholder for Themis), `capacity.max_degradation_frac 0.3`,

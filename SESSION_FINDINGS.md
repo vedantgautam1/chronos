@@ -254,3 +254,64 @@ hardware, NOT a session-2 blocker.** The genuine wall is Phase 6 calibration's n
 loop: `calibration.R`=500 × 7 ladder points × ~200 nulls × 1.4 s ≈ **~11 days** run
 naively — this is the calibration-budget decision (STATE.md "Blocking"), now sizable
 against a measured 1.4 s rather than a guess.
+
+# Session finding: Phase 4c s2 — sub-period, null benchmark, descriptive on the milestone + full-pipeline throughput
+
+**Date:** 2026-08-04
+**Status:** permanent record. Milestone MA(20/50) BTC/USDT 1h through ALL eleven stages
+(4.0–4.10) in full-evaluation mode under v001 thresholds (uncalibrated → `NO_AUTHORITY`),
+dev window 2026-01-01 → 2026-07-01. Reproduce:
+`uv run python scripts/moirai_phase4c_checkpoint.py` (temp store; records/ untouched).
+
+## Complete verdict
+
+`status: FAIL`, `authority: NO_AUTHORITY`, cause_of_death (full-eval, ordered) =
+`M4.1, M4.3, M4.5, M4.7, M4.8, M4.9`. Every stage's outcome is present in the record.
+
+## 4.8 sub-period stability — unjudgeable on the dev window
+
+The 6-month dev window yields **K=1** twelve-month sub-window → `insufficient_subperiods`
+(the gate needs ≥ 2 windows for a sub-period comparison and its HAC t). Honest and
+expected — the same data-edge limitation 4.7 hits. The HAC machinery itself is verified
+by a unit test that matches the as-built per-window-means HAC t directly against
+`statistics.newey_west` on K=6 windows. **Gate (ii) is an OPEN/UNRATIFIED methodology
+decision** (per-window-means vs pooled-per-bar; the latter contaminated by warmup-reset
+seams) — the quant ratifies at v002/Phase 6 (HANDOFF 2026-08-04).
+
+## 4.9 full-engine null benchmark — the milestone beats most random trading, not enough
+
+Candidate net −9.08% ranked against **200** cadence-matched nulls (42 entries over 4344
+bars, holding durations resampled from the milestone's realized round trips):
+
+| null net-return distribution | value |
+|---|---|
+| min | −45.43% |
+| median | −24.79% |
+| p95 (gate) | −2.93% |
+| max | +4.92% |
+| **candidate percentile** | **88.5** |
+
+The milestone sits at the **88.5th percentile** — it loses LESS than ~88% of random
+same-cadence long-only trading (random trading pays more cost / worse timing), but does
+NOT clear the 95th-percentile bar → **FAIL** (`does_not_beat_null_benchmark`). The gate
+reads v001's `null_bench.percentile_gate: 95` as a PERCENTILE (p95 = −2.93%), never as a
+0.95 fraction. Null placement is price-blind by construction (no price parameter).
+
+## 4.10 descriptive (no gates)
+
+- Per-calendar-year 2026: net −9.08%, per-bar Sharpe −0.0059.
+- Annualized Sharpe over [2026-01-01, 2026-07-01]: naive √k **−0.5518**, Lo (2002) Eq.22
+  AR(1)-corrected **−0.5507** (ρ = +0.002 — near-white, so Lo ≈ naive, as expected).
+- Metrics: CAGR **−17.5%**, maxDD **15.1%**, Sortino **−0.79**, profit factor **0.77**,
+  turnover **78×** initial cash, 84 fills / 42 round trips.
+- 200d-MA regime skipped (need 200 days of prior history; dev window is ~181 days).
+- Cross-asset ETH/USDT skipped (no ETH data cached; milestone strategy is symbol-bound).
+
+## Full-pipeline throughput — the Phase 6 budget number
+
+**207 engine re-runs** through the shared `rerun_candidate` helper (4.5+4.6+4.7+4.8+4.9),
+**median 0.566 s/run** (min 0.556, max 1.471); 4.9's 200 nulls alone median 0.566 s
+(≈ 113 s), whole pipeline ≈ 2¼ min. Faster than session 1's 1.4 s (nulls trade at random
+cadence and run warm in-process). Recomputes the naive Phase 6 calibration budget:
+`calibration.R=500 × 7 ladder points × ~200 nulls × 0.566 s ≈ ~4.5 days` (down from the
+~11-day figure at 1.4 s). This is the number the Phase 5/6 budget decision sizes against.

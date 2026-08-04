@@ -1303,3 +1303,117 @@ Stages 4.8 (sub-period stability, HAC aggregate — Newey–West consumed pre-At
 4.9 (full-engine null benchmark, ~200 VERIFICATION runs — the expensive wall; the
 calibration-budget open item bites here), 4.10 (descriptive, no gates). All inherit
 `moirai/rerun.py`. `scripts/moirai_phase4c_checkpoint.py` extends to the full pipeline.
+
+## PHASE 4c SESSION 2 — sub-period 4.8, null benchmark 4.9, descriptive 4.10, probe G7 — 2026-08-04
+
+**Model:** Opus · **Protected paths touched:** `moirai/`, `tests/moirai/` (full diff
+shown, founder-approved before commit). **Tests: 284 → 303, all green.** This session
+COMPLETES Phase 4c and the commit `feat(moirai): cost stress, capacity, shifted-window,
+sub-period, null benchmark, descriptive` — **the full eleven-stage pipeline (4.0–4.10)
+now exists.**
+
+### What landed
+
+| moira_id (byte-matches v001 `pipeline_order`) | file | gate |
+|---|---|---|
+| `M4.8-subperiod` | `moirai/stages/subperiod.py` | (i) per-bar Sharpe positive in ≥ `subperiod.positive_sharpe_frac` of windows; (ii) one-sided HAC t > `subperiod.hac_t_threshold`; (iii) no window > `subperiod.max_single_window_pnl_frac` of net PnL |
+| `M4.9-null-bench` | `moirai/nulls.py` + `moirai/stages/null_bench.py` | candidate net return > the `null_bench.percentile_gate`-th percentile of 200 cadence-matched null net returns |
+| `M4.10-descriptive` | `moirai/stages/descriptive.py` | NONE — reporting-only (passed always True) |
+
+**Shared helper (`rerun.py`) extended (session-1 file, re-touched).** Added keyword-only
+`strategy=`/`hypothesis=` overrides so 4.9 pushes cadence-matched nulls (a different
+strategy under `<candidate>:null:<i>`) through the SAME wall-clock-timed VERIFICATION
+door. Additive and backward-compatible — the 4.5/4.6/4.7 call sites are unchanged; all
+prior tests stayed green.
+
+### Look-ahead forbidden by construction (4.9 — the gate's whole validity)
+
+`nulls.place_null_entries(n_bars, durations, n_entries, rng)` takes **no price
+parameter** — it literally cannot see prices, so no null can be placed on price
+information. `NullStrategy` decides entries/exits off an internal bar COUNTER (bar
+index), reading the current close only to size the order (present-price sizing, not
+look-ahead). Property test asserts the signature carries no price data and that a fixed
+`ctx.rng` seed gives identical placements (I10). Nulls are placed uniformly at random
+without overlap, durations resampled with replacement from the candidate's realized
+holding durations.
+
+### Stage 4.8 gate (ii) — OPEN/UNRATIFIED METHODOLOGY DECISION (founder 2026-08-04)
+
+Logged SEPARATELY from the key drifts because it is a statistical-form question, not a
+rename. During review the founder's two answers diverged (one: switch to pooled-per-bar
+HAC; the other: keep per-window-means and do NOT switch), and were resolved to:
+**keep the per-window-means form as built, but treat gate (ii) as unratified.** Both
+forms are flawed:
+
+- **per-window means (as built):** HAC t on the K≈6 window mean returns (T=K,
+  m=⌈K^⅓⌉). Matches the spec's literal "pooled mean of per-window mean returns," but at
+  K≈6 Newey–West is near-empty — it cannot really do its job.
+- **pooled per-bar returns (more powered, deliberately NOT adopted):** HAC t on the
+  concatenated per-bar returns (T = full bar count). Better powered, BUT each sub-window
+  is re-run fresh, so concatenation splices K−1 **warmup-reset seams** into the series —
+  manufacturing autocorrelation artifacts exactly where NW reads them. For a project
+  whose purpose is not fooling itself, that contamination is the worse failure, so the
+  powered-but-contaminated form is not silently defaulted to.
+
+**v002/Phase 6 action:** the quant ratifies the form AND calibrates the threshold. Until
+then gate (ii) is reported but provisional; the code stamps `gate_ii_methodology_status`
+in evidence. Gates (i)/(iii) and the {m/2, 2m} bracket stand as built. It was verified
+the code was NOT switched to pooled-per-bar (nothing to revert); a unit test matches the
+as-built HAC t directly against `statistics.newey_west` on the window means (K=6),
+proving the HAC path executes and consumes the pinned implementation.
+
+### Probe G7 (CI-required) — the seal is respected
+
+`tests/moirai/test_seal_respect.py`: a re-run stage whose evaluation window touches a
+constructed SEALED range → `SealedDataError` propagates UNCAUGHT → `run_gauntlet`
+records an ERRORED verdict (I11) then re-raises. DISTINCT from 4.7's forward guard,
+which gracefully REFUSES an auxiliary shifted window entering sealed/past-data ranges;
+G7 is about a stage running the candidate's OWN window on sealed data, which must error,
+never quietly skip. No stage (4.5/4.6/4.8/4.9/4.10) catches `SealedDataError`.
+
+### v002 key-drift reconciliation — rename list now 12 (+ 1 dropped gate + 1 open form)
+
+Added this session (5 renames → list is now **12**):
+
+| spec name | v001 actual key | stage |
+|---|---|---|
+| `wf.window_months` | `subperiod.window_months` | 4.8 — NEW |
+| `wf.min_positive_frac` | `subperiod.positive_sharpe_frac` | 4.8 — NEW |
+| `wf.hac_t_min` | `subperiod.hac_t_threshold` | 4.8 — NEW |
+| `wf.max_window_pnl_frac` | `subperiod.max_single_window_pnl_frac` | 4.8 — NEW |
+| `null_bench.percentile` (0.95 fraction) | `null_bench.percentile_gate` (95 integer) | 4.9 — NEW; **read as a PERCENTILE, not a fraction** (a fraction read would make the gate meaningless) |
+
+Still separate and NOT collapsed into the rename list: the **4.7 dropped spec gate**
+(sign-agreement, dormant) and now the **4.8 gate (ii) open methodology form** (above).
+
+### One descriptive limitation (4.10, non-gating — recorded)
+
+The cross-asset ETH/USDT trace is SKIPPED-with-note: no ETH data is cached AND the
+milestone `MACrossover` is symbol-bound (a faithful cross-asset trace needs a
+symbol-agnostic rule or a rebound instance — a Candidate-design question, deferred). The
+200d-MA regime is skipped on windows shorter than 200 days of prior history. Both are
+reporting-only; neither affects any verdict.
+
+### Full-pipeline checkpoint (real output; numbers in SESSION_FINDINGS)
+
+Milestone through ALL eleven stages, full-evaluation mode: `status FAIL`,
+`authority NO_AUTHORITY`, cause_of_death = M4.1, M4.3, M4.5, M4.7, M4.8, M4.9 — a
+COMPLETE verdict with every stage's outcome present.
+- **4.8:** K=1 on the 6-month dev window → `insufficient_subperiods` (needs ≥2 windows;
+  honest, like 4.7's data-edge case — the HAC path is exercised by the unit test, not
+  the dev checkpoint).
+- **4.9:** candidate at the **88.5th percentile** of 200 nulls (null net dist: min
+  −45.4%, median −24.8%, p95 −2.93%, max +4.9%) — the milestone LOSES LESS than 88.5% of
+  random same-cadence trading but does not clear the 95th-percentile bar → FAIL. The
+  benchmark doing its job.
+- **4.10:** CAGR −17.5%, maxDD 15.1%, Sortino −0.79, profit factor 0.77, turnover 78×,
+  42 round-trips; annualized Lo AR(1) −0.5507 ≈ naive √k −0.5518 (ρ≈+0.002, near-white).
+- **Throughput:** 207 re-runs, **median 0.566 s/run** (4.9's 200 nulls ≈ 113 s; whole
+  pipeline ≈ 2¼ min). Better than s1's 1.4 s — recomputes the Phase 6 calibration budget
+  to ~4.5 days naive (STATE "Blocking").
+
+### For Phase 5 (next)
+
+Touchstones (§6 regression set), the calibration harness (§7 synthetic-path power curve
+across `calibration.ladder_S`), and the throughput/budget decision — now sized against
+0.566 s/run. The full eleven-stage gauntlet exists to calibrate.

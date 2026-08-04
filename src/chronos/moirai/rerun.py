@@ -1,11 +1,17 @@
 """rerun.py — the ONE shared VERIFICATION re-run helper for the re-run gates.
 
-Stages 4.5 (cost stress), 4.6 (capacity), 4.7 (shifted window) — and, next session,
-4.8/4.9 — all do the same thing: derive a modified `RunConfig` from `ctx.candidate`,
-push it through the engine exactly once as a `kind=VERIFICATION` execution, and judge
-the resulting `BacktestResult`. This module is that single door, built once so each
-stage only supplies the modified config; no stage re-derives the run call, and no
-stage re-derives the data-supply pattern.
+Stages 4.5 (cost stress), 4.6 (capacity), 4.7 (shifted window), 4.8 (sub-period), and
+4.9 (null benchmark) all do the same thing: derive a modified `RunConfig` from
+`ctx.candidate`, push it through the engine exactly once as a `kind=VERIFICATION`
+execution, and judge the resulting `BacktestResult`. This module is that single door,
+built once so each stage only supplies the modified config; no stage re-derives the run
+call, and no stage re-derives the data-supply pattern.
+
+Stage 4.9 is the one caller that re-runs a DIFFERENT strategy (a cadence-matched null)
+under a DIFFERENT hypothesis id (`<candidate>:null:<i>`) on the candidate's window, so
+`rerun_candidate` takes optional `strategy=`/`hypothesis=` overrides that default to
+`ctx.candidate`'s. Everything else — the timing, the VERIFICATION kind, the data-supply
+pattern — is identical, which is the point of keeping ONE door.
 
 **Data-supply pattern (verbatim with 4.1/4.2).** The candidate's data comes entirely
 from its `RunConfig` — symbol, timeframe, [start, end), costs — read through the one
@@ -78,30 +84,34 @@ class Rerun:
     wall_clock_s: float
 
 
-def rerun_candidate(ctx: GauntletContext, config: RunConfig, **kwargs) -> Rerun:
-    """Re-run `ctx.candidate`'s strategy through the engine at `config` as a single
-    `kind=VERIFICATION` execution; return its `BacktestResult` and the measured
-    wall-clock seconds.
+def rerun_candidate(ctx: GauntletContext, config: RunConfig, *,
+                    strategy=None, hypothesis=None, **kwargs) -> Rerun:
+    """Re-run through the engine at `config` as a single `kind=VERIFICATION` execution;
+    return the `BacktestResult` and the measured wall-clock seconds.
 
     `config` is the caller's already-modified `RunConfig` (cost-stressed, cash-scaled,
-    window-shifted — the stage owns that derivation via `dataclasses.replace`). The
-    strategy and hypothesis come from `ctx.candidate`; the data comes from `config`
+    window-shifted, sub-window — the stage owns that derivation via
+    `dataclasses.replace`). `strategy`/`hypothesis` default to `ctx.candidate`'s; stage
+    4.9 overrides them to push a cadence-matched null (a different strategy under
+    `<candidate>:null:<i>`) through the same timed door. The data comes from `config`
     through the one Oceanus door. `**kwargs` are forwarded to `ctx.run` verbatim (the
     data_root/exchange test seam only).
 
     Raises `ValueError` if `ctx.candidate` is None — a re-run gate cannot guess a
-    strategy to run; there is nothing to run (mirrors 4.1's and 4.2's own guards)."""
+    candidate to run against; there is nothing to run (mirrors 4.1's and 4.2's own
+    guards). This holds even for a null override: the null exists only to benchmark a
+    real candidate."""
     if ctx.candidate is None:
         raise ValueError(
-            "re-run gates (4.5/4.6/4.7) need ctx.candidate (strategy + base config "
+            "re-run gates (4.5–4.9) need ctx.candidate (strategy + base config "
             "+ hypothesis) to re-run the engine; none was provided — nothing to run."
         )
     started = time.perf_counter()
     record = ctx.run(
         kind=RunKind.VERIFICATION,
         config=config,
-        strategy=ctx.candidate.strategy,
-        hypothesis=ctx.candidate.hypothesis,
+        strategy=strategy if strategy is not None else ctx.candidate.strategy,
+        hypothesis=hypothesis if hypothesis is not None else ctx.candidate.hypothesis,
         **kwargs,
     )
     return Rerun(result=record.result, wall_clock_s=time.perf_counter() - started)
