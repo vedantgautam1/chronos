@@ -200,14 +200,18 @@ eleven-stage gauntlet now exists to calibrate. Protected path (`moirai/`,
   the paper is needed to *audit* those values, not to use them.
 - **The Phase 6 calibration budget decision** — the spec's compute
   estimate does not account for stage 4.9's ~200 null runs per candidate
-  under full-evaluation mode. **Throughput now measured over 207 real
-  re-runs (Phase 4c s2): median ≈ 0.566 s/engine-run** (faster than s1's
-  1.4 s — the nulls trade at random cadence and run warm). A single 4.9
-  (~200 runs) ≈ **1.9 min**; the wall is calibration's nested loop
-  (calibration.R=500 × 7 ladder points × ~200 nulls × 0.566 s ≈ **~4.5
-  days naive**, down from the ~11-day figure at 1.4 s). Founder picks a
-  resolution (options A/B/C in the brief), now sized against 0.566 s,
-  before Phase 6 is scoped. **The one genuinely open item in the build.**
+  under full-evaluation mode. **Throughput now measured on the CANONICAL
+  window (Phase 5 Step 1, 78,444 H1 bars, SESSION_FINDINGS 2026-08-04):**
+  (a) a full-window engine run = **28.2 s** (the engine is SUPER-LINEAR —
+  0.566 s at 4,344 bars → 28.2 s at 78,444; the earlier 0.566 s figure was
+  a short-window measurement and understated canonical cost ~50×); (b)
+  short-circuit pipeline = 48.1 s; (c) full-eval pipeline = **39.8 min**
+  (4.9 = 35.7 min). The calibration per-run is the NULL-run cadence,
+  median **8.96 s**. Recomputed full Mode-E calibration wall ≈ **~72–97
+  days naive** (500 × 7 × 200 null runs + per-candidate stages), vs the
+  stale ~4.5-day figure. Founder picks a resolution (A split modes / B
+  reduced n_nulls / C rejected) at Phase 5 Step 5, sized against these.
+  **The one genuinely open item in the build.**
 - **Stage 4.8 gate (ii) statistical form — OPEN/UNRATIFIED methodology
   decision** (founder 2026-08-04). As built: one-sided HAC t on the K
   per-window mean returns (T=K) — at K≈6 the Newey–West is near-empty. The

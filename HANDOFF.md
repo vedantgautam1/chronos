@@ -1417,3 +1417,30 @@ COMPLETE verdict with every stage's outcome present.
 Touchstones (§6 regression set), the calibration harness (§7 synthetic-path power curve
 across `calibration.ladder_S`), and the throughput/budget decision — now sized against
 0.566 s/run. The full eleven-stage gauntlet exists to calibrate.
+
+## PHASE 5 STEP 1 — canonical-window throughput measured — 2026-08-04
+
+**Model:** Opus · **Protected paths touched:** none yet (measurement + docs only; the
+Phase 5 build commit comes after founder approval of Steps 2–5). Committed separately, on
+its own, before proceeding (brief: "do not proceed until this report is committed").
+
+**Founder correction honored:** the 0.566 s/run in STATE was a ~4,344-bar milestone-window
+figure, NOT the Phase 5 deliverable. The canonical full-history window was not on disk
+(only 188 days cached); with founder approval it was ingested this session — **BTC/USDT
+H1, 2017-08-17 → 2026-08-03, 78,444 bars**, 28 soft gap notices (historical outages), no
+hard integrity failures.
+
+**Three numbers (SESSION_FINDINGS 2026-08-04):** (a) full-window engine run **28.20 s**
+(n=5); (b) short-circuit pipeline **48.09 s** (n=3, stops at 4.1); (c) full-eval pipeline
+**2385.85 s ≈ 39.8 min** (n=1; 4.9 = 35.7 min). The engine is **super-linear** (18× bars
+→ ~50× time) — never linearly extrapolate engine cost from short windows again.
+
+**Calibration wall re-derived:** the per-run for calibration is the NULL-run cadence
+(median **8.96 s**, n=200), not the milestone's 28.2 s. Naive full Mode-E wall ≈ **~72–97
+days** (vs the stale ~4.5 days) — a ~15–20× blowup. This is the measured Phase 6 budget
+problem; it makes **A (split modes) + B (reduced n_nulls)** necessary. Final scoping is
+Step 5 with the Mode S reconciliation in hand.
+
+**Side-finding (not acted on):** on the canonical 9-year window the milestone lands at the
+**100th percentile of its 200 nulls** — 4.9 would PASS there (dev window was 88.5th) —
+though the verdict still FAILs (4.1/4.3/4.4/4.5/4.7/4.8). Recorded for interest.

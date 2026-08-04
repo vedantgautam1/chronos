@@ -315,3 +315,99 @@ reads v001's `null_bench.percentile_gate: 95` as a PERCENTILE (p95 = −2.93%), 
 cadence and run warm in-process). Recomputes the naive Phase 6 calibration budget:
 `calibration.R=500 × 7 ladder points × ~200 nulls × 0.566 s ≈ ~4.5 days` (down from the
 ~11-day figure at 1.4 s). This is the number the Phase 5/6 budget decision sizes against.
+
+# Session finding: Phase 5 Step 1 — canonical-window throughput and the recomputed calibration wall
+
+**Date:** 2026-08-04
+**Status:** permanent record. The Phase 6 budget number, measured on real data — NOT
+the 0.566 s/run milestone-window figure (that was ~4,344 bars; superseded here).
+
+## Setup
+
+Canonical full-history verdict window ingested this session: **BTC/USDT H1,
+2017-08-17 → 2026-08-03, 78,444 bars** (nothing sealed yet → full history). 28
+data-quality gap notices (historical exchange outages — soft notices, served; no hard
+integrity failures). Milestone MA(20/50), warm (parquet already loaded). Wall-clock via
+`time.perf_counter`.
+
+## Data snapshot pinned (I5 — what these numbers were measured against)
+
+The on-disk parquet was unchanged across every (a)/(b)/(c) run, so all measurements read
+this exact snapshot. A future restatement changes the hash and visibly invalidates any
+verdict/measurement pinned to it (I5, §5.3 `data_restated`).
+
+- **Oceanus snapshot hash:** `7c0b19aa91b9b662d9c7a3623b6aae8947ea9d8a0b1f7e80bcfe814e52e551c2`
+- **Coverage:** BTC/USDT H1, first bar `2017-08-17T04:00:00+00:00`, last bar
+  `2026-08-03T23:00:00+00:00`, **78,444 bars** (half-open request `[2017-08-17T00:00,
+  2026-08-04T00:00)`).
+- **28 gapped windows** (128 bars missing in total; all pre-2023 exchange outages, served
+  with notices — not corruption):
+
+```
+ 6 bars  2017-09-06 16:00 → 23:00        1 bar   2020-03-04 09:00 → 11:00
+ 1 bar   2018-01-04 03:00 → 05:00        2 bars  2020-04-25 01:00 → 04:00
+33 bars  2018-02-08 00:00 → 02-09 10:00  3 bars  2020-06-28 01:00 → 05:00
+10 bars  2018-06-26 01:00 → 12:00        1 bar   2020-11-30 05:00 → 07:00
+ 1 bar   2018-06-27 12:00 → 14:00        4 bars  2020-12-21 13:00 → 18:00
+ 7 bars  2018-07-04 00:00 → 08:00        1 bar   2020-12-25 01:00 → 03:00
+ 3 bars  2018-10-19 05:00 → 09:00        1 bar   2021-02-11 03:00 → 05:00
+ 7 bars  2018-11-14 01:00 → 09:00        1 bar   2021-03-06 01:00 → 03:00
+ 6 bars  2019-03-12 01:00 → 08:00        2 bars  2021-04-20 01:00 → 04:00
+10 bars  2019-05-15 02:00 → 13:00        3 bars  2021-04-25 04:00 → 08:00
+ 8 bars  2019-08-15 01:00 → 10:00        4 bars  2021-08-13 01:00 → 06:00
+ 2 bars  2019-11-13 01:00 → 04:00        2 bars  2021-09-29 06:00 → 09:00
+ 2 bars  2019-11-25 01:00 → 04:00        1 bar   2023-03-24 12:00 → 14:00
+ 1 bar   2020-02-09 01:00 → 03:00
+ 5 bars  2020-02-19 11:00 → 17:00
+```
+
+## The three numbers (brief Phase 5 Step 1)
+
+| # | measurement | result |
+|---|---|---|
+| (a) | one full-window engine run | **median 28.20 s** (min 27.72, max 28.34, n=5) |
+| (b) | full 11-stage pipeline, short-circuit | **median 48.09 s** (min 45.53, max 57.24, n=3) |
+| (c) | full 11-stage pipeline, full-evaluation | **2385.85 s ≈ 39.76 min** (n=1) |
+
+(b) is cheap because the milestone fails at 4.1, so 4.5–4.9 never run; the ~48 s is the
+4.1 capture run (~28 s) plus its B=2000 stationary bootstrap over 78k bars. (c) pays the
+full stack. (c) per-stage: **4.9 = 2141.9 s** (35.7 min), 4.5 = 83.3 s, 4.6 = 57.3 s,
+4.1 = 45.4 s, 4.8 = 28.6 s, all others < 0.2 s.
+
+## The engine is SUPER-LINEAR in the window (the headline)
+
+0.566 s at 4,344 bars → 28.20 s at 78,444 bars: **18× the bars, ~50× the time.** Per-bar
+cost grows with trade count (the milestone books 1,846 fills over 9 years; the Decimal
+ledger and order processing dominate). Do NOT linearly extrapolate engine cost from short
+windows — the 0.566 s figure understated the canonical cost ~50×.
+
+## Per-engine-run depends on trade cadence (the refinement (c) gives)
+
+The calibration wall's per-run is NOT the milestone's 28.2 s — it is the **null-run**
+time, and nulls trade at a lighter, random cadence:
+
+| 4.9 null-run wall-clock (n=200, canonical window) | value |
+|---|---|
+| median | **8.96 s** |
+| min | 7.38 s |
+| max | 23.77 s |
+| mean (= 2141.9 s / 200) | 10.71 s |
+
+## Recomputed calibration wall (Phase 6, Mode E) — beside the stale ~4.5-day figure
+
+`calibration.R = 500 × 7 ladder points × 200 nulls = 700,000` null engine runs, plus the
+per-candidate non-4.9 stages. Three honest estimates:
+
+| basis | per-unit | full Mode-E calibration wall |
+|---|---|---|
+| **STALE (STATE, at 0.566 s/run)** | 0.566 s | **~4.5 days** |
+| brief formula, per-run = milestone (a) 28.2 s | 28.2 s | ~228 days (overestimate — 4.9 runs at null cadence, not milestone cadence) |
+| brief formula, per-run = measured null median 8.96 s | 8.96 s | **~72.6 days** |
+| **measured full-eval (c) × R×ladder candidates** | 2385.85 s/candidate × 3500 | **~96.6 days** |
+
+**Headline: the naive full Mode-E calibration is ~2–3 months, not ~4.5 days** — a ~15–20×
+blowup over the stale figure (and the stale figure itself understated by ~50× per run).
+This is the Phase 6 budget problem, now measured. It makes the founder's recommended
+**A (split modes) + B (reduced n_nulls in calibration)** necessary, not optional; C
+(shorter synthetic window) stays rejected (biases V, which shrinks with T). Final Phase 6
+scoping is Step 5, with these numbers in hand.
