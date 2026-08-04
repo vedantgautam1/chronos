@@ -1444,3 +1444,43 @@ Step 5 with the Mode S reconciliation in hand.
 **Side-finding (not acted on):** on the canonical 9-year window the milestone lands at the
 **100th percentile of its 200 nulls** — 4.9 would PASS there (dev window was 88.5th) —
 though the verdict still FAILs (4.1/4.3/4.4/4.5/4.7/4.8). Recorded for interest.
+
+## PHASE 5 STEP 2 + GATE A — calibration generator/quarantine done; 4.8 deferral for touchstones — 2026-08-04
+
+**Model:** Opus · **Protected paths touched:** `moirai/calibration/` (new), `tests/moirai/`
+(new), plus two ambient-data test fixes. **Tests 303 → 311, all green.** NOT yet committed
+(the Phase 5 build lands in one bundled commit after Steps 3–5, per the brief).
+
+**Step 2 built:** `moirai/calibration/generator.py` (Oceanus-valid synthetic H1 frames;
+drift set so annualized log-return Sharpe = target S at σ=`calib.ann_vol`=0.60; seeded
+intra-bar OHLC bridge; volume ~ lognormal(m=7.189, s=1.169) MEASURED from the 78,440 real
+bars; versioned `v1`, `provenance()` → `synthetic:v1`; vectorized timestamp construction).
+Known-answer self-test: 1,000 draws/rung, realized ann-Sharpe centers within ±0.05 across
+the ladder (n_bars=35040 for ~3σ headroom; canonical seed 2026, no seed-shopping).
+`moirai/calibration/harness.py` — quarantine: constructor RAISES on the production store
+root (or an ancestor); synthetic candles reach `run_experiment` only via a synthetic
+`exchange=` (Oceanus stores/validates — no `store` back-door import; passes the one-door
+acceptance guard) into an isolated per-run `data_root`; stamps `data_provenance:synthetic:v1`
+on a `calibration_run` record. Probe **G5** (`tests/moirai/test_calibration_quarantine.py`):
+refuses production; a synthetic ladder leaves a production-like store's `trial_counter.txt`
+and `compute_search_n()` byte-identical.
+
+**Two ambient-data test fixes (the canonical ingest changed the environment):**
+`test_descriptive.py::test_never_gates_and_has_all_sections` is now hermetic (monkeypatches
+`available_range → None`) so it no longer depends on whether BTC history is on disk; the
+one-door acceptance guard re-greens because the harness routes through the door.
+
+**FOUNDER GATE A (2026-08-04): Stage 4.8 gate (ii) — deferred, NOT ratified.** Decision:
+ratify 4.8's statistical form later, at v002/Phase 6, with calibration data — not now.
+**Binding constraint (record here and in T-b's docstring): NO touchstone asserts on 4.8
+until v002.** T-b (overfit-to-noise) must assert `cause_of_death ∈ {4.2, 4.3}` specifically
+— not the spec's full {4.2,4.3,4.8} set, and not a bare FAIL. Founder instruction: RUN T-b
+first and report the actual `cause_of_death` before pinning its verdict; **if T-b dies via
+4.8, STOP and surface it** (that would mean 4.2/4.3 are failing to catch an overfit they
+should). The 4.8 open-methodology decision itself is unchanged (per-window-means as built;
+pooled-per-bar rejected for warmup-seam contamination; HANDOFF 2026-08-04 earlier entry).
+
+**Next (Step 3):** build touchstones T-a…T-e per §6 (each `build()->(data,Strategy)` seeded,
+immutable pre-registered verdict beside the code, CI-required, set runtime ≤10 min), honoring
+the 4.8 constraint; T-e asserts DSR@N=1 > `dsr.confidence` > DSR@N=280 against legacy records
+(mark the Phase-7 live-sweep dependency). Then Step 4 (Mode S reconciliation), Step 5 (GATE C).

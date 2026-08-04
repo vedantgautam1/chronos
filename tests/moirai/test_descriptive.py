@@ -43,7 +43,10 @@ def _ctx(tmp_path, candidate, seed=1):
     return store, ctx
 
 
-def test_never_gates_and_has_all_sections(tmp_path):
+def test_never_gates_and_has_all_sections(tmp_path, monkeypatch):
+    # Hermetic: force the skip paths regardless of what BTC history is on disk, so the
+    # test asserts the same sections whether or not the canonical data has been ingested.
+    monkeypatch.setattr(descriptive_mod, "available_range", lambda *a, **k: None)
     _, ctx = _ctx(tmp_path, _candidate())
     result = build_result(returns_values=[0.0, 0.01, -0.005, 0.02, -0.01, 0.015])
     outcome = Descriptive().evaluate(result, ctx)

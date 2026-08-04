@@ -181,15 +181,33 @@ describing a lite v1 is stale; this line wins.
 
 ## In progress
 
-- Nothing mid-edit. Clean stopping point: Phase 4c complete, before Phase 5.
+- **Phase 5, mid-build.** Step 1 (throughput) DONE + committed (`36f1ff1`; canonical
+  window ingested, 78,444 bars, snapshot `7c0b19aa…`). Step 2 (calibration generator +
+  quarantine + probe G5 + known-answer self-test) BUILT and green (311 tests), **not yet
+  committed** — the Phase 5 build lands in one bundled commit after Steps 3–5. FOUNDER
+  GATE A taken (2026-08-04): 4.8 gate (ii) deferred to v002; no touchstone asserts on 4.8;
+  T-b asserts cause ∈ {4.2,4.3} and is run-and-reported before pinning (HANDOFF). **Next:
+  Step 3 touchstones T-a…T-e, Step 4 Mode S reconciliation, Step 5 GATE C.**
 
 ## Next task (owns the next Claude Code session)
 
-**Phase 5 of `MOIRAI_BUILD_BRIEF.md`** — the touchstones (the regression set, §6), the
-calibration harness (§7 — synthetic-path power curve across `calibration.ladder_S`),
-and throughput measurement feeding the Phase 6 calibration-budget decision. The full
-eleven-stage gauntlet now exists to calibrate. Protected path (`moirai/`,
-`configs/gauntlet/`) — full diff and founder approval before it lands.
+**Phase 5 of `MOIRAI_BUILD_BRIEF.md`, Steps 3–5 remain** (Steps 1–2 done: throughput
+committed `36f1ff1`; generator + quarantine + G5 committed as a WIP checkpoint).
+  - **Step 3 — touchstones T-a…T-e** (§6): each `build()->(data,Strategy)` seeded, immutable
+    pre-registered verdict beside the code, CI-required, set runtime ≤10 min. **GATE A
+    constraint (founder 2026-08-04, HANDOFF): no touchstone asserts on Stage 4.8** (its gate
+    (ii) form is deferred to v002). **T-b must assert `cause_of_death ∈ {4.2, 4.3}`
+    specifically — RUN it first and report the actual cause before pinning; if it dies via
+    4.8, STOP and surface it.** T-e asserts DSR@N=1 > `dsr.confidence` > DSR@N=280 against
+    LEGACY records (mark the Phase-7 live-sweep dependency in the docstring).
+  - **Step 4 — Mode S calibration run** (statistics-level, no engine): reproduce the probe's
+    Monte Carlo — detection ≈0.3% at S=1.0 after a 280-wide search (±0.5pp), ~40–50%
+    pre-registered (±10pp), floor ≈2.3 (±0.2). Divergence is stop-the-build, not a tolerance.
+  - **Step 5 — GATE C** (Phase 6 scoping): present the three throughput numbers + Mode S; the
+    founder picks A (split modes) / B (reduced n_nulls) — sized against measured (a)=28.2 s and
+    the ~9 s null cadence, NOT 0.566 s.
+Protected path (`moirai/`, `configs/gauntlet/`) — full diff and founder approval before any
+commit; the Phase 5 build otherwise lands in one bundled commit after Step 5.
 (feasible); the Phase 5/6 calibration budget should size against that number.
 
 ## Blocking / needed
