@@ -54,7 +54,7 @@ def test_g5_ladder_leaves_production_untouched(tmp_path):
         cr = harness.run_synthetic(MACrossover(symbol=SYNTH), frame, hyp,
                                    RunKind.VERIFICATION, symbol=SYNTH,
                                    strategy_params={"fast": 5, "slow": 20, "fraction": "0.95"})
-        assert cr.data_provenance == "synthetic:v1"
+        assert cr.data_provenance == "synthetic:v1@7c0b19aa"
         ran += 1
     assert ran == 3
 

@@ -72,4 +72,7 @@ def test_s0_is_zero_edge():
 
 
 def test_provenance_stamp():
-    assert provenance() == f"synthetic:{GENERATOR_VERSION}"
+    # version AND the volume-snapshot id, so synthetic runs trace to their data source
+    assert provenance() == f"synthetic:{GENERATOR_VERSION}@7c0b19aa"
+    assert provenance().startswith("synthetic:")
+    assert "@" in provenance()

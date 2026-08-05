@@ -411,3 +411,30 @@ This is the Phase 6 budget problem, now measured. It makes the founder's recomme
 **A (split modes) + B (reduced n_nulls in calibration)** necessary, not optional; C
 (shorter synthetic window) stays rejected (biases V, which shrinks with T). Final Phase 6
 scoping is Step 5, with these numbers in hand.
+
+# Session finding: Phase 5 Step 3.0 — provenance pin + ambient-coupling audit (with hash proof)
+
+**Date:** 2026-08-04
+
+**L1 — provenance.** `generator.provenance()` now returns `synthetic:v1@7c0b19aa`: the
+generator version AND the Oceanus snapshot its volume constants (m=7.189, s=1.169) were
+measured from, so every synthetic run traces to the data its realism borrows.
+
+**L2 — ambient-coupling audit (canonical ingest put full BTC history on disk).** One test
+was materially coupled — `test_descriptive` (200d-MA + cross-asset availability depend on
+coverage EXTENT); fixed last session (hermetic `available_range` monkeypatch). Everything
+else is hermetic (all `get_bars` sites in tests pass `root=tmp_path` + a fake exchange;
+`test_shift` monkeypatches `available_range`) or value-stable.
+
+**Value-stability VERIFIED BY HASH (not inferred from gap dates).** The tests that read the
+real default store over the 2026 dev window (`test_milestone`, `run_experiment` sites) are
+unaffected because that window's bars are byte-identical pre/post ingest:
+
+| parquet version | role | 2026-01-01→2026-07-01 window hash | bars |
+|---|---|---|---|
+| v0004 | pre-full-ingest highest | `fe8be146d37544d7` | 4344 |
+| v0005 | full-history write | `fe8be146d37544d7` | 4344 |
+| v0006 | current served (highest) | `fe8be146d37544d7` | 4344 |
+
+The ingest only APPENDED pre-2026 history and extended the tail to 2026-08-03; it restated
+no 2026 bar. (v0006 is gitignored, like all of `data/`.)

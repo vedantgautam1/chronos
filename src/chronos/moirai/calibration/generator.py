@@ -44,14 +44,19 @@ DEFAULT_ANN_VOL = 0.60  # calib.ann_vol — the measured project volatility figu
 # the generator is self-contained (it never reads data/ at runtime — I7) and reproducible.
 _LOG_VOLUME_MEAN = 7.188979
 _LOG_VOLUME_STD = 1.169015
+# Short id of the Oceanus snapshot the volume constants were measured from, pinned into
+# provenance so every synthetic run traces to the data its realism came from.
+_VOLUME_SNAPSHOT = "7c0b19aa"
 
 _BASE_PRICE = 10_000.0  # arbitrary positive start; scale-invariant for returns/Sharpe
 _DEFAULT_START = datetime(2020, 1, 1, tzinfo=timezone.utc)
 
 
 def provenance() -> str:
-    """The stamp marking data as synthetic and pinning the generator version."""
-    return f"synthetic:{GENERATOR_VERSION}"
+    """The stamp marking data as synthetic, pinning BOTH the generator version and the
+    Oceanus snapshot the volume realism was measured from (e.g. `synthetic:v1@7c0b19aa`)
+    — so a synthetic run traces to the data whose empirical volume it borrows."""
+    return f"synthetic:{GENERATOR_VERSION}@{_VOLUME_SNAPSHOT}"
 
 
 def generate_frame(
