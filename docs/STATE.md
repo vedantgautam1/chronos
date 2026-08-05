@@ -190,8 +190,13 @@ describing a lite v1 is stale; this line wins.
   AND DSR@N=280 < dsr.confidence (0.95)`; the spec §6 chained form `DSR@N=1 > 0.95 >
   DSR@N=280` is a **confirmed v002 spec defect** (0.5630 is not > 0.95; impossible on the
   real winner). GATE A stands (4.8 deferred; no touchstone asserts on 4.8; T-b cause ∈
-  {4.2,4.3}, run-and-reported before pinning). **Next: build touchstones T-a…T-e (all five
-  together), then Step 4 Mode S, Step 5 GATE C.**
+  {4.2,4.3}, run-and-reported before pinning). **Four touchstone-build constraints now FIXED**
+  (founder 2026-08-04, HANDOFF): (1) commit a provenance-stamped T-e legacy fixture (rule-10
+  exception); (2) ≤10-min CI budget firm → pin touchstone-run `null_bench.n_nulls`≈30–50 via a
+  dev-config override (v001 untouched), NOT a shorter frame; (3) test-time `available_range`
+  monkeypatch OK, never write synthetic to `data/bars/`; (4) do NOT engineer T-a — surface the
+  per-stage table if S=3 doesn't cleanly PASS. **Next: build touchstones T-a…T-e (all five
+  together) under those constraints, then Step 4 Mode S, Step 5 GATE C.**
 
 ## Next task (owns the next Claude Code session)
 

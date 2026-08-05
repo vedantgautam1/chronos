@@ -1522,3 +1522,43 @@ pinning).
 **Session stopped here deliberately** (founder direction; very long multi-phase session — the
 touchstones are CI-pinned-forever integration work best built in one fresh context). All five
 touchstones (T-a…T-e) build together next session, then Step 4 (Mode S), Step 5 (GATE C).
+
+## PHASE 5 STEP 3 — four touchstone-build constraints fixed (founder, 2026-08-04); build deferred to a fresh session
+
+**Model:** Opus · No touchstone code written this session (founder direction: build all five in
+one fresh focused session with these constraints fixed). Baseline unchanged: HEAD `a4869d2`,
+311 green. These four forks were surfaced from the full integration design and DECIDED before
+writing any CI-pinned-forever regression code (CLAUDE.md rule 8):
+
+1. **T-e CI fixture — SANCTIONED (rule-10 exception).** T-e is CI-required but reads the legacy
+   280-sweep, and `records/runs.jsonl` (119 MB) is gitignored → absent in CI. Commit a small
+   fixture (the winning cell's 4344-bar return series + V) so T-e is CI-runnable. **Condition:**
+   the fixture carries provenance — source legacy record, Oceanus snapshot, `V=8.6596e-05`, cell
+   fast=25/slow=60 (trial 117) — AND an extract-once regeneration note so a future session can
+   verify it still matches the records. (Live values already reproduced: DSR@N=1=0.5630,
+   dsr.confidence=0.95, DSR@N=280=0.0542.)
+
+2. **≤10-min CI budget is FIRM; reduce the touchstone NULL COUNT, not the frame.** 4.8 needs
+   K≥2 twelve-month sub-windows, so full-pipeline touchstones (T-a, T-b full-eval, T-d) need
+   multi-year synthetic frames — do NOT shrink them. Instead pin the touchstone-run
+   `null_bench.n_nulls` to **~30–50** (a documented TOUCHSTONE setting, applied via a dev-config
+   `replace(v001, thresholds={**v001.thresholds, "null_bench.n_nulls": <40>}, …)` — v001.json
+   and its hash UNTOUCHED; this is distinct from calibration/production's 200). Confirm T-d's 4.9
+   self-percentile band [0.2, 0.8] is still meaningful at that count (band width 0.6 ≫ resolution
+   ~1/40=0.025, so yes — but print the actual percentile when T-d runs).
+
+3. **Test-time `available_range` monkeypatch — ACCEPTED.** The judge harness monkeypatches
+   `shift.available_range` / `descriptive.available_range` to report the synthetic frame's
+   coverage (the sanctioned test-door pattern `test_shift` already uses). Synthetic candles must
+   NEVER be written to `data/bars/` (§7.2). Synthetic data reaches stages via a wrapped `ctx.run`
+   (data_root/exchange) into the isolated calibration store.
+
+4. **Do NOT engineer T-a to pass.** Build the S=3 case honestly; if it does not cleanly PASS all
+   eleven gates (e.g. 4.5 margin, 4.8 HAC-t at small K, 4.9 percentile), STOP and surface the
+   per-stage table — that is a gauntlet finding, not a cue to tune seed/window/params (the exact
+   selection bias this project exists to prevent).
+
+**Unchanged:** GATE A (4.8 deferred; no touchstone asserts on 4.8; T-b cause ∈ {4.2,4.3},
+run-and-reported before pinning; T-d percentile reported before pinning). T-e framing A. The §6
+chained-form defect (impossible on the real winner) stands for v002. FOUNDER CHECKPOINT before
+pinning any verdict: report T-b's full-eval table, T-d's percentile, T-e's reproduced values.

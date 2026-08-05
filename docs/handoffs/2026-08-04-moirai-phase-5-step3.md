@@ -37,6 +37,13 @@ needs `0.5630 > 0.95` — impossible on the real winner. **T-e pins framing A in
 
 ## Next session — build ALL FIVE touchstones together, then Step 4, then Step 5
 
+> **BINDING (added 2026-08-04): four touchstone-build constraints are fixed in the newest
+> HANDOFF.md entry — read them first.** In brief: (1) commit a provenance-stamped T-e legacy
+> fixture (rule-10 exception); (2) ≤10-min CI budget is firm → pin touchstone-run
+> `null_bench.n_nulls`≈30–50 via a dev-config override (v001 untouched), NOT a shorter frame;
+> (3) test-time `available_range` monkeypatch is the sanctioned door, never write synthetic to
+> `data/bars/`; (4) do NOT engineer T-a — surface the per-stage table if S=3 doesn't cleanly PASS.
+
 Baseline to re-confirm first: commits `36f1ff1`/`c15705e`/`36f000f`, HEAD==origin, suite green
 311, GATE A + T-e-framing-A in committed STATE/HANDOFF. Bind to v001's ACTUAL keys (drift table
 in HANDOFF: `plateau.max_cliff`, `plateau.steps`, `null_signal.B`, `mc_shuffle.luck_threshold`,
