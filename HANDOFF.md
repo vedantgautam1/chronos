@@ -1484,3 +1484,41 @@ pooled-per-bar rejected for warmup-seam contamination; HANDOFF 2026-08-04 earlie
 immutable pre-registered verdict beside the code, CI-required, set runtime ≤10 min), honoring
 the 4.8 constraint; T-e asserts DSR@N=1 > `dsr.confidence` > DSR@N=280 against legacy records
 (mark the Phase-7 live-sweep dependency). Then Step 4 (Mode S reconciliation), Step 5 (GATE C).
+
+## PHASE 5 STEP 3.0 + T-e ESCALATION — 2026-08-04
+
+**Model:** Opus · Committed: `36f000f` (Step 3.0). T-e decision recorded here + STATE +
+closing handoff; NO touchstone code written this session (all five build together next).
+
+**Step 3.0 (committed `36f000f`).** L1: `generator.provenance()` → `synthetic:v1@7c0b19aa`
+(version + the Oceanus snapshot the volume constants were measured from). L2 ambient-coupling
+audit: only `test_descriptive` was materially coupled (coverage-extent dependent) and was
+fixed last session; all other real-data touches are hermetic (`root=tmp` + fake exchange) or
+value-stable. **Value-stability VERIFIED BY HASH** (founder-requested, not inferred): the 2026
+dev window is byte-identical `fe8be146d37544d7` (4344 bars) across parquet v0004/v0005/v0006 —
+the ingest appended history and extended the tail to 2026-08-03 only, restating no 2026 bar.
+
+**FOUNDER GATE (T-e escalation, 2026-08-04) — framing A, decided-but-UNBUILT.** T-e's three
+live values, computed with the SHIPPED `statistics.py` (dsr) + active-config `dsr.confidence`
+off the legacy 280-sweep winner (fast=25/slow=60, trial 117, sr_hat=0.0024061, T=4344,
+V=8.6596e-05, skew 0.720, kurt 16.84 — reproduces the historical 0.563/0.054 exactly):
+
+| DSR @ N=1 | dsr.confidence | DSR @ N=280 |
+|---|---|---|
+| **0.5630** | **0.95** | **0.0542** |
+
+**CONFIRMED v002 SPEC DEFECT:** SPEC_MOIRAI §6 T-e prescribes the chained assertion
+`DSR@N=1 > dsr.confidence > DSR@N=280`, which requires `0.5630 > 0.95` — **impossible** on the
+real winner. The chained form must NOT be written. **Decision: T-e pins framing A** —
+`DSR@N=1 (0.5630) > DSR@N=280 (0.0542)  AND  DSR@N=280 (0.0542) < dsr.confidence (0.95)`
+(laundering inflates the score; honest N rejects). Next session records the defect + these live
+values as a comment at the T-e code site and flags §6 for v002 amendment. (No numbers/threshold/
+seed were adjusted to force any form — the defect is surfaced, not papered over.)
+
+**GATE A unchanged** (4.8 gate (ii) deferred to v002; no touchstone asserts on 4.8; T-b cause ∈
+{4.2,4.3}, run-and-reported before pinning; T-d 4.9 self-percentile in [0.2,0.8] reported before
+pinning).
+
+**Session stopped here deliberately** (founder direction; very long multi-phase session — the
+touchstones are CI-pinned-forever integration work best built in one fresh context). All five
+touchstones (T-a…T-e) build together next session, then Step 4 (Mode S), Step 5 (GATE C).
