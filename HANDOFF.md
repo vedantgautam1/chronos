@@ -1644,3 +1644,32 @@ circuit — impossible under GATE A). Trimming T-b's window is a Step-5 lever if
 **Next: Step 4 (Mode S) — its OWN fresh session** (statistics-level context switch, own stop-the-build
 condition; should not inherit this touchstone-building context). Then Step 5 (GATE C). Closing handoff:
 `docs/handoffs/2026-08-07-moirai-phase-5-step3.md`.
+
+## PHASE 5 SIDE-DIAGNOSTIC — 4.8's touchstone failure is partly a K=3 artifact (informs GATE C scope) — 2026-08-07
+
+**Model:** Opus · **Measurement only — nothing in the instrument changed** (touchstones/subperiod/
+v001/CI byte-identical). Reproduction: `scripts/diag_subperiod_K.py` (committed; diagnostic, non-CI,
+not imported by `moirai/`). Full table: SESSION_FINDINGS 2026-08-07. Does NOT block Step 4.
+
+**Why run it:** the meta-finding framed 4.8 + `min_round_trips` as a "hidden high-frequency
+assumption," but 4.8 fails T-a2 at 47 round trips. The canaries run at K=3 (3-year window); SPEC §4.8's
+real operating point is K ≈ 6–7 (~7.4 years). This asked whether 4.8's failure survives at the real K.
+
+**Findings:**
+- `SubPeriod.score` IS the gate-(ii) HAC t. At K=3 BOTH canaries PASS gate (ii); 4.8 dies on gate
+  (iii) window-PnL concentration (+ gate (i) for T-a1). The "high-frequency assumption" framing is
+  **refuted** — the K=3 failure is a low-K resolution artifact in gate (iii), not a frequency gate.
+- 4.8 pass-rate at the real K: **T-a1 K=3 1/5 → K=7 2/5; T-a2 K=3 1/5 → K=7 5/5.**
+
+**Scope implication for GATE C / Phase 6 (recorded straight — do NOT inherit a smoothed version):**
+- **T-a2 = clean window artifact.** Fix the TOUCHSTONE (4.8 not evaluable at CI's K=3), NOT the gate.
+  Loosening a subperiod threshold to pass K=3 would break the gate at K=7 where it works — verdict-
+  fitting. For T-a2, "reconcile subperiod thresholds" is NOT a supported Phase-6 task.
+- **T-a1 = UNRESOLVED at K=7** (2/5; residual mixes gates (i)/(ii)/(iii)). This forces an EXPLICIT,
+  still-UNMADE decision — **reclassify** (T-a1 is not a clean should-PASS canary at annual resolution;
+  mark 4.8 not-assertable for it) **vs recalibrate** (change a threshold). The diagnostic does not
+  decide this and must not be read as if it did.
+- **LOAD-BEARING CAVEAT:** this isolates **4.8 ONLY**. **4.0 (breadth) and 4.4 (ruin_dd) at K=7 are
+  UNTESTED.** The meta-finding rests on 4.0 (T-a1) and 4.4 (T-a2) — untouched here — so it STANDS.
+  The real next test is the **all-eleven judge at K=7**, not this 4.8 isolation. Do not conclude
+  "subperiod resolved, meta-finding dented."

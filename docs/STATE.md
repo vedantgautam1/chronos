@@ -41,7 +41,7 @@ follow the stale side.
 
 ---
 
-Last updated: 2026-08-07 (Phase 5 Step 3 — T-b/T-c/T-d/T-e DIE/reject verdicts PINNED & CI-asserted; T-a1/T-a2 still DEFERRED)
+Last updated: 2026-08-07 (Phase 5 Step 3 — T-b/T-c/T-d/T-e PINNED & CI-asserted; T-a1/T-a2 DEFERRED; + 4.8 K=3-artifact side-diagnostic, instrument unchanged)
 Test suite: **315 passing** (+4 touchstone CI assertions: T-b/T-c/T-d/T-e; T-a1/T-a2 built but NOT CI-asserted — deferred)
 Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–4c done; the full eleven-stage pipeline (4.0–4.10) exists.**
 
@@ -208,6 +208,14 @@ describing a lite v1 is stale; this line wins.
   laundering demo: **DSR@N=1 0.56300 > DSR@N=280 0.05438 < 0.95** on the shipped `statistics.dsr`,
   from the provenance-stamped fixture (extract-once). Set runs ~5.1 min (≤10-min §6 budget).
   T-a1/T-a2 remain DEFERRED — do NOT pin/PASS them (meta-finding precondition unchanged).
+- **Side-diagnostic (2026-08-07) — 4.8's touchstone failure is PARTLY a K=3 artifact** (measurement
+  only; instrument unchanged; `scripts/diag_subperiod_K.py`, SESSION_FINDINGS/HANDOFF 2026-08-07).
+  4.8's K=3 death is gate (iii) concentration, NOT the "high-frequency" framing (both canaries pass
+  gate (ii) at K=3). At the real K≈7: **T-a2 clears 5/5 (clean window artifact — fix the TOUCHSTONE,
+  not the gate); T-a1 stays 2/5 (UNRESOLVED — an explicit reclassify-vs-recalibrate call for Phase 6,
+  not yet made).** LOAD-BEARING: this isolated 4.8 ONLY — **4.0 and 4.4 at K=7 are UNTESTED, so the
+  meta-finding STANDS on those two**; the real next test is the all-eleven judge at K=7. "Reconcile
+  subperiod thresholds" is NOT a blanket Phase-6 task on this evidence.
 
 ## Next task (owns the next Claude Code session)
 

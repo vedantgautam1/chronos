@@ -569,3 +569,56 @@ v002 defect: 0.5630 ≯ 0.95). Runtime <1 s. Legacy fixture; Phase 7 re-pins aga
 each). Within the §6 ≤10-min budget. Heavier than the old budget-note guess (which assumed T-b
 short-circuit — impossible under GATE A, since short-circuit never exercises 4.3). Trimming T-b's
 window (it does not assert 4.8) is available as a Step-5 budget lever if wanted.
+
+---
+
+# Session finding: is 4.8's touchstone failure a K=3 window artifact? (side-diagnostic) — 2026-08-07
+
+**Model:** Opus. Measurement only — instrument unchanged (touchstones/subperiod/v001/CI all
+byte-identical). Reproduced via `scripts/diag_subperiod_K.py` (committed, diagnostic/non-CI).
+Motivation: the meta-finding calls 4.8 + `min_round_trips` a "hidden high-frequency assumption,"
+but 4.8 fails T-a2 at 47 round trips (a high-freq strategy). The canaries run at a 3-year window
+(K=3); SPEC §4.8's real operating point is **K ≈ 6–7 (~7.4 research years at the seal)**. So 4.8 is
+judged on the canaries at its MOST degenerate K.
+
+## Step 1 — what actually fails at the pinned K=3 (reproduced: scores match 1.915 / 4.391 exactly)
+
+**`SubPeriod.score` IS the gate-(ii) HAC t.** At K=3, BOTH canaries PASS gate (ii). The failure is
+gate (iii) — window-PnL concentration (+ gate (i) for the slow one):
+
+| canary | gate (i) pos-frac (≥0.6) | gate (ii) HAC t (>1.645) | gate (iii) max-share (≤0.6) | fails via |
+|---|---|---|---|---|
+| T-a1 | ❌ 0.333 (1/3) | ✅ 1.915 | ❌ **1.109** | (i) + (iii) |
+| T-a2 | ✅ 1.000 (3/3) | ✅ 4.391 | ❌ 0.775 | (iii) only |
+
+max-share > 1.0 means one 12-month window produced >100% of the net PnL (the others net-negative) —
+gate (iii) at K=3 is near-degenerate. **The "high-frequency assumption" framing is refuted:** the
+K=3 failure is a low-K resolution artifact in gate (iii), not a frequency gate and not gate (ii).
+
+## Step 2 — 4.8 at the real operating point (K=7), 5 pre-registered seeds each (every cell reported)
+
+Frames are per-length reseeds (prefix check: the K=7 frame is NOT a strict extension of the K=3
+frame — draw-count shifts the rng state), so this is a DISTRIBUTIONAL comparison across independent
+realizations of the same edge class, which is the right question for "does 4.8 fail at the operating
+point." **4.8 pass-rate:  T-a1  K=3 1/5 → K=7 2/5   |   T-a2  K=3 1/5 → K=7 5/5.**
+
+- **T-a2 (higher-frequency, S=6, 12-day regimes): CLEAN WINDOW ARTIFACT.** 1/5 → 5/5; every gate
+  clears at K=7, concentration shares collapse to 0.29–0.60.
+- **T-a1 (slow, faint, S=3, 45-day regimes): UNRESOLVED at K=7.** Only 2/5 pass. The 3 residual
+  failures are a MIX — gate (ii) marginally under threshold (t = 1.516, 1.567 vs 1.645) on the
+  near-passers, plus genuine gate (i)/(iii) misses on seed 314. NOT a single-gate story.
+
+## What this does and does NOT settle (recorded straight, not smoothed)
+
+- **T-a2:** 4.8's touchstone failure is a K=3 artifact → the fix is to the TOUCHSTONE (4.8 is not
+  meaningfully evaluable at CI's 3-year window), NOT to the gate. Loosening the threshold to pass
+  K=3 would BREAK the gate at K=7, where it correctly discriminates — that would be verdict-fitting.
+- **T-a1:** does NOT resolve at the real K. This forces an EXPLICIT, UNMADE decision — **reclassify**
+  (accept T-a1 is not a clean should-PASS canary at annual resolution; mark 4.8 not-assertable for
+  it) **vs recalibrate** (change a threshold). This diagnostic does not decide it and must not be
+  read as if it did.
+- **SCOPE CAVEAT (load-bearing):** this diagnostic isolates **4.8 ONLY**. **4.0 (breadth) and 4.4
+  (ruin_dd) at K=7 are UNTESTED.** The meta-finding ("no honest strategy clears all eleven gates")
+  rests on 4.0 (T-a1) and 4.4 (T-a2) — which this does not touch — so it STANDS. The load-bearing
+  next test is the **all-eleven judge at K=7**, not this 4.8 isolation. Do not inherit "subperiod
+  resolved, meta-finding dented" from this — that is exactly the false read this note guards against.
