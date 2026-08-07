@@ -1607,3 +1607,40 @@ STATE + this entry.
 now, under the four fork constraints (committed T-e fixture; touchstone `null_bench.n_nulls`≈40
 dev-override; `available_range` monkeypatch; no synthetic in the bar dir). Then Step 4 (Mode S),
 Step 5 (GATE C, sized against ~9 s null cadence / 28.2 s per-run).
+
+## PHASE 5 STEP 3 — the four DIE/reject touchstones built and PINNED (T-b…T-e) — 2026-08-07
+
+**Model:** Opus · **Protected paths touched:** `moirai/calibration/touchstones.py` (+283:
+`build_t_b/c/d`, `evaluate_t_e`, `_tb_prep`), new committed fixture
+`moirai/calibration/fixtures/te_laundering_winner.json`, new CI `tests/moirai/test_touchstones.py`.
+**Suite 311 → 315, green.** Authority NO_AUTHORITY (these measure the instrument). Founder approved
+the commit at the checkpoint after reviewing T-b's table, T-d's percentile, T-e's values, and the
+three diff confirmations (fixture self-verifies; T-b docstring records honest-N + the {4.2,4.3}-not-
+{4.2,4.3,4.8} rationale; T-d asserts the BAND). Full measured tables in SESSION_FINDINGS 2026-08-07.
+
+- **T-b — should-DIE (GATE A). FAIL, cause ∈ {4.2, 4.3}.** MA-grid-over-noise (founder decision
+  2026-08-07, Option 1 — the spec's "8-parameter rule" was illustrative of overfit CAPACITY, not a
+  mechanism; an 8-cell grid over 2 knobs charges the same selection bias). Whole grid registered
+  `kind=SEARCH` → **honest N=8** (verified `search_n==8`, not 1; plateau reads its neighbors free so
+  N stays the grid size). Winner fast=40/slow=120 (a-priori argmax, `_tb_prep` drift-guards it).
+  Full-eval: **4.2 (plateau spike) and 4.3 (DSR 0.483 @ N=8) both FAIL** — the pin. 4.8 FAILs too but
+  is NOT asserted (form unratified until v002). 4.1 passed on the lucky cell — a single gate slips;
+  the OVERFIT gates catch it, which is why GATE A runs full-eval not short-circuit.
+- **T-c — should-DIE via safety. NON_PROMOTABLE, terminal at 4.0.** `unsafe_same_bar_fill=True` (flag-
+  gated, I1 untouched) → 4.0 reads the warning → NON_PROMOTABLE. Cheap (short-circuits).
+- **T-d — null baseline. FAIL, 4.9 self-percentile 27.5% ∈ [0.2, 0.8].** Seeded price-blind
+  `NullStrategy`. Honest draw, NOT reseeded; CI asserts the band, not the point.
+- **T-e — laundering demo. DSR@N=1 0.56300 > DSR@N=280 0.05438 < 0.95** on the SHIPPED `statistics.dsr`,
+  from the committed provenance-stamped fixture (extract-once from gitignored records). Honest two-
+  part form, NOT the §6 chained form (v002 defect). Legacy; Phase 7 re-pins against live SEARCH records.
+
+**Unchanged / still standing:** T-a1/T-a2 DEFERRED (`BLOCKED-ON-PHASE-6-CALIBRATION`, not asserted —
+do NOT try to pin/PASS them). GATE A. The four fork constraints. T-e framing A.
+
+**CI budget flag:** the pinned set runs ~5.1 min (4.9's 40 nulls ≈ 80 s per full-eval touchstone).
+Within §6's ≤10-min budget; heavier than the old budget-note guess (which wrongly assumed T-b short-
+circuit — impossible under GATE A). Trimming T-b's window is a Step-5 lever if the founder wants it.
+
+**Next: Step 4 (Mode S) — its OWN fresh session** (statistics-level context switch, own stop-the-build
+condition; should not inherit this touchstone-building context). Then Step 5 (GATE C). Closing handoff:
+`docs/handoffs/2026-08-07-moirai-phase-5-step3.md`.

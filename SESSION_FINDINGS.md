@@ -518,3 +518,54 @@ should-PASS:
 Consequence: **the gauntlet as currently thresholded would reject a genuine slow edge in live
 use.** Phase-6 calibration MUST reconcile `min_round_trips` / `subperiod` / `ruin_dd` before the
 should-PASS canaries (T-a1, T-a2) can be pinned as PASS. This is their explicit pinning precondition.
+
+---
+
+# Session finding: Phase 5 Step 3 — the four DIE/reject touchstones built and PINNED (T-b…T-e) — 2026-08-07
+
+**Model:** Opus. Suite **315 green** (+4 CI assertions in `tests/moirai/test_touchstones.py`).
+Authority NO_AUTHORITY throughout (uncalibrated — these measure the INSTRUMENT). These four have
+threshold-robust verdicts and are pinned now; the should-PASS canaries stay DEFERRED (above).
+
+**T-b — should-DIE (GATE A), MA grid curve-fit to NOISE. Verdict FAIL, cause ∈ {4.2, 4.3}.**
+Construction (founder 2026-08-07, Option 1): an 8-cell fast×slow grid (`fast∈{10,20,30,40} ×
+slow∈{80,120}`) searched over a ZERO-EDGE frame (`target_sharpe=0.0`, seed 20260202, 2-yr base
+window). Whole grid registered `kind=SEARCH` under one hypothesis → **honest N=8, not 1** (verified:
+verdict `search_n==8`, and 4.3's `search_n_raw==8`). Honest argmax = **fast=40/slow=120**, per-bar
+Sharpe 0.00625 (a barely-positive noise-max; 7 of 8 cells negative — pinned a priori, drift-guarded).
+Full-eval per-stage table (the founder-checkpoint table):
+
+| 4.0 | 4.1 | **4.2** | **4.3** | 4.4 | 4.5 | 4.6 | 4.7 | 4.8 | 4.9 | 4.10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| PASS | PASS | **FAIL** (spike, not plateau; median & cliff both fail) | **FAIL** (DSR 0.483 @ N=8 < 0.95) | FAIL | FAIL | FAIL | PASS | FAIL* | FAIL (self-pct 92.5) | PASS |
+
+Dies at BOTH overfit gates {4.2, 4.3} — GATE A holds; 4.8 (`*` not asserted, form unratified until
+v002) is NOT relied on. Note 4.1 PASSED on the cherry-picked cell — a single gate slips; the OVERFIT
+gates are what catch it (exactly why GATE A runs full-eval, not short-circuit). Runtime 199 s.
+
+**T-c — should-DIE via safety. Verdict NON_PROMOTABLE, terminal at 4.0.** `unsafe_same_bar_fill=True`
+(flag-gated future leak, I1 untouched) → engine stamps the unsafe warning → 4.0 returns
+NON_PROMOTABLE and short-circuits. Cause `M4.0-eligibility`. Runtime 0.5 s.
+
+**T-d — null baseline. Verdict FAIL, 4.9 self-percentile 27.5% ∈ [0.2, 0.8].** Seeded price-blind
+`NullStrategy` (45 random entries, strategy seed 4040) over a zero-edge 2-yr frame. FAILs (4.1/4.3/
+4.4/4.5/4.7/4.8/4.9). Its **4.9 self-percentile = 27.5%** — mid-distribution, as a null must be (an
+extreme percentile would mean the 4.9 benchmark is mis-calibrated). Honest draw, NOT reseeded; the
+CI asserts the BAND [0.2,0.8], not the point 0.275. Runtime 108 s.
+
+**T-e — the laundering demo as regression. Verdict: DSR@N=1 > DSR@N=280, and DSR@N=280 < 0.95.**
+Reproduced on the SHIPPED `statistics.dsr` from a COMMITTED provenance-stamped fixture
+(`fixtures/te_laundering_winner.json` — the 280-sweep winner's per-bar returns, cell fast=25/slow=60
+= trial 117, snapshot 7c0b19aa, V=8.6596e-05, extracted ONCE from the 119 MB gitignored records):
+
+| | N = 1 (as if pre-registered) | N = 280 (honest search) |
+|---|---|---|
+| **DSR** | **0.56300** | **0.05438** |
+
+`0.56300 > 0.05438` AND `0.05438 < 0.95` — the honest-N form (NOT the §6 chained form, a confirmed
+v002 defect: 0.5630 ≯ 0.95). Runtime <1 s. Legacy fixture; Phase 7 re-pins against live SEARCH records.
+
+**CI budget:** the pinned set runs ~5.1 min (T-b 199 s + T-d 108 s dominate; 4.9's 40 nulls ≈ 80 s
+each). Within the §6 ≤10-min budget. Heavier than the old budget-note guess (which assumed T-b
+short-circuit — impossible under GATE A, since short-circuit never exercises 4.3). Trimming T-b's
+window (it does not assert 4.8) is available as a Step-5 budget lever if wanted.
