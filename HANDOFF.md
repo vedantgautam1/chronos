@@ -1562,3 +1562,48 @@ writing any CI-pinned-forever regression code (CLAUDE.md rule 8):
 run-and-reported before pinning; T-d percentile reported before pinning). T-e framing A. The §6
 chained-form defect (impossible on the real winner) stands for v002. FOUNDER CHECKPOINT before
 pinning any verdict: report T-b's full-eval table, T-d's percentile, T-e's reproduced values.
+
+## PHASE 5 STEP 3 — T-a built, split into T-a1/T-a2, verdicts DEFERRED; meta-finding logged — 2026-08-06
+
+**Model:** Opus · **Protected paths touched:** `moirai/calibration/` (new `touchstones.py`;
+`generator.py` gained `generate_regime_frame` + `_assemble_frame` refactor + the L1 snapshot
+provenance pin). **Tests 311, green.** No new CI assertions (T-a1/T-a2 are DEFERRED, not asserted).
+Committed this session; T-b…T-e (die/reject cases, pinnable now) build fresh next session.
+
+**T-a front-loaded, run ~6× honestly (no verdict-fitting), and SPLIT (§6 amendment).** A pure-drift
+S=3 path is buy-and-hold (fails 4.1/4.9 — no timing). A regime-switch fixture makes the edge
+timeable; two a-priori rules emerged and are pinned:
+  - **SNR rule:** a regime is timeable only if `L_bars ≥ 8760/S²` (cumulative regime drift ≥
+    within-regime noise). 21-day/S=3 is noise-dominated (SNR 0.72) → no MA can time it.
+  - **MA timescale rule:** slow = regime half-life in hours, fast = slow/4. (The milestone's
+    intraday MA(20/50h) was an arbitrary demo choice that whipsaws σ=0.60 noise — 284 trips.)
+
+**FOUNDER DECISION (2026-08-06): T-a → T-a1 + T-a2; set is now SIX touchstones; both should-PASS
+verdicts `BLOCKED-ON-PHASE-6-CALIBRATION` (DEFERRED, NOT asserted in CI).**
+  - **T-a1** (S=3, 45-day regimes, MA 270/1080h): edge-clarity gates 4.1/4.3/4.4/4.5/4.9 PASS;
+    4.0 (INSUFFICIENT_BREADTH, 10 trips) + 4.8 FAIL.
+  - **T-a2** (S=6, 12-day regimes, MA 72/288h): breadth clears (47 trips), edge gates pass; 4.4
+    (p95 maxDD 0.535 > ruin_dd 0.40) + 4.8 FAIL.
+  - Verdicts are **neither PASS nor FAIL**: a scoped PASS would rig a canary that can never fail;
+    a FAIL would slander a genuine, honestly-built edge. Recorded in THREE places, all reading as
+    "good strategy, provisional §14 can't yet judge an all-eleven PASS": the `PASS_DEFERRED`
+    sentinel in `touchstones.py`, the §6 amendment in `SPEC_MOIRAI.md`, and STATE.
+
+**META-FINDING (explicit Phase-6 PRECONDITION for pinning the should-PASS canaries):** under
+provisional §14, **no honest strategy clears all eleven gates.** `min_round_trips`=30 (4.0) and the
+subperiod gate (4.8) encode a hidden HIGH-FREQUENCY assumption → a genuine low-frequency real edge
+cannot clear them in a bounded window; `ruin_dd`=0.40 vs σ=0.60 (4.4) is exposure-dependent. The
+gates are mutually tensioned (T-a1 trips 4.0/4.8; T-a2 trips 4.4/4.8). **The gauntlet as currently
+thresholded would reject a real slow edge in live use.** Phase-6 calibration MUST reconcile
+`min_round_trips` / `subperiod` / `ruin_dd` before T-a1/T-a2 pin as PASS. Logged alongside the
+earlier ruin_dd-vs-σ finding. Numbers + both eleven-stage tables in SESSION_FINDINGS 2026-08-06.
+
+**Note on a stale re-paste:** the original "build T-a first, verdict PASS" brief was re-sent after
+these decisions; it was surfaced as stale (it would have forced a forbidden scoped/PASS verdict)
+and NOT followed — the committed decisions above (T-a split, DEFERRED verdicts) stand per
+STATE + this entry.
+
+**Next (fresh session): build T-b, T-c, T-d, T-e** — threshold-robust die/reject verdicts, pinnable
+now, under the four fork constraints (committed T-e fixture; touchstone `null_bench.n_nulls`≈40
+dev-override; `available_range` monkeypatch; no synthetic in the bar dir). Then Step 4 (Mode S),
+Step 5 (GATE C, sized against ~9 s null cadence / 28.2 s per-run).

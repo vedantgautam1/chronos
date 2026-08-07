@@ -41,8 +41,8 @@ follow the stale side.
 
 ---
 
-Last updated: 2026-08-04 (Phase 4c session 2 — sub-period 4.8, null benchmark 4.9, descriptive 4.10, probe G7 — Phase 4c COMPLETE)
-Test suite: **303 passing** (152 + 51 statistics + 100 moirai)
+Last updated: 2026-08-06 (Phase 5 Step 3 — T-a built & split into T-a1/T-a2, verdicts BLOCKED-ON-PHASE-6-CALIBRATION; meta-finding logged)
+Test suite: **311 passing** (152 + 51 statistics + 108 moirai; T-a1/T-a2 built but NOT CI-asserted — deferred)
 Current stage: **Stage 0 — building the instrument. Gauntlet Phases 0–4c done; the full eleven-stage pipeline (4.0–4.10) exists.**
 
 ---
@@ -181,38 +181,45 @@ describing a lite v1 is stale; this line wins.
 
 ## In progress
 
-- **Phase 5, mid-build.** Committed: Step 1 throughput (`36f1ff1`; canonical window
-  ingested, 78,444 bars, snapshot `7c0b19aa…`), Step 2 generator + quarantine + probe G5
-  + self-test (`c15705e`), Step 3.0 provenance pin + ambient-audit (`36f000f`; 2026 dev
-  window hash-verified byte-identical across parquet versions). Suite green (311).
-  Decided-but-UNBUILT (carry to next session so all five touchstones land together):
-  **T-e framing = A** (founder 2026-08-04) — assert `DSR@N=1 (0.5630) > DSR@N=280 (0.0542)
-  AND DSR@N=280 < dsr.confidence (0.95)`; the spec §6 chained form `DSR@N=1 > 0.95 >
-  DSR@N=280` is a **confirmed v002 spec defect** (0.5630 is not > 0.95; impossible on the
-  real winner). GATE A stands (4.8 deferred; no touchstone asserts on 4.8; T-b cause ∈
-  {4.2,4.3}, run-and-reported before pinning). **Four touchstone-build constraints now FIXED**
-  (founder 2026-08-04, HANDOFF): (1) commit a provenance-stamped T-e legacy fixture (rule-10
-  exception); (2) ≤10-min CI budget firm → pin touchstone-run `null_bench.n_nulls`≈30–50 via a
-  dev-config override (v001 untouched), NOT a shorter frame; (3) test-time `available_range`
-  monkeypatch OK, never write synthetic to `data/bars/`; (4) do NOT engineer T-a — surface the
-  per-stage table if S=3 doesn't cleanly PASS. **Next: build touchstones T-a…T-e (all five
-  together) under those constraints, then Step 4 Mode S, Step 5 GATE C.**
+- **Phase 5, mid-build.** Committed: Step 1 throughput (`36f1ff1`), Step 2 generator +
+  quarantine + probe G5 (`c15705e`), Step 3.0 provenance pin + ambient-audit (`36f000f`),
+  four fork decisions (`be87343`). **Step 3 T-a: BUILT and resolved** —
+  `moirai/calibration/touchstones.py` (judge harness + `generate_regime_frame`). Suite green (311).
+  **T-a split into T-a1 + T-a2 (§6 amendment; set is now SIX touchstones), both should-PASS
+  verdicts `BLOCKED-ON-PHASE-6-CALIBRATION`** (deferred — neither PASS nor FAIL; NOT asserted in
+  CI). Front-loading T-a surfaced the **meta-finding**: under provisional §14, **no honest
+  strategy clears all eleven gates** — `min_round_trips`=30 (4.0) + subperiod (4.8) encode a
+  hidden high-frequency assumption, and `ruin_dd`=0.40 vs σ=0.60 (4.4) is exposure-dependent;
+  the gates are mutually tensioned (T-a1 fails 4.0/4.8; T-a2 fails 4.4/4.8). **This is the
+  explicit Phase-6 PRECONDITION for pinning T-a1/T-a2** (SESSION_FINDINGS 2026-08-06). Two
+  a-priori construction rules discovered + pinned: SNR rule `L_bars ≥ 8760/S²` (regime
+  timeability); MA timescale rule (slow=half-life, fast=slow/4). Standing decisions still hold:
+  T-e framing A; GATE A (4.8 deferred, T-b cause ∈ {4.2,4.3}); the four fork constraints
+  (T-e committed fixture, touchstone `null_bench.n_nulls`≈40 dev-override, `available_range`
+  monkeypatch, no synthetic in the bar dir).
 
 ## Next task (owns the next Claude Code session)
 
-**Phase 5 of `MOIRAI_BUILD_BRIEF.md`, Steps 3–5 remain** (Steps 1, 2, 3.0 committed —
-`36f1ff1`, `c15705e`, `36f000f`).
-  - **Step 3 — build touchstones T-a…T-e ALL TOGETHER** (§6): each `build()->(data,Strategy)`
-    seeded, immutable pre-registered verdict beside the code, CI-required, set runtime ≤10 min.
-    **GATE A constraint (founder 2026-08-04, HANDOFF): no touchstone asserts on Stage 4.8**
-    (its gate (ii) form is deferred to v002). **T-b must assert `cause_of_death ∈ {4.2, 4.3}`
-    specifically — RUN it first and report the actual cause before pinning; if it dies via 4.8,
-    STOP and surface it.** T-d: run and report the 4.9 self-percentile (must be in [0.2,0.8])
-    before pinning. **T-e: framing A is DECIDED (founder 2026-08-04) — assert `DSR@N=1 (0.5630)
-    > DSR@N=280 (0.0542) AND DSR@N=280 < dsr.confidence (0.95)`; do NOT write the §6 chained
-    form (confirmed v002 defect); add the defect note + live values as a comment at the T-e
-    site; mark the Phase-7 live-sweep dependency.** Runs execute through the Step-2
-    CalibrationHarness isolated store.
+**Phase 5 of `MOIRAI_BUILD_BRIEF.md`: Step 3 T-b…T-e, then Steps 4–5 remain** (Steps 1/2/3.0 +
+fork decisions committed `36f1ff1`/`c15705e`/`36f000f`/`be87343`; Step 3 T-a1/T-a2 built and
+deferred, committed this session).
+  - **Step 3 — build the DIE/reject touchstones T-b, T-c, T-d, T-e** (§6; T-a1/T-a2 already built,
+    verdicts DEFERRED). These four have threshold-robust verdicts and CAN be pinned now. Each
+    `build()->(data,Strategy)` seeded, immutable pre-registered verdict beside the code,
+    CI-required, through the Step-2 isolated harness, set runtime ≤10 min (reduced nulls ≈40).
+    **T-b** (GATE A): 8-param grid over noise, register the grid as SEARCH so `compute_search_n`
+    charges honest N; run full-eval, PRINT the 4.2/4.3/4.8 table; pin `cause ∈ {4.2,4.3}` — NOT
+    {4.2,4.3,4.8}; STOP-and-surface if 4.2 AND 4.3 both pass and death is via 4.8/downstream;
+    docstring: "Stage 4.8 form unratified per 2026-08-04; touchstones must not assert on 4.8
+    until v002." **T-c**: `unsafe_same_bar_fill` fixture → NON_PROMOTABLE at 4.0. **T-d**: seeded
+    random strategy → FAIL, print the 4.9 self-percentile (must be in [0.2,0.8]) before pinning.
+    **T-e** (framing A): build from a COMMITTED provenance-stamped fixture (winner returns + V,
+    cell 25/60, snapshot 7c0b19aa, extract-once note) — assert `DSR@N=1 (0.5630) > DSR@N=280
+    (0.0542) AND DSR@N=280 < dsr.confidence (0.95)`; do NOT write the §6 chained form (v002
+    defect); mark the Phase-7 live-sweep dependency.
+  - **NOTE: T-a1/T-a2 are DEFERRED (`BLOCKED-ON-PHASE-6-CALIBRATION`), not pinned** — the
+    should-PASS canaries pin only after Phase-6 reconciles `min_round_trips`/`subperiod`/`ruin_dd`
+    (the meta-finding precondition). Do NOT try to make them PASS; do NOT scope their gates.
   - **Step 4 — Mode S calibration run** (statistics-level, no engine): reproduce the probe's
     Monte Carlo — detection ≈0.3% at S=1.0 after a 280-wide search (±0.5pp), ~40–50%
     pre-registered (±10pp), floor ≈2.3 (±0.2). Divergence is stop-the-build, not a tolerance.

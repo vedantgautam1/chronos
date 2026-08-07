@@ -438,3 +438,83 @@ unaffected because that window's bars are byte-identical pre/post ingest:
 
 The ingest only APPENDED pre-2026 history and extended the tail to 2026-08-03; it restated
 no 2026 bar. (v0006 is gitignored, like all of `data/`.)
+
+# Session finding: Phase 5 Step 3 — the should-PASS touchstones surface a provisional-threshold impasse (T-a → T-a1/T-a2)
+
+**Date:** 2026-08-06 · Front-loading T-a (the fork-4 unknown) before building the others paid
+off: it surfaced, with nothing else built, that **under the provisional §14 thresholds no honest
+strategy clears all eleven gates.** Both should-PASS canaries are therefore pinned
+`BLOCKED-ON-PHASE-6-CALIBRATION` (verdicts DEFERRED — neither PASS nor FAIL). Runs use the
+Step-2 isolated harness, reduced touchstone nulls (`null_bench.n_nulls`=40 via dev-config
+override; v001 untouched), and the test-time `available_range` monkeypatch.
+
+## The two a-priori rules discovered (both pinned, not tuned)
+
+- **SNR rule (regime timeability):** a regime edge is timeable only if its cumulative drift
+  exceeds within-regime noise, i.e. persistence `L_bars ≥ 8760 / S²`. A 21-day/S=3 regime is
+  noise-dominated (regime move 10.3% < within-regime noise 14.4%; SNR 0.72 < 1) → no MA can time
+  it. This produced the corrected fixtures.
+- **MA timescale rule:** `slow = regime half-life in hours`, `fast = slow/4` (canonical 50/200-day
+  1:4). The MA speed follows the fixture's timescale class, independent of the seed — the
+  milestone's intraday MA(20/50h) was an arbitrary demo choice that whipsawed σ=0.60 noise (284
+  round trips) and is not a regime-timescale trend-follower.
+
+## T-a1 — faint edge (S=3, 45-day regimes, σ=0.60, MA 270/1080h), full-eval, 40 nulls
+
+`status: INSUFFICIENT_BREADTH` · cause 4.0. Eleven-stage table:
+
+| stage | passed | score | note |
+|---|---|---|---|
+| 4.0 eligibility | ❌ | 10 | INSUFFICIENT_BREADTH (10 round trips < 30) |
+| 4.1 signal-null | ✅ | 0.0025 | edge detected |
+| 4.2 plateau | ✅ | — | no_neighborhood |
+| 4.3 DSR | ✅ | 0.9951 | ≥ 0.95 |
+| 4.4 shuffle | ✅ | 0.347 | p95 maxDD < ruin_dd 0.40 |
+| 4.5 cost-stress | ✅ | 0.0156 | ≥ margin |
+| 4.6 capacity | ✅ | 0.016 | |
+| 4.7 shift | ✅ | 1.000 | |
+| 4.8 subperiod | ❌ | 1.915 | subperiod_instability |
+| 4.9 null-bench | ✅ | 97.5th | beats nulls |
+| 4.10 descriptive | ✅ | — | no gate |
+
+Edge-clarity gates all pass; the slow, faint edge legitimately under-trades → 4.0 breadth + 4.8
+stability fail. **Not scoped to a PASS** (that would rig the canary); **not a FAIL** (the edge is
+real). DEFERRED.
+
+## T-a2 — higher-frequency edge (S=6, 12-day regimes, σ=0.60, MA 72/288h), full-eval, 40 nulls
+
+`status: FAIL` · cause 4.4, 4.8. 47 round trips (breadth clears). Table:
+
+| stage | passed | score | note |
+|---|---|---|---|
+| 4.0 eligibility | ✅ | 47 | breadth clears (≥30) |
+| 4.1 signal-null | ✅ | 0.0065 | |
+| 4.3 DSR | ✅ | 0.9783 | |
+| 4.4 shuffle | ❌ | 0.535 | p95 maxDD 0.535 > ruin_dd 0.40 |
+| 4.5 cost-stress | ✅ | 0.0110 | |
+| 4.6 / 4.7 / 4.9 | ✅ | — / 1.0 / 97.5th | |
+| 4.8 subperiod | ❌ | 4.391 | subperiod_instability |
+| 4.10 descriptive | ✅ | — | |
+
+Higher frequency clears breadth but trips 4.4 (higher exposure → maxDD 0.535) and 4.8. Still no
+clean all-eleven PASS. DEFERRED.
+
+## The meta-finding (Phase-6 PRECONDITION for pinning the should-PASS canaries)
+
+The gauntlet's provisional §14 gates are **mutually tensioned** — each trips a different honest
+should-PASS:
+
+| | 4.0 breadth (≥30) | 4.4 ruin_dd (0.40) | 4.8 subperiod |
+|---|---|---|---|
+| T-a1 (slow, faint, 10 trips) | ❌ under-trades | ✅ 0.347 | ❌ |
+| T-a2 (fast, strong, 47 trips) | ✅ | ❌ 0.535 | ❌ |
+
+- **`min_round_trips`=30 (4.0)** and the **subperiod gate (4.8)** encode a hidden HIGH-FREQUENCY
+  assumption: a genuine low-frequency real edge cannot clear them in a bounded window.
+- **`ruin_dd`=0.40 vs σ=0.60 (4.4)** is exposure-dependent: a mostly-flat strategy clears it, a
+  more-invested one does not — same class as the ruin_dd-vs-σ finding already logged.
+- **4.8 fails for BOTH** — at K=3 windows a regime-timer's per-window outcome is inherently uneven.
+
+Consequence: **the gauntlet as currently thresholded would reject a genuine slow edge in live
+use.** Phase-6 calibration MUST reconcile `min_round_trips` / `subperiod` / `ruin_dd` before the
+should-PASS canaries (T-a1, T-a2) can be pinned as PASS. This is their explicit pinning precondition.

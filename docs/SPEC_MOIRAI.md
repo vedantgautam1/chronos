@@ -777,6 +777,33 @@ Required CI on every trusted-core change; **any flipped verdict fails CI.**
 | T-d | Null baseline: seeded random strategy | FAIL; and its 4.9 self-percentile ∈ [0.2, 0.8] | null machinery mis-calibrated |
 | T-e | **The laundering demo as regression:** the 280-sweep winner's returns judged at N=1 vs honest N — assert DSR@N=1 > `dsr.confidence` > DSR@N=280 | both inequalities hold | the flagship failure mode has re-entered |
 
+**§6 AMENDMENT (founder decision, 2026-08-06 — recorded, not silent).** T-a is split into
+**T-a1 and T-a2**, so the regression set is now **six touchstones (T-a1, T-a2, T-b, T-c, T-d,
+T-e)**. Both should-PASS canaries' verdicts are **DEFERRED — `BLOCKED-ON-PHASE-6-CALIBRATION`,
+not asserted in CI** — until Phase-6 calibration reconciles the provisional §14 thresholds.
+
+- **T-a1** — a faint, honestly-constructed regime edge (within-regime annualized Sharpe ±3,
+  45-day persistence, σ=0.60, MA 270/1080h). Measured: edge-clarity gates 4.1/4.3/4.4/4.5/4.9
+  PASS; 4.0 (breadth) and 4.8 (subperiod) FAIL. Certifies detectability at that SPECIFIC point,
+  not "the ~2.3 floor."
+- **T-a2** — a higher-frequency regime edge (±6, 12-day persistence, MA 72/288h) that clears
+  breadth (47 round trips) but trips 4.4 (ruin_dd-vs-σ) and 4.8.
+
+Their verdicts are **neither PASS nor FAIL**: scoping a PASS to the passing gates would rig a
+canary that can never fail; calling it FAIL would slander a genuine edge. The construction is
+NOT tuned (a-priori SNR rule `L_bars ≥ 8760/S²` for regime timeability; MA timescale rule
+slow=half-life, fast=slow/4). See SESSION_FINDINGS 2026-08-06.
+
+**Why deferred — the meta-finding (a Phase-6 PRECONDITION):** under the provisional §14
+thresholds, **no honest strategy clears all eleven gates** — `min_round_trips`=30 (4.0) and the
+subperiod gate (4.8) encode a hidden high-frequency assumption that rejects a genuine
+low-frequency edge, and `ruin_dd`=0.40 vs σ=0.60 (4.4) is exposure-dependent. These gates are
+mutually tensioned (each trips a different honest should-PASS). **Phase-6 calibration MUST
+reconcile `min_round_trips` / `subperiod` / `ruin_dd` before T-a1/T-a2 can be pinned as PASS.**
+The original single "T-a … PASS" row above is superseded by this amendment. (The §6 chained-form
+`DSR@N=1 > dsr.confidence > DSR@N=280` for T-e is likewise a confirmed v002 defect — see the
+2026-08-04 HANDOFF; T-e uses the two-part honest form.)
+
 T-e deserves the emphasis: it pins *the* project-defining counterfactual (0.563 vs
 0.054 on real data) into CI forever. If any change makes the cherry-picked winner
 pass at honest N, or fail at N=1, the trial-ontology machinery has been damaged

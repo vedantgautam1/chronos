@@ -26,7 +26,7 @@ Determinism (I10-adjacent): every draw comes from one seeded `np.random.default_
 Same seed, same frame — byte-for-byte.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import numpy as np
 import pandas as pd
@@ -82,6 +82,16 @@ def generate_frame(
     mu = ann_vol * target_sharpe / bpy  # = sigma_bar · S / √bpy → ann Sharpe == S
 
     log_ret = rng.normal(mu, sigma_bar, n_bars)
+    return _assemble_frame(log_ret, rng, start=start, timeframe=timeframe, wick_scale=sigma_bar)
+
+
+def _assemble_frame(log_ret, rng, *, start, timeframe, wick_scale) -> pd.DataFrame:
+    """Turn a per-bar log-return array into an Oceanus-valid OHLCV frame: geometric close
+    path, open = previous close, seeded intra-bar wick bridge (half-normal, scale
+    `wick_scale`), empirical-lognormal volume, tz-aware UTC index. Shared by the single-drift
+    and regime generators so all validity logic lives in one place. Draw order (wicks, then
+    volume) is fixed so a given rng state yields a byte-identical frame."""
+    n_bars = log_ret.size
     close = _BASE_PRICE * np.exp(np.cumsum(log_ret))
     open_ = np.empty(n_bars)
     open_[0] = _BASE_PRICE
@@ -89,8 +99,8 @@ def generate_frame(
 
     top = np.maximum(open_, close)
     bot = np.minimum(open_, close)
-    up_wick = np.abs(rng.normal(0.0, sigma_bar, n_bars))
-    dn_wick = np.abs(rng.normal(0.0, sigma_bar, n_bars))
+    up_wick = np.abs(rng.normal(0.0, wick_scale, n_bars))
+    dn_wick = np.abs(rng.normal(0.0, wick_scale, n_bars))
     high = top * (1.0 + up_wick)
     low = bot * (1.0 - dn_wick)  # dn_wick ~ σ_bar ≪ 1, so low stays strictly positive
 
@@ -98,7 +108,7 @@ def generate_frame(
     times = pd.date_range(start=start, periods=n_bars,
                           freq=pd.Timedelta(timeframe.duration))  # vectorized, tz-aware UTC
 
-    frame = pd.DataFrame(
+    return pd.DataFrame(
         {
             "open_time": times,
             "open": open_, "high": high, "low": low, "close": close,
@@ -106,7 +116,61 @@ def generate_frame(
         },
         columns=BAR_COLUMNS,
     )
-    return frame
+
+
+def regime_drift_schedule(n_bars, half_life_bars, bull_mu, bear_mu, rng) -> np.ndarray:
+    """Per-bar drift for a 2-state (bull/bear) Markov regime switch. Starts bull; each bar
+    switches state with probability 1/`half_life_bars` (geometric dwell time, mean =
+    `half_life_bars`), so regimes persist ~`half_life_bars` bars. Bull bars carry `bull_mu`,
+    bear bars `bear_mu`. Deterministic in `rng`. Exposed for a known-answer test (both regimes
+    occur; realized bull-bar mean drift > bear-bar mean drift)."""
+    switches = rng.random(n_bars) < (1.0 / half_life_bars)
+    drift = np.empty(n_bars)
+    bull = True
+    for i in range(n_bars):
+        if i > 0 and switches[i]:
+            bull = not bull
+        drift[i] = bull_mu if bull else bear_mu
+    return drift
+
+
+def generate_regime_frame(
+    *,
+    bull_sharpe: float,
+    bear_sharpe: float,
+    half_life_days: float,
+    n_bars: int,
+    seed: int,
+    ann_vol: float = DEFAULT_ANN_VOL,
+    start: datetime | None = None,
+    timeframe: Timeframe = Timeframe.H1,
+) -> pd.DataFrame:
+    """An Oceanus-valid frame whose drift SWITCHES between a bull regime (within-regime
+    annualized Sharpe `bull_sharpe`) and a bear regime (`bear_sharpe`, typically negative),
+    persistence ~`half_life_days`, at constant volatility `ann_vol`. Unlike `generate_frame`'s
+    single drift (buy-and-hold-shaped), this carries exploitable TIMING: a trend-following MA
+    can harvest bulls and sidestep bears, while random long-only entries and an always-long
+    signal cannot — so stages 4.1 and 4.9 can distinguish a real timing edge from luck.
+    Deterministic in `seed`."""
+    if n_bars < 2:
+        raise ValueError(f"n_bars must be >= 2, got {n_bars}")
+    if ann_vol <= 0:
+        raise ValueError(f"ann_vol must be > 0, got {ann_vol}")
+    if half_life_days <= 0:
+        raise ValueError(f"half_life_days must be > 0, got {half_life_days}")
+    start = start or _DEFAULT_START
+    rng = np.random.default_rng(seed)
+
+    bpy = HOURS_PER_YEAR
+    sigma_bar = ann_vol / np.sqrt(bpy)
+    bull_mu = ann_vol * bull_sharpe / bpy
+    bear_mu = ann_vol * bear_sharpe / bpy
+    bars_per_day = int(round(timedelta(days=1) / timeframe.duration))
+    half_life_bars = max(1.0, half_life_days * bars_per_day)
+
+    drift = regime_drift_schedule(n_bars, half_life_bars, bull_mu, bear_mu, rng)
+    log_ret = drift + rng.normal(0.0, sigma_bar, n_bars)
+    return _assemble_frame(log_ret, rng, start=start, timeframe=timeframe, wick_scale=sigma_bar)
 
 
 def realized_annualized_sharpe(frame: pd.DataFrame) -> float:
