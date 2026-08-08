@@ -187,11 +187,13 @@ describing a lite v1 is stale; this line wins.
   `moirai/calibration/touchstones.py` (judge harness + `generate_regime_frame`). Suite green (311).
   **T-a split into T-a1 + T-a2 (§6 amendment; set is now SIX touchstones), both should-PASS
   verdicts `BLOCKED-ON-PHASE-6-CALIBRATION`** (deferred — neither PASS nor FAIL; NOT asserted in
-  CI). Front-loading T-a surfaced the **meta-finding**: under provisional §14, **no honest
-  strategy clears all eleven gates** — `min_round_trips`=30 (4.0) + subperiod (4.8) encode a
-  hidden high-frequency assumption, and `ruin_dd`=0.40 vs σ=0.60 (4.4) is exposure-dependent;
-  the gates are mutually tensioned (T-a1 fails 4.0/4.8; T-a2 fails 4.4/4.8). **This is the
-  explicit Phase-6 PRECONDITION for pinning T-a1/T-a2** (SESSION_FINDINGS 2026-08-06). Two
+  CI). Front-loading T-a surfaced the **meta-finding**: under provisional §14 each should-PASS canary trips one real gate plus a K=3 subperiod (4.8)
+  co-trip: T-a1 trips 4.0 (min_round_trips=30, a deliberate frequency floor); T-a2 trips 4.4
+  (ruin_dd=0.40 vs σ=0.60, exposure-dependent). Per the 2026-08-07 subperiod diagnostic, 4.8 is
+  a K=3 gate-(iii) artifact, NOT a frequency assumption (fails T-a2 at 47 round trips); at K≈7
+  T-a2 clears 5/5 (touchstone fix, not gate) while T-a1 stays 2/5 unresolved (folds into the
+  open 4.8 gate-(ii) call). The 'no honest strategy clears all eleven' claim rests only on
+  4.0+4.4, UNTESTED at K≈7. Two
   a-priori construction rules discovered + pinned: SNR rule `L_bars ≥ 8760/S²` (regime
   timeability); MA timescale rule (slow=half-life, fast=slow/4). Standing decisions still hold:
   T-e framing A; GATE A (4.8 deferred, T-b cause ∈ {4.2,4.3}); the four fork constraints
@@ -232,8 +234,10 @@ should NOT inherit the long touchstone-building context. See
     founder picks A (split modes) / B (reduced n_nulls) — sized against measured (a)=28.2 s and
     the ~9 s null cadence, NOT 0.566 s.
   - **NOTE: T-a1/T-a2 stay DEFERRED (`BLOCKED-ON-PHASE-6-CALIBRATION`), not pinned** — the
-    should-PASS canaries pin only after Phase-6 reconciles `min_round_trips`/`subperiod`/`ruin_dd`
-    (the meta-finding precondition). Do NOT try to make them PASS; do NOT scope their gates.
+    should-PASS canaries pin only after Phase-6 calibrates `ruin_dd` (4.4), decides
+    `min_round_trips` (4.0, a policy call), and runs the all-eleven-K≈7 test — subperiod (4.8) is a
+    K=3 artifact, not a reconcile target (2026-08-07 diagnostic). T-a1/T-a2 stay DEFERRED; do not
+    scope their gates.
 Protected path (`moirai/`, `configs/gauntlet/`) — full diff and founder approval before any commit.
 
 ## Blocking / needed

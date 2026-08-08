@@ -771,11 +771,11 @@ Required CI on every trusted-core change; **any flipped verdict fails CI.**
 
 | ID | Case (per Stage 0 §6) | Pre-registered verdict | What a flip means |
 |---|---|---|---|
-| T-a | Should-pass: synthetic data with injected effect S = 3.0 annualized (comfortably above the measured ~2.3 floor — the "faint but detectable" strength is a *tuned, documented* quantity, per the spec's own catch), MA strategy that captures it | PASS | gauntlet too harsh or broken |
+| T-a1 / T-a2 (T-a split; see §6 amendment below) | Should-pass canaries: honestly-constructed faint regime edges a correct gauntlet must not reject — **T-a1** (slow, S=3, above the measured ~2.3 floor) and **T-a2** (faster, S=6) | **DEFERRED — `BLOCKED-ON-PHASE-6-CALIBRATION`** (neither PASS nor FAIL; not CI-asserted until Phase-6 calibration pins them) | gauntlet too harsh or broken |
 | T-b | Should-die: 8-parameter rule curve-fit to noise in-sample (beautiful IS, garbage OOS) | FAIL, cause ∈ {4.2, 4.3, 4.8} | overfitting gate broken |
 | T-c | Should-die: deliberate future leak (unsafe_same_bar_fill fixture — the flag-gated path is the sanctioned way to construct one without touching I1) | NON_PROMOTABLE at 4.0 | the judge stopped reading warnings |
 | T-d | Null baseline: seeded random strategy | FAIL; and its 4.9 self-percentile ∈ [0.2, 0.8] | null machinery mis-calibrated |
-| T-e | **The laundering demo as regression:** the 280-sweep winner's returns judged at N=1 vs honest N — assert DSR@N=1 > `dsr.confidence` > DSR@N=280 | both inequalities hold | the flagship failure mode has re-entered |
+| T-e | **The laundering demo as regression:** the 280-sweep winner's returns judged at N=1 vs honest N — assert DSR@N=1 (0.563) > DSR@N=280 (0.054) AND DSR@N=280 (0.054) < `dsr.confidence` (0.95) | both inequalities hold | the flagship failure mode has re-entered |
 
 **§6 AMENDMENT (founder decision, 2026-08-06 — recorded, not silent).** T-a is split into
 **T-a1 and T-a2**, so the regression set is now **six touchstones (T-a1, T-a2, T-b, T-c, T-d,
@@ -794,15 +794,30 @@ canary that can never fail; calling it FAIL would slander a genuine edge. The co
 NOT tuned (a-priori SNR rule `L_bars ≥ 8760/S²` for regime timeability; MA timescale rule
 slow=half-life, fast=slow/4). See SESSION_FINDINGS 2026-08-06.
 
-**Why deferred — the meta-finding (a Phase-6 PRECONDITION):** under the provisional §14
-thresholds, **no honest strategy clears all eleven gates** — `min_round_trips`=30 (4.0) and the
-subperiod gate (4.8) encode a hidden high-frequency assumption that rejects a genuine
-low-frequency edge, and `ruin_dd`=0.40 vs σ=0.60 (4.4) is exposure-dependent. These gates are
-mutually tensioned (each trips a different honest should-PASS). **Phase-6 calibration MUST
-reconcile `min_round_trips` / `subperiod` / `ruin_dd` before T-a1/T-a2 can be pinned as PASS.**
-The original single "T-a … PASS" row above is superseded by this amendment. (The §6 chained-form
-`DSR@N=1 > dsr.confidence > DSR@N=280` for T-e is likewise a confirmed v002 defect — see the
-2026-08-04 HANDOFF; T-e uses the two-part honest form.)
+**Why deferred — the meta-finding (Phase-6 precondition), as amended by the 2026-08-07
+subperiod diagnostic.** Under provisional §14, each constructed should-PASS canary trips one
+*real* gate plus a K=3 subperiod (4.8) co-trip. **T-a1** (slow, S=3) trips **4.0** —
+`min_round_trips`=30, a deliberate frequency floor (~25 round trips over the 7.4-yr seal
+window, still < 30). **T-a2** (faster, S=6) trips **4.4** — `ruin_dd`=0.40 vs σ=0.60,
+exposure-dependent, the §14 placeholder.
+
+**Subperiod (4.8) is NOT a reconcile target.** The diagnostic established that both canaries'
+4.8 failures at the CI window are a **K=3 low-resolution artifact in gate (iii)**, not a
+frequency assumption — 4.8 fails T-a2 at 47 round trips, so it is not a frequency gate. At the
+real operating point K≈7: **T-a2 clears 5/5** — fix the *touchstone* (4.8 is not evaluable at
+K=3), NOT the gate; loosening the threshold to pass a K=3 artifact would break 4.8 at K≈7
+where it correctly discriminates. **T-a1 stays 2/5, unresolved** — an explicit
+reclassify-vs-recalibrate call that folds into the open 4.8 gate-(ii) methodology decision,
+not a threshold-loosen.
+
+**Not yet proven:** 4.0 and 4.4 at K≈7 are UNTESTED, so the stronger claim — no honest
+strategy clears all eleven gates / the gauntlet would reject a genuine slow edge live — rests
+only on 4.0 and 4.4 and is not established until the all-eleven-at-K≈7 test runs. Phase-6
+**calibrates** `ruin_dd` (4.4), **decides** `min_round_trips` (4.0, a Themis/founder policy
+call, not a tuning target), and **runs the all-eleven-K≈7 test** before T-a1/T-a2 can pin.
+(The §6 chained-form assertion for T-e — `DSR@N=1 > dsr.confidence > DSR@N=280` — is a
+confirmed v002 defect: it requires 0.563 > 0.95, impossible; T-e uses the two-part honest
+form, and the T-e table row below is corrected inline.)
 
 T-e deserves the emphasis: it pins *the* project-defining counterfactual (0.563 vs
 0.054 on real data) into CI forever. If any change makes the cherry-picked winner
@@ -1093,7 +1108,7 @@ number in this spec — it is a placeholder for Themis and says so), luck 0.05` 
       green **before any verdict has authority**.
 - [ ] All Moirai 4.0–4.10 implemented per contract; probes G1–G8 green,
       CI-required; every threshold read from the hashed config, none hardcoded.
-- [ ] Touchstones T-a…T-e return pre-registered verdicts; any flip fails CI.
+- [ ] Touchstones T-b…T-e CI-pinned (return pre-registered verdicts; any flip fails CI); T-a1/T-a2 DEFERRED to Phase-6 calibration (BLOCKED-ON-PHASE-6-CALIBRATION), not CI-asserted until they pin.
 - [ ] Calibration Modes S and E run; Mode S reconciles with the probe's Monte
       Carlo; report committed; thresholds tuned once to target FPR; **power curve
       published** (docs + SESSION_FINDINGS).

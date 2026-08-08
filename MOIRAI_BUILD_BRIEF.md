@@ -389,13 +389,17 @@ actual measured cost of a full-window engine run.**
 
 **Do:**
 
-* **Touchstones T-a … T-e** per spec §6, each `build() -> (data, Strategy)`
+* **Touchstones T-a1, T-a2, T-b, T-c, T-d, T-e** (six — T-a is split into T-a1/T-a2, both
+  DEFERRED `BLOCKED-ON-PHASE-6-CALIBRATION`) per spec §6, each `build() -> (data, Strategy)`
   deterministic from a seed, each with its immutable pre-registered verdict and
   rationale committed beside the code. CI-required; **any flipped verdict fails
   CI.** Runtime budget for the set: ≤ 10 minutes (T-a/T-b/T-d use short
   synthetic windows).
 * **T-e gets special care** — the 280-sweep winner's returns judged at N=1 vs
-  honest N, asserting DSR@N=1 > `dsr.confidence` > DSR@N=280. This pins the
+  honest N, asserting DSR@N=1 (0.563) > DSR@N=280 (0.054) AND DSR@N=280 (0.054) <
+  `dsr.confidence` (0.95) — the two-part honest form (the chained
+  `DSR@N=1 > dsr.confidence > DSR@N=280` is a confirmed v002 defect: it requires 0.563 > 0.95,
+  impossible). This pins the
   project-defining counterfactual (0.563 vs 0.054 on real data) into CI
   permanently. Note it runs against *legacy* records until Phase 7 re-runs the
   sweep live; mark that dependency in the test docstring.
@@ -426,7 +430,8 @@ actual measured cost of a full-window engine run.**
   exist and the founder has seen them.** See §"The Phase 6 budget problem"
   below for why.
 
-**Tests:** T-a…T-e return their pre-registered verdicts; G5; generator
+**Tests:** T-b…T-e return their pre-registered verdicts; T-a1/T-a2 DEFERRED to Phase-6
+calibration; G5; generator
 self-test; Mode S reconciliation against the probe.
 
 **CHECKPOINT:** the founder reads the Mode S reconciliation (three numbers

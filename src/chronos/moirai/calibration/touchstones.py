@@ -164,10 +164,13 @@ def judge(spec: TouchstoneSpec, *, store_path, full_eval: bool,
 # Its verdict is NEITHER PASS NOR FAIL — it is PASS_DEFERRED. Reading it as PASS would require
 # scoping out 4.0/4.8 (a canary rigged to always pass — it could never fail for the reason
 # should-PASS touchstones exist). Reading it as FAIL would slander a good strategy: the edge is
-# real and the gauntlet detects it — the PROVISIONAL §14 thresholds (breadth min_round_trips=30,
-# the subperiod gate) simply cannot yet judge a faint low-frequency edge, encoding a hidden
-# high-frequency assumption. T-a1 pins as a should-PASS regression ONLY once Phase-6 calibration
-# reconciles those thresholds (the precondition at PASS_DEFERRED). It certifies detectability at
+# real and the gauntlet detects it — under the PROVISIONAL §14 thresholds T-a1 trips 4.0
+# (min_round_trips=30, a deliberate frequency floor, NOT a hidden high-frequency assumption). Per
+# the 2026-08-07 subperiod diagnostic, the 4.8 co-trip is a K=3 gate-(iii) artifact, NOT a
+# frequency gate (4.8 fails T-a2 at 47 round trips): it resolves at K≈7 for T-a2 (touchstone fix,
+# not gate) and stays unresolved for T-a1. T-a1 pins as a should-PASS regression ONLY once Phase-6
+# decides min_round_trips (a policy call) and calibrates ruin_dd — subperiod is not a reconcile
+# target (the precondition at PASS_DEFERRED). It certifies detectability at
 # the SPECIFIC point (S=3, 45-day regimes, σ=0.60) — NOT "the ~2.3 floor" in general.
 #   • T-a2 (below): a higher-frequency edge — the would-be clean all-eleven canary; also DEFERRED.
 #
@@ -252,9 +255,12 @@ def build_t_a1() -> TouchstoneSpec:
 # Measured eleven-stage table (SESSION_FINDINGS 2026-08-06): 4.0 breadth CLEARS (47 round trips)
 # and 4.1/4.3/4.5/4.6/4.7/4.9 PASS, but 4.4 (p95 maxDD 0.535 > ruin_dd 0.40, the ruin_dd-vs-σ
 # finding) and 4.8 (subperiod) FAIL. So a clean all-eleven PASS does NOT exist even here — which
-# is the meta-finding: under provisional §14, no honest strategy clears all eleven. Verdict is
+# is the meta-finding — but that claim (under provisional §14, no honest strategy clears all
+# eleven) is UNTESTED at K≈7: it rests only on 4.0+4.4, and the 4.8 FAIL here is a K=3 gate-(iii)
+# artifact, not a frequency gate (2026-08-07 diagnostic). Verdict is
 # therefore PASS_DEFERRED (neither PASS — nothing scoped out — nor FAIL — the edge is real),
-# pinned only once Phase-6 calibration reconciles ruin_dd/subperiod/min_round_trips.
+# pinned only once Phase-6 calibrates ruin_dd (4.4), decides min_round_trips (4.0, policy), and
+# runs the all-eleven-K≈7 test — subperiod is not a reconcile target.
 TA2_FRAME_SEED = 271
 TA2_GAUNTLET_SEED = 20260805
 TA2_BULL_SHARPE = 6.0
