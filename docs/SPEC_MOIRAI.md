@@ -839,9 +839,29 @@ the full-window machinery is exercised by the calibration job, not CI).
   alone. Validates the wiring against `chronos_math_probe.py` Part 2's existing
   Monte Carlo (whose machinery this is — pointed at the shipped code instead of
   scratch reimplementations). Fast (no engine); its numbers must reproduce the
-  probe's: detection ≈ 0.3% at true S=1.0 after a 280-wide search, ~40–50%
-  pre-registered, floor ≈ 2.3 — tolerances ±0.5 pp, ±10 pp, ±0.2 respectively.
-  Divergence means the shipped statistics differ from the verified probe.
+  probe's, each stated WITH its posture and provenance:
+    - **detection ≈ 0.3%** at true S=1.0 after a 280-wide search (±0.5 pp);
+    - **~40–50% pre-registered** (N=1) at S=1.0 (±10 pp);
+    - **simulated detection floor ≈ 1.33 annualized** — `sr_star` at the
+      6.2yr/280-search posture on the simulated zero-edge path (±0.2). This is
+      the Mode S floor target, because Mode S drives that simulated path by the
+      definition above.
+  Divergence beyond a tolerance means the shipped statistics differ from the
+  verified probe. (Reconciled 2026-08-08: the Mode S run proved the shipped
+  statistics reproduce the probe byte-for-byte on all three.)
+
+  **Floor provenance — do not conflate two different quantities.** The simulated
+  floor above (≈ 1.33, 6.2yr) is distinct from the **real-data `sr_star` bar
+  ≈ 2.50** = `sr_star(8.66e-5, 280)·√8760`, computed from the real 280-run sweep
+  on the 6-month/4344-bar window (SESSION_FINDINGS; 2026-07-18 handoff). The
+  real-data bar is recorded as CONTEXT only, NOT the Mode S target — Mode S
+  drives the simulated path, not real data. A previously-listed "≈ 2.3" floor —
+  logged once in the 2026-07-18 handoff as a "DSR+holdout detection floor" from
+  the two-gate Monte Carlo — was never reproducibly derived and corresponds to
+  NEITHER the simulated 1.33 NOR the real-data 2.50; it is **retired**. The floor
+  is WINDOW-DEPENDENT (V shrinks with window: ~2.4e-5 at 6.2yr vs 8.66e-5 at
+  6 months), so every floor figure must name its window and its provenance
+  (simulated vs real-data).
 - **Mode E (end-to-end):** synthetic *candles* through the real engine — real
   costs, fills, caps — judged by the real full pipeline. This is the true
   detection floor of the instrument as built, and the published curve.

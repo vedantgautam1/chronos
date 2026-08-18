@@ -229,7 +229,9 @@ should NOT inherit the long touchstone-building context. See
 `docs/handoffs/2026-08-07-moirai-phase-5-step3.md`.
   - **Step 4 — Mode S calibration run** (statistics-level, no engine): reproduce the probe's
     Monte Carlo — detection ≈0.3% at S=1.0 after a 280-wide search (±0.5pp), ~40–50%
-    pre-registered (±10pp), floor ≈2.3 (±0.2). Divergence is stop-the-build, not a tolerance.
+    pre-registered (±10pp), simulated floor ≈1.33 (±0.2 — `sr_star` at 6.2yr/280; the old ≈2.3
+    target is retired as unreproducible, see §7.1 floor provenance). Divergence is stop-the-build,
+    not a tolerance.
   - **Step 5 — GATE C** (Phase 6 scoping): present the three throughput numbers + Mode S; the
     founder picks A (split modes) / B (reduced n_nulls) — sized against measured (a)=28.2 s and
     the ~9 s null cadence, NOT 0.566 s.
