@@ -43,7 +43,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 
 **First trading target.** BTC (then ETH) **intraday, long and short**, several trades a day with holds of minutes to hours. Traded through **IBKR crypto futures** (Coinbase nano BTC/ETH first, CME micro and Bitcoin Friday second). Signal history comes from Kraken spot data.
 
-**Next step (§9):** stand up the slim VPS and start data collection. Then the v2 code skeleton (in this repo, V2-D29) with ported statistics, the one-week NautilusTrader spike, and the validation acceptance test.
+**Next step (§9):** the v2 code skeleton (in this repo, V2-D29) with ported statistics, then the one-week NautilusTrader spike. The data-collection server comes after the spike (V2-D30), then the validation acceptance test.
 
 **Hard rules that never bend:** LLMs never size positions, never place orders and never decide validation verdicts. Every variant tried counts as a trial. Costs are always the real venue's full costs. No high-frequency trading.
 
@@ -57,11 +57,11 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 |---|---|---|---|
 | **This doc pack** (`docs/v2/`) | Single source of truth | **Done** 3 Nov | Founder request: one doc every session reads |
 | **v1 freeze** | Branch `v1-final`, v1 docs to `docs/v1-archive/` | **Done** 3 Nov | V2-D10 |
-| **Slim VPS + Postgres + collectors + alerts** | Always-on Linux box collecting data 24/7 | **Not started — next** | V2-D23, V2-D26. Only news/sentiment snapshots and live spread records are truly unrecoverable; prices and trades can be backfilled (see O-9) |
+| **Slim VPS + Postgres + collectors + alerts** | Always-on Linux box collecting data 24/7 | **Not started — after the spike** | V2-D23, V2-D26, V2-D30. Prices and Kraken trades can be backfilled; only news/sentiment snapshots and live spread records are unrecoverable |
 | **Kraken trade recorder** | Every BTC/USD + ETH/USD trade with aggressor side, recorded forward | **Not started** | V2-D26. Kraken has no bulk dump |
 | **Collectors: S-NEWS (Grok/X, headlines, GDELT), S-MACRO actuals** | Forward collection, no trading | **Not started** | V2-D06, V2-D24 |
 | **v2 code skeleton + ported statistics** | Stats probe, known-answer tests, trial ontology, cost code, touchstones | **Not started** | V2-D10, V2-D29: in this repo, in a new package folder; v1 code untouched |
-| **NautilusTrader spike** (1 week) | Prove the engine before committing | **Not started** | V2-D04. Pass criteria in §9 step 4 |
+| **NautilusTrader spike** (1 week) | Prove the engine before committing | **Not started** | V2-D04. Pass criteria in §9 step 3 |
 | **Oceanus — data layer** | Kraken history + IBKR futures data, Parquet + DuckDB + Postgres | Not started (v1 version is Binance-only) | §4 |
 | **Moirai — validation** (edge check + change check) | Is a strategy real? Is a change better? | **Locked design, not built** | V2-D08, D20, D21. Not trusted until the acceptance test passes |
 | **Validation acceptance test** | Touchstones + null known-answer tests + planted-edge calibration | Not started | V2-D08, D20, D21, D25 |
@@ -113,7 +113,7 @@ Statistics with known-answer tests (Lo 2002, Newey–West, Politis–Romano stat
 
 ## 4. Architecture (layers)
 
-Built on **NautilusTrader** (event-driven; the same strategy code runs in backtest, sandbox and live; LGPL-3.0). Final once the one-week spike passes (§9 step 4). Greek names are kept only for layers we build ourselves; open-source parts go by their real names. **Chronos** = the platform. **Kronos** = the open-source candle model. Don't mix them up (V2-D01).
+Built on **NautilusTrader** (event-driven; the same strategy code runs in backtest, sandbox and live; LGPL-3.0). Final once the one-week spike passes (§9 step 3). Greek names are kept only for layers we build ourselves; open-source parts go by their real names. **Chronos** = the platform. **Kronos** = the open-source candle model. Don't mix them up (V2-D01).
 
 | Layer | v2 design | Status |
 |---|---|---|
@@ -257,17 +257,19 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
    - the touchstones as acceptance tests.
    
    Fix the strict-`<` rank in v1 `src/chronos/moirai/stages/null_bench.py` when porting (`BUILD_NOTES.md` §2).
-3. **Stand up the slim VPS and start collection:** Postgres + scheduled collectors + simple alerts (§8). Can run in parallel with step 2. Urgent only for the parts that can't be recovered later (news/X sentiment for S-NEWS, live IBKR spread snapshots); price candles and Kraken trades can be downloaded or backfilled (O-9).
-4. **NautilusTrader spike (one week).** Pass criteria:
+3. **NautilusTrader spike (one week).** Pass criteria:
    - (a) one MA strategy on Kraken BTC data matches v1 Hephaestus within explainable differences;
    - (b) our cost/slippage model plugs in;
    - (c) several days of sandbox paper on an **IBKR paper account trading nano BTC futures**, long and short, with no manual intervention;
    - (d) two strategies on two venues in one node;
    - (e) Nautilus's IBKR adapter can trade **Coinbase perpetual-style nano contracts**, and we can read their funding and fees. If it can't, raise it immediately as an engine-choice problem.
+
+   Criterion (c) needs a machine running IB Gateway for several days. Either keep the Mac plugged in and awake for those days, or rent the VPS early for it (then step 4's collectors can go on it at the same time).
+4. **Stand up the slim VPS and start collection** (moved after the spike, V2-D30): Postgres + scheduled collectors + simple alerts (§8). Runs alongside step 5 onward. Urgent only for what can't be recovered later (news/X sentiment for S-NEWS, live IBKR spread snapshots); price candles and Kraken trades can be downloaded or backfilled.
 5. **Validation acceptance test** (§6). Must pass **before** any S-INTRADAY or S-TREND result is trusted.
 6. **S-INTRADAY on BTC futures**, with S-TREND as regime filter and benchmark: research cards → pre-registered rules → counted screen → edge check → paper on IBKR (L3).
 7. **Kronos:** backfill forecasts over the clean window; evaluate per spec on top of the S-INTRADAY/S-TREND baseline.
-8. **Research MCP server** (V2-D19), once steps 4–5 exist to wrap.
+8. **Research MCP server** (V2-D19), once steps 3 and 5 exist to wrap.
 9. **Unpark FX and equities** when crypto reaches paper (L3).
 
 ---
@@ -281,7 +283,7 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | V2-D01 | 28 Oct | Naming: Chronos = platform; Kronos = candlestick model component; Greek names only for layers we build | Locked |
 | V2-D02 | 28 Oct | Venues: Kraken for crypto; IBKR for FX and equities; no MT5, no Windows | Locked (crypto execution amended by V2-D27) |
 | V2-D03 | 27–28 Oct | Reverse v1 D-07: **every screened variant counts as a trial** | Locked |
-| V2-D04 | 27–28 Oct | NautilusTrader is the engine front-runner; final after the one-week spike passes its criteria (§9 step 4) | Locked |
+| V2-D04 | 27–28 Oct | NautilusTrader is the engine front-runner; final after the one-week spike passes its criteria (§9 step 3) | Locked |
 | V2-D05 | 27–28 Oct | Implement Kronos as a shadow signal per `specs/kronos-shadow.md` | Locked |
 | V2-D06 | 27–28 Oct | News/sentiment is its own strategy with a small capped sleeve, forward-tested, scaled only on evidence; split into S-MACRO and S-NEWS | Locked |
 | V2-D07 | 28 Oct | LLMs never size, never place orders, never decide validation verdicts; L1 + L2 allowed; L3 rejected | Locked |
@@ -307,11 +309,12 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | V2-D27 | 29 Oct | Active crypto trading on **IBKR crypto futures**, long and short (Coinbase nano BTC/ETH primary; CME Micro Bitcoin and Bitcoin Friday secondary). Kraken for data, trade recording and an optional long-only sleeve. Full cost model incl. funding and basis. Offshore perpetual exchanges rejected | Locked |
 | V2-D28 | 29 Oct | First active track is **S-INTRADAY** (BTC then ETH, long/short, minutes-to-hours holds) on IBKR futures; S-TREND becomes its regime filter and benchmark; neighbourhood rule for intraday families set by intraday planted-edge worlds | Locked |
 | V2-D29 | 3 Nov | Amends V2-D10: **v2 code lives in this same repo** (`vedantgautam1/chronos`), which the claude.ai Project already syncs. v1 stays frozen on branch `v1-final` and in `docs/v1-archive/`; v1 code under `src/chronos/` and `tests/` is not modified; v2 code goes in its own new package folder (layout set in the step-2 build session) | Locked |
+| V2-D30 | 3 Nov | Build order: the data-collection VPS moves **after** the NautilusTrader spike (§9 step 4). V2-D26 forward recording is unchanged; its urgency claim was overstated (Kraken trades can be backfilled via the API, slowly). The parts that truly can't be recovered later are news/X sentiment as seen at the time and live IBKR spread snapshots | Locked |
 | — | 28 Oct | Intensity scorer: Grok + Claude both during collection, choose at rule-freeze | Leaning |
 | — | 28 Oct | Point-in-time fundamentals from SEC XBRL company facts (free) | Leaning |
 | — | 3 Nov | v2 doc pack: `docs/v2/CHRONOS_V2.md` is the single master doc; repo is canonical; v1 frozen under branch `v1-final` | Done (founder instruction 3 Nov) |
 
-**Next decision ID: V2-D30.**
+**Next decision ID: V2-D31.**
 
 ---
 
@@ -362,11 +365,11 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | **P-1** | Mnemosyne stores each counted trial's daily net return series and trade list, so set-level tests (SPA/StepM/MCS), effective-N estimation and CSCV stay possible later. ~32 MB per 5,000 variants × 800 days | **Proposed (S10)** | Before the experiment store is built |
 | P-2 | Add a HAR realised-variance baseline (5-min returns) to Kronos role C when the spec is re-checked for intraday bars | Proposed (S10) | Before Kronos work |
 | O-3 | Exact neighbourhood rule (size, allowed degradation) | Open → acceptance test | Step 5 |
-| O-4 | IBKR futures cost model: exchange/regulatory fees for Coinbase nano and CME contracts; perpetual-style funding mechanics; IBKR market-data cost | Open → spike | Step 4 |
+| O-4 | IBKR futures cost model: exchange/regulatory fees for Coinbase nano and CME contracts; perpetual-style funding mechanics; IBKR market-data cost | Open → spike | Step 3 |
 | O-5 | Consensus-forecast vendor for S-MACRO | Open | When S-MACRO leaves collection |
 | O-6 | Mac RAM (only matters for local model sizes) | Open | Before local models |
 | O-7 | Before live: actual capital, sleeve %, max losses, running cost vs expected returns | Open | Before L4 |
-| O-9 | V2-D26's stated reason ("Kraken has no bulk dump, so forward recording is the only cheap way") is overstated: Kraken's trades endpoint can be paged back through full history, just slowly [Likely — Kraken docs, not timed]; paid vendors also sell historical trades [Likely]. Forward recording is still cheap; the question is whether it should block the build order | Open — founder | Before step 3 |
+| ~~O-9~~ | Should data collection block the build order? | **Resolved 3 Nov → V2-D30: server after the spike** | — |
 | O-8 | Kronos spec horizons (1h/4h bars) vs the intraday track | Open | Before Kronos work |
 
 ---
