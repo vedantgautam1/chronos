@@ -1673,3 +1673,22 @@ real operating point is K ≈ 6–7 (~7.4 years). This asked whether 4.8's failu
   UNTESTED.** The meta-finding rests on 4.0 (T-a1) and 4.4 (T-a2) — untouched here — so it STANDS.
   The real next test is the **all-eleven judge at K=7**, not this 4.8 isolation. Do not conclude
   "subperiod resolved, meta-finding dented."
+
+## 2026-11-03 — v1 FROZEN. Chronos v2 begins. This log is closed.
+
+**Founder decision (V2-D10, locked 28 Oct 2026; executed 3 Nov 2026).** v1 is frozen as a reference.
+The final v1 commit is preserved on the branch `v1-final` (commit 6b2b628; do not commit to it). Phase 5/6 work stopped; the 11-gate gauntlet, gate 4.4 as a
+reject gate, D-07, Binance, Hephaestus/Hermes and the Atropos seal plan are retired in v2.
+
+**Why:** v1's own findings showed no honest should-PASS canary could clear all eleven gates under the
+provisional thresholds (gate 4.4 judged the sizing choice, not the edge — T-a2 sized at 95% failed at
+0.535 vs 0.40), and v1 had no live path. The founder reframed the goal (Oct 2026): make money,
+multi-market, multi-strategy, open-source commodity layers.
+
+**Where things live now:** `docs/v2/CHRONOS_V2.md` is the master document and its §10 is the live
+decisions log (V2-D01 onward). This file and the rest of v1's docs moved to `docs/v1-archive/`.
+Kept on purpose from v1: honest trial counting and the SEARCH/VERIFICATION ontology, DSR with honest
+N, dependence-aware statistics, the stats probe and known-answer tests, provenance discipline, no seed
+shopping, touchstones (now the v2 acceptance test), append-only logs.
+
+No further entries will be added here.

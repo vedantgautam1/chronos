@@ -1,119 +1,44 @@
-# CLAUDE.md — Rules of engagement for this repository
+# CLAUDE.md — Chronos (v2)
 
-This is Chronos: systematic trading research infrastructure whose entire
-purpose is to be honest enough to reject almost every strategy fed to it.
-Correctness under adversarial self-deception outranks speed, elegance, and
-helpfulness. When in doubt: stop and flag, don't guess.
+**Before doing anything, read `docs/v2/CHRONOS_V2.md`.** It is the master document: what Chronos is, what is built and not built, every decision and why, what we rejected and why, the build order, and where everything lives. If this file and the master doc ever disagree, the master doc wins.
 
-## Invariants (violating any is a build-breaking bug, not a style issue)
+Then, for the component you're touching, read its section in `docs/v2/BUILD_NOTES.md` (known traps) and `docs/v2/COMPONENTS.md` (where third-party and v1 code come from).
 
-- **I1** No future leakage — strategies see only data with timestamp ≤ now.
-- **I2** Costs always applied — no cost-free path exists in the trusted engine.
-- **I3** Every run logged — execution only via `run_experiment()`; a record
-  is written on every exit path, including crashes.
-- **I4** The holdout is sealed — `get_bars()` refuses ranges in
-  `configs/sealed_ranges.json` without a `FinalEvaluationToken`. Sealing
-  is additive-only; there is no unseal.
-- **I5** Determinism from FIVE coordinates: (code SHA, config hash, data
-  snapshot hash, seed, candidate_n). A differing search-N is a legitimate
-  difference, not a determinism failure.
-- **I6** Every execution logged with a monotonic index AND a `kind` tag:
-  `SEARCH` (a point in a parameter search — counts toward the DSR's N via
-  `compute_search_n()`) or `VERIFICATION` (standalone runs, walk-forward
-  windows, cost stress, null benchmarks — never counts toward N).
-- **I7** One data door — only `oceanus/` touches ccxt or `data/`.
-- **I8** Hypothesis precedes results — pre-registered, non-empty, immutable.
-- **I9** The judge is fixed before the trial — gauntlet thresholds are a
-  hashed, versioned artifact (`gauntlet_config_hash`); enforcement lives
-  in the Moirai.
-- **I10 — Verdict determinism.** Identical (judged result's five coordinates,
-  gauntlet_config_hash, moirai_code_version, gauntlet seed) → byte-identical
-  serialized verdict. Every stochastic element in the gauntlet draws from one
-  injected, seeded RNG. No global random/np.random calls anywhere in moirai/.
-- **I11 — Every judgment recorded.** Gauntlet evaluation writes one outcome
-  record per executed stage plus one verdict record, on every exit path
-  including crashes (try/finally). There is no unlogged judgment and no
-  verdict-record mutation.
+## v1 is frozen — do not follow it
 
-## Hard rules for any Claude Code session
+Everything in `docs/v1-archive/`, the code under `src/` and `tests/`, and branch `v1-final` is **v1: reference only**. Its rules no longer apply:
+- the 11-gate gauntlet;
+- gate 4.4 as a reject gate;
+- "screens are not trials" (D-07);
+- Binance and its 10 bps taker / 1 bps slippage defaults;
+- Phase 5/6;
+- the Atropos seal plan;
+- protected paths everywhere.
 
-1. **Protected paths — show a full diff and WAIT for explicit approval:**
-   `moirai/`, `configs/gauntlet/`, `tests/statistics/`, cost model & fill
-   logic in `hephaestus/`, Oceanus validation & `seal.py`, the Mnemosyne
-   schema, everything under `tests/hephaestus/invariants/`, and the
-   hand-computed fixtures.
-2. **Read files fresh before editing.** Never edit from memory of an
-   earlier view.
-3. **Never loosen a test assertion to make it pass.** Fix the cause.
-4. **`kind=` is explicit at every `run_experiment()` call site.** Sweeps
-   use ONE hypothesis via `register_search()` reused across all points —
-   never one hypothesis per point.
-5. **Never backfill legacy records** (trial_index ≤ 284: no `kind`,
-   produced under the old 10bps cost default, not comparable across that
-   boundary).
-6. **Statistical methods enter the core only from primary sources with
-   passing known-answer tests** (see spec §15). LLM memory — including
-   yours — is explicitly not a source. R6/R7 are assumptions (spec §16):
-   verdicts depending on them report ranges, not points.
-7. **DSR/PSR consume the NON-annualized Sharpe** at native bar frequency;
-   `SR*` must be floored at 0 (it is negative at small N). N comes from
-   `compute_search_n()`, never from `trial_counter.txt`.
-8. **Stop-and-flag beats silently fixing.** If a change forks into
-   non-equivalent options, present both and ask. This has been right
-   every time it happened.
-9. **"Tests green" ≠ "it works."** After structural changes, actually run
-   `scripts/run_milestone.py` end-to-end before declaring done.
-10. Regenerable derived artifacts (`*.npy` from extraction scripts,
-    generated PNGs) stay uncommitted unless explicitly requested;
-    `records/` and `data/` are gitignored by design.
+Don't extend v1 code. Port pieces into v2 as `COMPONENTS.md` §2 describes. If a request seems to follow v1 rules, say so and ask.
+
+## Hard rules (v2)
+
+1. **LLMs never size positions, never place orders, never decide validation verdicts** (V2-D07). Nothing an LLM produces reaches an order without deterministic sizing and the Nemesis guard. Research code may not import Nemesis.
+2. **Every screened variant counts as a trial** (V2-D03). Record runs with an explicit `kind` (SEARCH / VERIFICATION); one hypothesis per sweep, reused across its points.
+3. **Costs are always the real venue's full costs.** For crypto: IBKR futures commission + exchange fees + spread + slippage + funding + futures–spot basis. No cost-free path.
+4. **No look-ahead.** Strategies see only data with timestamp ≤ now. Non-price data carries `available_at`. LLM outputs are evidence only forward of the model's training cutoff.
+5. **Statistical methods enter only with passing known-answer tests;** pass/fail rules are committed before a test runs (V2-D25). LLM memory, yours included, is not a source. Every rank or p-value counter uses mid-rank ties (V2-D21).
+6. **No high-frequency trading** (V2-D22): no sub-minute holds, order-book/queue strategies, market making or latency-dependent edges.
+7. **Protected changes — show the diff and wait for the founder's approval:** validation thresholds, risk limits, promotion of any strategy to live (V2-D11). Everything else moves normally.
+8. **Read files fresh before editing. Never loosen a test to make it pass.** "Tests green" ≠ "it works": run the end-to-end path after structural changes.
+9. **Stop and flag** when a change forks into non-equivalent options, or when a request conflicts with the master doc. Present the options; the founder decides. Only the founder locks decisions.
+10. **No seed shopping, no verdict-fitting.** State asymmetric findings asymmetrically.
 
 ## Conventions
 
-Decimal ledger for accounting, float64 for series math · next-bar-open
-fills (unsafe same-bar path is flag-gated and logged) · half-open
-`[start, end)` ranges, tz-aware UTC everywhere · cancel-and-record for
-unfilled remainders · cost defaults: taker 10bps, slippage 1bps
-(R6-measured 2026-07-17; hand-computed fixtures are deliberately pinned
-to an explicit 10bps and must not be "updated") · `uv` for env,
-`pip install` never; `uv run --with` for one-off deps.
+tz-aware UTC everywhere · half-open `[start, end)` ranges · Decimal for the money ledger, float64 for series maths · every money amount is configuration (capital-agnostic) · `uv` for the environment · run third-party or downloaded code with `python -I` from outside its folder.
 
-## The documentation system — what each file is for, and its update rhythm
+## At the end of every session
 
-The repo is the single source of truth. Nothing is "decided" until it is
-committed here. Each file has ONE job; keep them in their lanes.
+In the same commit as the work:
+- **Update `docs/v2/CHRONOS_V2.md`:** the status board (§2) for anything whose status changed; the decisions log (§10) **only** for decisions the founder locked; open questions (§12); "Last updated".
+- **Add any new trap** to `BUILD_NOTES.md`.
+- **Add any adopted library** to `COMPONENTS.md`.
 
-- `CLAUDE.md` (this file) — rules of engagement. You auto-read it. Changes
-  rarely, only when a rule changes.
-- `docs/STATE.md` — the living dashboard: where the project is today
-  (built / in-progress / next / blocked). The first thing any session
-  reads. Updated at the END of every session; kept to one page.
-- `HANDOFF.md` — the dated, append-only decisions log: WHY things are the
-  way they are. Append a dated entry for every structural change; never
-  rewrite or delete history.
-- `docs/SPEC_*.md` — the specifications: WHAT to build, at full rigor.
-  (`SPEC_HEPHAESTUS` done — engine spec, §10 = Moirai boundary contract,
-  §15/§16 = split registers, Appendix A = metric rules; `SPEC_MOIRAI`
-  next.)
-- `SESSION_FINDINGS.md` — the empirical NUMBERS measured on real project
-  data (V[{SR_n}]=8.66e-05, the 0.563-vs-0.054 DSR laundering demo,
-  detection floor ≈2.3 annualized). Update when a new measurement lands.
-- `docs/handoffs/YYYY-MM-DD-*.md` — the full closing handoff per session;
-  heavy, complete, permanent. The deep "why/how" a session reads when
-  STATE.md isn't enough. Never edited after being written.
-- `docs/calibration/CAL-*.md` — the versioned calibration reports; one per
-  activated GauntletConfig version. The measured power curve lives here.
-- `docs/promotions/` — promotion artifacts for strategies that pass the
-  full gauntlet. Each is a committed markdown with the full verdict,
-  evidence, validity coordinates, and the Atropos expectation template.
-- `chronos_math_probe.py` — verified statistical implementations, 28
-  known-answer checks; promotion to `tests/statistics/` is a planned task.
-
-**At the end of every session you help close:** update `docs/STATE.md`,
-append a dated entry to `HANDOFF.md` for any decision, write the closing
-handoff to `docs/handoffs/`, and commit. This is how the next session
-inherits context without being re-explained to.
-
-**Precedence:** STATE.md and the newest HANDOFF.md entry win over older
-planning docs. When a request conflicts with anything above, or documents
-disagree, say so and stop. The founder is non-technical; your caution is
-part of the review process, not an obstacle to it.
+The founder is non-technical and works solo: keep the master doc's §1–§2 readable in two minutes, and tell the founder plainly what changed.
