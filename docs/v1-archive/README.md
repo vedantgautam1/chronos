@@ -1,4 +1,4 @@
-# v1 archive — frozen 3 Nov 2026 (tag `v1-final`)
+# v1 archive — frozen 3 Nov 2026 (branch `v1-final`)
 
 Everything in this folder is **v1 reference material**. It does not describe the current plan. The current plan is `docs/v2/CHRONOS_V2.md`.
 

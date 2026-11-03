@@ -29,7 +29,7 @@ Things we're *not* using yet (with the trigger that would make them useful) live
 | **Whisper** (local) | Press-conference transcription; Instagram intake on the Mac | github.com/openai/whisper | MIT | — | Used in intake | Already running in `~/chronos-intake` |
 | **tick** | Hawkes fits on recorded trades (parked thesis) | github.com/X-DataInitiative/tick · PyPI `tick` | BSD-3 | 0.8.0.2 (revived Apr–May 2026; macOS arm64 wheels) | **Run** (S10) | **Must also `pip install numpydoc`** or every Hawkes learner crashes. Likelihood fit errors by default; use least squares. Seasonality trap: BUILD_NOTES §8 |
 
-## 2. From v1 (frozen under tag `v1-final`) — port, don't extend
+## 2. From v1 (frozen under branch `v1-final`) — port, don't extend
 
 | v1 asset | Path | Port as | Notes |
 |---|---|---|---|

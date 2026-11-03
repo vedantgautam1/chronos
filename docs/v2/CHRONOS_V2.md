@@ -14,7 +14,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 2. **This file** (`docs/v2/CHRONOS_V2.md`) — especially the decisions log in §10.
 3. The other files in `docs/v2/`: `BUILD_NOTES.md` (traps to avoid while building), `COMPONENTS.md` (third-party code and v1 code to reuse), `specs/` (detailed specs, with the staleness notes at their top).
 4. Research notes in the claude.ai Project (`claude/item-analyses*.md`, `claude/comparison-matrix.md`, `claude/reference-library.md`). Background and reasoning; they never override this file.
-5. **Frozen v1 material** (`docs/v1-archive/` including the closed v1 log `docs/v1-archive/HANDOFF.md`, the code under `src/` and `tests/`, tag `v1-final`). Reference only. Its rules (11-gate gauntlet, Binance, 10 bps taker fee, Phase 5/6, Atropos seal plan, "screens are not trials") **do not apply to v2**.
+5. **Frozen v1 material** (`docs/v1-archive/` including the closed v1 log `docs/v1-archive/HANDOFF.md`, the code under `src/` and `tests/`, branch `v1-final`). Reference only. Its rules (11-gate gauntlet, Binance, 10 bps taker fee, Phase 5/6, Atropos seal plan, "screens are not trials") **do not apply to v2**.
 6. Memory notes about Chronos. Background only.
 
 **If you find a contradiction:** say so, point to both places, and follow the higher one. Never silently follow the lower one, and never "fix" a Locked decision yourself. Only the founder unlocks.
@@ -37,7 +37,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 **Where we are today (3 Nov 2026).**
 - **Design: done** (decisions V2-D01–D28, §10).
 - **v2 code: none written yet.**
-- **v1: frozen** (tag `v1-final`).
+- **v1: frozen** (branch `v1-final`).
 - **Data collection: not started.** Every day without it is forward data lost for good.
 - **Content analysis:** 10 items done (S1–S10). It feeds the design but does not replace building.
 
@@ -56,7 +56,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 | Component | What it is | Status | Why / decision |
 |---|---|---|---|
 | **This doc pack** (`docs/v2/`) | Single source of truth | **Done** 3 Nov | Founder request: one doc every session reads |
-| **v1 freeze** | Tag `v1-final`, v1 docs to `docs/v1-archive/` | **Done** 3 Nov | V2-D10 |
+| **v1 freeze** | Branch `v1-final`, v1 docs to `docs/v1-archive/` | **Done** 3 Nov | V2-D10 |
 | **Slim VPS + Postgres + collectors + alerts** | Always-on Linux box collecting data 24/7 | **Not started — next** | V2-D23, V2-D26. Forward data only accrues with time |
 | **Kraken trade recorder** | Every BTC/USD + ETH/USD trade with aggressor side, recorded forward | **Not started** | V2-D26. Kraken has no bulk dump |
 | **Collectors: S-NEWS (Grok/X, headlines, GDELT), S-MACRO actuals** | Forward collection, no trading | **Not started** | V2-D06, V2-D24 |
@@ -249,7 +249,7 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
 
 ## 9. Build order (what happens next, in order)
 
-1. ~~**Freeze v1**~~ — **done 3 Nov 2026** (tag `v1-final`, docs to `docs/v1-archive/`, closing entry in `docs/v1-archive/HANDOFF.md`).
+1. ~~**Freeze v1**~~ — **done 3 Nov 2026** (branch `v1-final`, docs to `docs/v1-archive/`, closing entry in `docs/v1-archive/HANDOFF.md`).
 2. **Create the v2 code skeleton and port:**
    - the stats probe + known-answer tests (DSR, Lo, Newey–West, block bootstrap, **plus the mid-rank permutation-tie case**);
    - the trial run-kind ontology;
@@ -308,7 +308,7 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | V2-D28 | 29 Oct | First active track is **S-INTRADAY** (BTC then ETH, long/short, minutes-to-hours holds) on IBKR futures; S-TREND becomes its regime filter and benchmark; neighbourhood rule for intraday families set by intraday planted-edge worlds | Locked |
 | — | 28 Oct | Intensity scorer: Grok + Claude both during collection, choose at rule-freeze | Leaning |
 | — | 28 Oct | Point-in-time fundamentals from SEC XBRL company facts (free) | Leaning |
-| — | 3 Nov | v2 doc pack: `docs/v2/CHRONOS_V2.md` is the single master doc; repo is canonical; v1 frozen under tag `v1-final` | Done (founder instruction 3 Nov) |
+| — | 3 Nov | v2 doc pack: `docs/v2/CHRONOS_V2.md` is the single master doc; repo is canonical; v1 frozen under branch `v1-final` | Done (founder instruction 3 Nov) |
 
 **Next decision ID: V2-D29.**
 
@@ -357,7 +357,7 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 
 | ID | Question / proposal | Status | Needed by |
 |---|---|---|---|
-| **O-1** | **Where v2 code lives.** V2-D10 says "new v2 repo". Proposal: keep **this** repo (the claude.ai Project already syncs it), v1 preserved under tag `v1-final` + `docs/v1-archive/`, v2 code in a new package folder. A new repo means re-linking the Project and moving these docs | **Open — founder** | Before step 2 |
+| **O-1** | **Where v2 code lives.** V2-D10 says "new v2 repo". Proposal: keep **this** repo (the claude.ai Project already syncs it), v1 preserved under branch `v1-final` + `docs/v1-archive/`, v2 code in a new package folder. A new repo means re-linking the Project and moving these docs | **Open — founder** | Before step 2 |
 | **V2-D29 (proposed)** | Mnemosyne stores each counted trial's daily net return series and trade list, so set-level tests (SPA/StepM/MCS), effective-N estimation and CSCV stay possible later. ~32 MB per 5,000 variants × 800 days | **Proposed (S10)** | Before the experiment store is built |
 | P-2 | Add a HAR realised-variance baseline (5-min returns) to Kronos role C when the spec is re-checked for intraday bars | Proposed (S10) | Before Kronos work |
 | O-3 | Exact neighbourhood rule (size, allowed degradation) | Open → acceptance test | Step 5 |
@@ -383,7 +383,7 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | How to run content analysis | Project: `claude/content-analysis-handoff.md` | Points back here |
 | S10 test scripts | `docs/v2/research/s10-deep-pass/` | Rerun with `python -I` |
 | v1 frozen docs | `docs/v1-archive/` (incl. `HANDOFF.md`, the v1 log, closed 3 Nov) | Reference only |
-| v1 frozen code | `src/`, `tests/`, tag `v1-final` | Port from it; don't extend it |
+| v1 frozen code | `src/`, `tests/`, branch `v1-final` | Port from it; don't extend it |
 | Content intake pipeline | Founder's Mac `~/chronos-intake` | Not in the repo |
 
 ---

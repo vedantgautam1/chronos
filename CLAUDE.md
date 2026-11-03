@@ -6,7 +6,7 @@ Then, for the component you're touching, read its section in `docs/v2/BUILD_NOTE
 
 ## v1 is frozen — do not follow it
 
-Everything in `docs/v1-archive/`, the code under `src/` and `tests/`, and tag `v1-final` is **v1: reference only**. Its rules no longer apply:
+Everything in `docs/v1-archive/`, the code under `src/` and `tests/`, and branch `v1-final` is **v1: reference only**. Its rules no longer apply:
 - the 11-gate gauntlet;
 - gate 4.4 as a reject gate;
 - "screens are not trials" (D-07);

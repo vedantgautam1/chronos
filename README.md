@@ -11,7 +11,7 @@ A personal systematic trading system: crypto first (BTC/ETH intraday, long and s
 | `docs/v2/COMPONENTS.md` | Where every third-party and reused piece comes from |
 | `docs/v2/specs/` | Detailed specs (Kronos shadow signal, news/sentiment strategy) |
 | `docs/v1-archive/` | Frozen v1 documents (reference only) |
-| `src/`, `tests/` | Frozen v1 code (tag `v1-final`); v2 ports pieces from it |
+| `src/`, `tests/` | Frozen v1 code (branch `v1-final`); v2 ports pieces from it |
 | `CLAUDE.md` | Rules for Claude Code sessions |
 
-v1 (Jul–Aug 2026) was a validation instrument with an 11-gate gauntlet and no live path; it is frozen under the git tag `v1-final`. Its original README is at `docs/v1-archive/README-v1.md`.
+v1 (Jul–Aug 2026) was a validation instrument with an 11-gate gauntlet and no live path; it is frozen under the git branch `v1-final` (commit 6b2b628). Its original README is at `docs/v1-archive/README-v1.md`.

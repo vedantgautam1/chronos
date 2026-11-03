@@ -1677,7 +1677,7 @@ real operating point is K ≈ 6–7 (~7.4 years). This asked whether 4.8's failu
 ## 2026-11-03 — v1 FROZEN. Chronos v2 begins. This log is closed.
 
 **Founder decision (V2-D10, locked 28 Oct 2026; executed 3 Nov 2026).** v1 is frozen as a reference.
-The final v1 commit is tagged `v1-final`. Phase 5/6 work stopped; the 11-gate gauntlet, gate 4.4 as a
+The final v1 commit is preserved on the branch `v1-final` (commit 6b2b628; do not commit to it). Phase 5/6 work stopped; the 11-gate gauntlet, gate 4.4 as a
 reject gate, D-07, Binance, Hephaestus/Hermes and the Atropos seal plan are retired in v2.
 
 **Why:** v1's own findings showed no honest should-PASS canary could clear all eleven gates under the
