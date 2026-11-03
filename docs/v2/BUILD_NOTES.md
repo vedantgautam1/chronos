@@ -19,6 +19,7 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
 - **Stop and flag** when a change forks into non-equivalent options. Present both and ask. (v1 rule; it was right every time)
 - **Time:** tz-aware UTC everywhere, half-open `[start, end)` ranges. Decimal for the money ledger, float64 for series maths. (v1 conventions, kept)
 - **Isolation:** run downloaded or third-party code with `python -I` from outside its own folder.
+- **v2 and v1 share this repo** (V2-D29). Put v2 in its own new package folder; never edit v1 code under `src/chronos/` or `tests/`. CI (`.github/workflows/tests.yml`) currently runs only the v1 suite: add the v2 tests to CI when they exist, and retire the v1 job only with the founder's OK. Watch for import-name clashes with the v1 `chronos` package.
 - **Environment:** the v1 repo uses `uv` (no bare `pip install` into the project). Keep that unless the founder decides otherwise.
 
 ## 2. Validation and statistics (Moirai)
@@ -33,7 +34,7 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
   - QuantDinger's DSR miscounts N this way (pruned trials dropped, count reset per job). Its "recommended" flag also *requires* a minimum number of trials, which rewards searching more [Certain — read, S6]. Don't copy either pattern.
 - **Don't average different checks into one score** (QuantDinger's robustness grade does). A strong score on one check can hide a fail on another.
 - **Don't reuse a holdout across reruns.** Repeated runs turn it into a selection set (QuantDinger, S3's version table).
-- **Raw N over-penalises correlated searches.** In a 20,000-formula noise search, the best |t| was 3.15, below the ≈4.06 expected from 20,000 *independent* tries, because formulas over the same inputs overlap [Certain — run, S10]. Estimating effective N needs stored per-trial return series (proposed V2-D29).
+- **Raw N over-penalises correlated searches.** In a 20,000-formula noise search, the best |t| was 3.15, below the ≈4.06 expected from 20,000 *independent* tries, because formulas over the same inputs overlap [Certain — run, S10]. Estimating effective N needs stored per-trial return series (proposal P-1).
 - **iid bootstrap on autocorrelated returns is badly overconfident:** 74% actual coverage for a nominal 95% interval (AR(1), φ = 0.5). The stationary bootstrap with automatic block length gives 92.7% [Certain — run, S10]. Use block methods.
 - **Set-level tests (SPA/StepM/MCS) only see what you hand them.** Handing SPA the best 50 of 2,000 noise variants gave p = 0.028 (a false find); all 2,000 gave p = 0.56 [Certain — run, S10]. They depend on honest counting exactly like DSR.
 - **The change check must allow changes that trade more.**
@@ -88,7 +89,7 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
 ## 6. Experiment store and registry (Mnemosyne)
 
 - **Port the v1 SEARCH/VERIFICATION ontology:** `kind=` explicit at every run call; a sweep uses one hypothesis reused across all points; VERIFICATION runs (cost stress, null draws, walk-forward windows) don't count toward N.
-- **Store per-trial daily net returns and trade lists** if V2-D29 is locked. Without them, SPA/StepM, effective-N and CSCV can't be done after the fact.
+- **Store per-trial daily net returns and trade lists** if proposal P-1 is accepted. Without them, SPA/StepM, effective-N and CSCV can't be done after the fact.
 - **The version registry must be persisted** (S1's `VersionStore` was in-memory only).
 - **Live approvals are founder-signed registry entries** (V2-D23).
 - **v1 legacy records** (trial_index ≤ 284) have no `kind` and old 10 bps costs. Never backfill or mix them.
