@@ -38,12 +38,12 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 - **Design: done** (decisions V2-D01–D28, §10).
 - **v2 code: none written yet.**
 - **v1: frozen** (branch `v1-final`).
-- **Data collection: not started.** Every day without it is forward data lost for good.
+- **Data collection: not started.** Price candles and Kraken trades can be downloaded or backfilled later; what can't be recovered is news/X sentiment as it looked at the time (needed for S-NEWS) and our own snapshots of IBKR futures spreads.
 - **Content analysis:** 10 items done (S1–S10). It feeds the design but does not replace building.
 
 **First trading target.** BTC (then ETH) **intraday, long and short**, several trades a day with holds of minutes to hours. Traded through **IBKR crypto futures** (Coinbase nano BTC/ETH first, CME micro and Bitcoin Friday second). Signal history comes from Kraken spot data.
 
-**Next step (§9):** stand up the slim VPS and start data collection. Then the v2 repo skeleton with ported statistics, the one-week NautilusTrader spike, and the validation acceptance test.
+**Next step (§9):** stand up the slim VPS and start data collection. Then the v2 code skeleton (in this repo, V2-D29) with ported statistics, the one-week NautilusTrader spike, and the validation acceptance test.
 
 **Hard rules that never bend:** LLMs never size positions, never place orders and never decide validation verdicts. Every variant tried counts as a trial. Costs are always the real venue's full costs. No high-frequency trading.
 
@@ -57,10 +57,10 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 |---|---|---|---|
 | **This doc pack** (`docs/v2/`) | Single source of truth | **Done** 3 Nov | Founder request: one doc every session reads |
 | **v1 freeze** | Branch `v1-final`, v1 docs to `docs/v1-archive/` | **Done** 3 Nov | V2-D10 |
-| **Slim VPS + Postgres + collectors + alerts** | Always-on Linux box collecting data 24/7 | **Not started — next** | V2-D23, V2-D26. Forward data only accrues with time |
+| **Slim VPS + Postgres + collectors + alerts** | Always-on Linux box collecting data 24/7 | **Not started — next** | V2-D23, V2-D26. Only news/sentiment snapshots and live spread records are truly unrecoverable; prices and trades can be backfilled (see O-9) |
 | **Kraken trade recorder** | Every BTC/USD + ETH/USD trade with aggressor side, recorded forward | **Not started** | V2-D26. Kraken has no bulk dump |
 | **Collectors: S-NEWS (Grok/X, headlines, GDELT), S-MACRO actuals** | Forward collection, no trading | **Not started** | V2-D06, V2-D24 |
-| **v2 code skeleton + ported statistics** | Stats probe, known-answer tests, trial ontology, cost code, touchstones | **Not started** | V2-D10. Where v2 code lives: see §12 (O-1) |
+| **v2 code skeleton + ported statistics** | Stats probe, known-answer tests, trial ontology, cost code, touchstones | **Not started** | V2-D10, V2-D29: in this repo, in a new package folder; v1 code untouched |
 | **NautilusTrader spike** (1 week) | Prove the engine before committing | **Not started** | V2-D04. Pass criteria in §9 step 4 |
 | **Oceanus — data layer** | Kraken history + IBKR futures data, Parquet + DuckDB + Postgres | Not started (v1 version is Binance-only) | §4 |
 | **Moirai — validation** (edge check + change check) | Is a strategy real? Is a change better? | **Locked design, not built** | V2-D08, D20, D21. Not trusted until the acceptance test passes |
@@ -69,7 +69,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 | **Nemesis — hard guard + kill switch** | Limits outside strategy code | Leaning list, not built | §4 |
 | **Execution** (Nautilus OMS + IBKR adapter) | Orders to IBKR futures | Not started | V2-D27 |
 | **Aletheia — daily reconciliation** | Positions/balances vs the broker | Not started | §4 |
-| **Mnemosyne — experiment store + version registry** | Every trial and every strategy version recorded | Not started (v1 ontology to port) | §4. V2-D29 proposal adds per-trial return storage |
+| **Mnemosyne — experiment store + version registry** | Every trial and every strategy version recorded | Not started (v1 ontology to port) | §4. Proposal P-1 adds per-trial return storage |
 | **Argus — monitoring** | Alerts to phone/email | Not started | §4 |
 | **Prometheus — LLM research layer** | Research cards → registry → code → checks | Leaning design, not built | §4, V2-D07 |
 | **Research MCP server** | Our research tools inside any Claude chat; no order tools | Locked, sequenced after spike + acceptance test | V2-D19 |
@@ -250,14 +250,14 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
 ## 9. Build order (what happens next, in order)
 
 1. ~~**Freeze v1**~~ — **done 3 Nov 2026** (branch `v1-final`, docs to `docs/v1-archive/`, closing entry in `docs/v1-archive/HANDOFF.md`).
-2. **Create the v2 code skeleton and port:**
+2. **Create the v2 code skeleton in this repo (V2-D29) and port:**
    - the stats probe + known-answer tests (DSR, Lo, Newey–West, block bootstrap, **plus the mid-rank permutation-tie case**);
    - the trial run-kind ontology;
    - the cost/slippage measurement code;
    - the touchstones as acceptance tests.
    
    Fix the strict-`<` rank in v1 `src/chronos/moirai/stages/null_bench.py` when porting (`BUILD_NOTES.md` §2).
-3. **Stand up the slim VPS and start collection:** Postgres + scheduled collectors + simple alerts (§8). This can run in parallel with step 2 and should start as soon as possible, because forward data only accumulates with time.
+3. **Stand up the slim VPS and start collection:** Postgres + scheduled collectors + simple alerts (§8). Can run in parallel with step 2. Urgent only for the parts that can't be recovered later (news/X sentiment for S-NEWS, live IBKR spread snapshots); price candles and Kraken trades can be downloaded or backfilled (O-9).
 4. **NautilusTrader spike (one week).** Pass criteria:
    - (a) one MA strategy on Kraken BTC data matches v1 Hephaestus within explainable differences;
    - (b) our cost/slippage model plugs in;
@@ -287,7 +287,7 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | V2-D07 | 28 Oct | LLMs never size, never place orders, never decide validation verdicts; L1 + L2 allowed; L3 rejected | Locked |
 | V2-D08 | 28 Oct | Validation redesign: edge check + change check; drawdown → sizing; subperiod/breadth/capacity → warnings. **Counts as done only after the acceptance test passes** (reviewed under V2-D25) | Locked (conditional) |
 | V2-D09 | 28 Oct | Build the event bus, API gateway and user management now | **Superseded by V2-D23** |
-| V2-D10 | 28 Oct | Freeze the v1 repo; v2 starts fresh; port stats probe + tests, trial ontology, cost/slippage code, touchstones. *(Freeze done 3 Nov; where v2 code lives: §12 O-1)* | Locked |
+| V2-D10 | 28 Oct | Freeze the v1 repo; v2 starts fresh; port stats probe + tests, trial ontology, cost/slippage code, touchstones. *(Freeze done 3 Nov. "New v2 repo" amended by V2-D29: v2 lives in this repo)* | Locked (amended by V2-D29) |
 | V2-D11 | 28 Oct | Process: append-only logs, versioned configs, commit rule; protected approvals **only** for validation thresholds, risk limits, promotion to live | Locked |
 | V2-D12 | 28 Oct | Live rollout crypto → FX → equities (research scope now V2-D24/D28) | Locked (rollout order) |
 | V2-D13 | 28 Oct | Budget ~$100–150/month to start, ~$300–500 once live; running costs only; trading capital separate | Locked |
@@ -306,11 +306,12 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | V2-D26 | 29 Oct | Record Kraken BTC/USD and ETH/USD trades (price, size, time, aggressor side, market/limit) forward from now on the VPS | Locked |
 | V2-D27 | 29 Oct | Active crypto trading on **IBKR crypto futures**, long and short (Coinbase nano BTC/ETH primary; CME Micro Bitcoin and Bitcoin Friday secondary). Kraken for data, trade recording and an optional long-only sleeve. Full cost model incl. funding and basis. Offshore perpetual exchanges rejected | Locked |
 | V2-D28 | 29 Oct | First active track is **S-INTRADAY** (BTC then ETH, long/short, minutes-to-hours holds) on IBKR futures; S-TREND becomes its regime filter and benchmark; neighbourhood rule for intraday families set by intraday planted-edge worlds | Locked |
+| V2-D29 | 3 Nov | Amends V2-D10: **v2 code lives in this same repo** (`vedantgautam1/chronos`), which the claude.ai Project already syncs. v1 stays frozen on branch `v1-final` and in `docs/v1-archive/`; v1 code under `src/chronos/` and `tests/` is not modified; v2 code goes in its own new package folder (layout set in the step-2 build session) | Locked |
 | — | 28 Oct | Intensity scorer: Grok + Claude both during collection, choose at rule-freeze | Leaning |
 | — | 28 Oct | Point-in-time fundamentals from SEC XBRL company facts (free) | Leaning |
 | — | 3 Nov | v2 doc pack: `docs/v2/CHRONOS_V2.md` is the single master doc; repo is canonical; v1 frozen under branch `v1-final` | Done (founder instruction 3 Nov) |
 
-**Next decision ID: V2-D29.**
+**Next decision ID: V2-D30.**
 
 ---
 
@@ -357,14 +358,15 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 
 | ID | Question / proposal | Status | Needed by |
 |---|---|---|---|
-| **O-1** | **Where v2 code lives.** V2-D10 says "new v2 repo". Proposal: keep **this** repo (the claude.ai Project already syncs it), v1 preserved under branch `v1-final` + `docs/v1-archive/`, v2 code in a new package folder. A new repo means re-linking the Project and moving these docs | **Open — founder** | Before step 2 |
-| **V2-D29 (proposed)** | Mnemosyne stores each counted trial's daily net return series and trade list, so set-level tests (SPA/StepM/MCS), effective-N estimation and CSCV stay possible later. ~32 MB per 5,000 variants × 800 days | **Proposed (S10)** | Before the experiment store is built |
+| ~~O-1~~ | Where v2 code lives | **Resolved 3 Nov → V2-D29: this repo** | — |
+| **P-1** | Mnemosyne stores each counted trial's daily net return series and trade list, so set-level tests (SPA/StepM/MCS), effective-N estimation and CSCV stay possible later. ~32 MB per 5,000 variants × 800 days | **Proposed (S10)** | Before the experiment store is built |
 | P-2 | Add a HAR realised-variance baseline (5-min returns) to Kronos role C when the spec is re-checked for intraday bars | Proposed (S10) | Before Kronos work |
 | O-3 | Exact neighbourhood rule (size, allowed degradation) | Open → acceptance test | Step 5 |
 | O-4 | IBKR futures cost model: exchange/regulatory fees for Coinbase nano and CME contracts; perpetual-style funding mechanics; IBKR market-data cost | Open → spike | Step 4 |
 | O-5 | Consensus-forecast vendor for S-MACRO | Open | When S-MACRO leaves collection |
 | O-6 | Mac RAM (only matters for local model sizes) | Open | Before local models |
 | O-7 | Before live: actual capital, sleeve %, max losses, running cost vs expected returns | Open | Before L4 |
+| O-9 | V2-D26's stated reason ("Kraken has no bulk dump, so forward recording is the only cheap way") is overstated: Kraken's trades endpoint can be paged back through full history, just slowly [Likely — Kraken docs, not timed]; paid vendors also sell historical trades [Likely]. Forward recording is still cheap; the question is whether it should block the build order | Open — founder | Before step 3 |
 | O-8 | Kronos spec horizons (1h/4h bars) vs the intraday track | Open | Before Kronos work |
 
 ---
