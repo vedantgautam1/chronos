@@ -1,7 +1,7 @@
 # CHRONOS v2 — the master document
 
 **Read this first. Every Claude chat, every Claude Code session, every time.**
-Last updated: **5 Nov 2026**. Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
+Last updated: **5 Nov 2026** (V2-D41, V2-D42). Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
 
 This one file answers: what Chronos is, what is built, what is not built, what we decided and why, what we rejected and why, what to watch out for when building, and where everything else lives. If anything else disagrees with this file, **this file wins** (see §0 for the order).
 
@@ -35,7 +35,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 **What changed.** v1 (Jul–Aug 2026) was a research instrument built to produce a clean, documented FAIL, with an 11-gate validation gauntlet and no way to trade. Its own results showed no honest should-pass test strategy could clear all 11 gates. v2 (designed 27 Oct–3 Nov 2026) keeps v1's honest statistics, replaces the rest with open-source parts (NautilusTrader as the engine), and adds a path to live trading.
 
 **Where we are today (5 Nov 2026).**
-- **Design: done** (decisions V2-D01–D40, §10).
+- **Design: done** (decisions V2-D01–D42, §10).
 - **v2 code: none written yet.**
 - **v1: frozen** (branch `v1-final`).
 - **Data collection: not started.** Price candles and Kraken trades can be downloaded or backfilled later; what can't be recovered is news/X sentiment as it looked at the time (needed for S-NEWS) and our own snapshots of IBKR futures spreads.
@@ -59,7 +59,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 | **v1 freeze** | Branch `v1-final`, v1 docs to `docs/v1-archive/` | **Done** 3 Nov | V2-D10 |
 | **Slim VPS + Postgres + collectors + alerts** | Always-on Linux box collecting data 24/7 | **Not started — after the spike** | V2-D23, V2-D26, V2-D30. Prices and Kraken trades can be backfilled; only news/sentiment snapshots and live spread records are unrecoverable |
 | **Kraken trade recorder** | Every BTC/USD + ETH/USD trade with aggressor side, recorded forward | **Not started** | V2-D26. Kraken's bulk trade files (quarterly) appear to lack the aggressor side; the API has it (corrected 5 Nov, S20) |
-| **Collectors: S-NEWS (Grok/X, headlines, GDELT), S-MACRO actuals** | Forward collection, no trading | **Not started** | V2-D06, V2-D24 |
+| **Collectors: S-NEWS (Grok/X, headlines, GDELT), S-MACRO actuals** | Forward collection, no trading | **Not started** | V2-D06, V2-D24. Every paid call goes through the budget guard (V2-D41) |
 | **v2 code skeleton + ported statistics** | Stats probe, known-answer tests, trial ontology, cost code, touchstones | **Not started** | V2-D10, V2-D29: in this repo, in a new package folder; v1 code untouched |
 | **NautilusTrader spike** (1 week) | Prove the engine before committing | **Not started** | V2-D04. Pass criteria in §9 step 3 |
 | **Oceanus — data layer** | Kraken history + IBKR futures data, Parquet + DuckDB + Postgres | Not started (v1 version is Binance-only) | §4 |
@@ -69,10 +69,10 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 | **Nemesis — hard guard + kill switch** | Limits outside strategy code, in three layers | **Locked design, not built** | V2-D36. Edge-decay alarm in Argus: V2-D37. Both needed before L3 paper |
 | **Execution** (Nautilus OMS + IBKR adapter) | Orders to IBKR futures | Not started | V2-D27 |
 | **Aletheia — daily reconciliation** | Positions/balances vs the broker | Not started | §4 |
-| **Mnemosyne — experiment store + version registry** | Every trial and every strategy version recorded | Not started (v1 ontology to port) | §4. Stores every counted trial's daily returns and trade list (V2-D33) |
+| **Mnemosyne — experiment store + version registry** | Every trial and every strategy version recorded | Not started (v1 ontology to port) | §4. Stores every counted trial's daily returns and trade list (V2-D33) and its data footprint (V2-D42) |
 | **Argus — monitoring** | Alerts to phone/email | Not started | §4 |
 | **Prometheus — LLM research layer** | Research cards → registry → code → checks | Leaning design, not built | §4, V2-D07 |
-| **Research MCP server** | Our research tools inside any Claude chat; no order tools | Locked, sequenced after spike + acceptance test | V2-D19 |
+| **Research MCP server** | Our research tools inside any Claude chat; no order tools | Locked, sequenced after spike + acceptance test | V2-D19; every answer carries its data footprint and trial count (V2-D42) |
 | **S-INTRADAY** | First strategy family | **Active research track**, no rules chosen yet | V2-D28 |
 | **S-TREND** | Slow trend; regime filter + benchmark for S-INTRADAY | Active (as filter/benchmark) | V2-D28 |
 | **Kronos shadow signal** | Open-source candle model as an input, no order authority | Locked spec, after a baseline exists | V2-D05 |
@@ -120,7 +120,7 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
 | **Oceanus — data** | Raw immutable files → processed Parquet + DuckDB; Postgres for operational tables. Unified schema: `instrument_id`, `timestamp_utc`, `source`, `asset_class`, plus `available_at` for anything non-price (point-in-time). **Signal history from Kraken spot; costs, fills and basis from the IBKR futures actually traded.** Sources: Kraken OHLCVT files + API, Kraken trade recorder (V2-D26), IBKR futures quotes/bars (paid market data, check cost), SEC EDGAR (free, 10 req/s, declared User-Agent), GDELT, news RSS, Grok API, official macro releases, licensed consensus vendor (Open) | Leaning |
 | **Event backbone** | **Deferred (V2-D23).** Now: collectors write to Postgres/Parquet on a schedule; Nautilus uses its internal bus. **Trigger:** a second consumer process or machine needs the live event stream → Kafka-compatible bus (Redpanda vs Kafka chosen then) | Locked (deferred) |
 | **API gateway + users** | **Deferred (V2-D23).** Now: founder-only access over SSH; kill switch = CLI command + config flag read by Nemesis; live approval = founder-signed registry entry. The kill switch is latched and cleared only by a logged founder action (V2-D36). **Triggers:** a second person needs access, or an external client (dashboard, phone) needs authenticated access → FastAPI behind TLS | Locked (deferred) |
-| **Prometheus — LLM research layer** | Sources → role agents (analyst, researcher, skeptic) → `ResearchCard` (claim, source URL, `as_of`, kind, assumptions, uncertainty, data needed) → deterministic card validator → hypothesis registry (each test a counted trial) → Claude Code writes exact rules + tests → look-ahead review → edge check. Scheduled briefs. Failure-diagnosis agent for live strategies. **Research MCP server (V2-D19):** data queries, backtests, trial registry, Kronos forecasts inside any Claude chat; server logs every backtest as a counted trial; no order tools | Leaning (design); MCP Locked |
+| **Prometheus — LLM research layer** | Sources → role agents (analyst, researcher, skeptic) → `ResearchCard` (claim, source URL, `as_of`, kind, assumptions, uncertainty, data needed) → deterministic card validator → hypothesis registry (each test a counted trial) → Claude Code writes exact rules + tests → look-ahead review → edge check. Scheduled briefs. Failure-diagnosis agent for live strategies. **Research MCP server (V2-D19):** data queries, backtests, trial registry, Kronos forecasts inside any Claude chat; server logs every backtest as a counted trial; no order tools; every answer is summary + data + a record of the data read, the code and the trial count (V2-D42) | Leaning (design); MCP Locked |
 | **Kronos — candle model** | Shadow signal, no order authority. Three roles tested separately: direction, filter, volatility-for-sizing. `NeoQuasar/Kronos-small` / `-base`, MIT | Locked (V2-D05); spec `specs/kronos-shadow.md` |
 | **Screening** | Fast vectorised sweeps; **every screened variant counts as a trial** | Locked (counting, V2-D03) / Leaning (VectorBT) |
 | **Engine** | Backtest, paper and live on one code path | NautilusTrader, Locked pending spike (V2-D04) |
@@ -129,7 +129,7 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
 | **Nemesis — hard guard + kill switch** | Outside strategy code, **three layers (V2-D36):** Nautilus's risk engine in-process; IBKR broker-side precautions/limits; an independent watchdog (own OS user, own IBKR connection) that reads positions from the broker and can kill and flatten. Limits = exactly Themis's approved contract count, plus an account-wide ceiling of 2× equity notional in paper (V2-D40); intended-vs-sent size check on every order; fail-closed; latched kill; block, don't clip. Minimum checks: kill switch, duplicate order, stale data, daily loss, max position, max exposure, per-sleeve budget, price band (fat-finger), order comes from an approved version, rate limit, founder approval for live. Research code may not import it. Traps: `BUILD_NOTES.md` §11 | Locked (V2-D36) / Leaning (check list) |
 | **Execution** | Nautilus OMS + IBKR adapter (crypto futures, later FX/equities); Kraken adapter only if a spot sleeve is used. **Cost model:** commission + exchange/regulatory fees + spread + slippage + perpetual-style funding + futures–spot basis (signals come from spot data); the 2× stress doubles only the frictions (V2-D35). No maker-fee savings booked without measured post-fill markout | Leaning |
 | **Aletheia — reconciliation** | Daily positions and balances vs the broker | Leaning |
-| **Mnemosyne — experiment store + registry** | v1 SEARCH/VERIFICATION ontology for honest trial counts + version registry (baseline, candidate, paper, live, rolled back), in Postgres. **Every counted trial stores its daily net return series and trade list** (V2-D33), so set-level tests (SPA/StepM/MCS), effective-N and CSCV/PBO stay possible. Build details (content-hash ids, database-enforced append-only, reproduce/compare): `BUILD_NOTES.md` §6 | Locked (V2-D33) / Leaning (rest) |
+| **Mnemosyne — experiment store + registry** | v1 SEARCH/VERIFICATION ontology for honest trial counts + version registry (baseline, candidate, paper, live, rolled back), in Postgres. **Every counted trial stores its daily net return series and trade list** (V2-D33), so set-level tests (SPA/StepM/MCS), effective-N and CSCV/PBO stay possible. **Every trial record also stores its data footprint** (V2-D42): the latest timestamp actually read, the data snapshot hash, the code coordinate and a `partial` flag with any gaps, so an audit can prove nothing read past the seal. Build details (content-hash ids, database-enforced append-only, reproduce/compare): `BUILD_NOTES.md` §6 | Locked (V2-D33, V2-D42) / Leaning (rest) |
 | **Argus — monitoring** | **Edge-decay alarm (V2-D37):** CUSUM on per-trade net returns vs break-even and vs the paper-period mean; an alarm halts new entries and opens a review; false-alarm budget 10% per strategy-year (V2-D40). Alerts: drawdown breach, unusual slippage, order rejection, data feed down, strategy silent, system error, daily report. To phone/email. Grafana later | Locked (V2-D37) / Leaning (rest) |
 | Hephaestus, Hermes | Retired; replaced by NautilusTrader | Locked |
 | Zeus | Dormant | — |
@@ -249,7 +249,7 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
   - Probably 2 vCPU / 4–8 GB at first [Guessing], about US$10–30/month [Guessing — check prices].
 - **Rough start budget (running costs only), ≈ $20–60/month, inside $100–150:**
   - VPS $10–30.
-  - LLM APIs ~$5–20.
+  - LLM APIs ~$5–20. Hard caps through the budget guard (V2-D41): $25/month, $3/day, $0.50 per run to start, reviewed after the first month.
   - GDELT and Kraken data $0.
   - IBKR market data for CME and Coinbase Derivatives: a few dollars a month, possibly waived above a commission threshold [Guessing — check].
 - **Budget problem:** the S-MACRO consensus vendor. FMP's economic calendar is listed at ~$100/month [Likely]. Open; only needed when S-MACRO leaves collection-only.
@@ -269,7 +269,7 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
 1. ~~**Freeze v1**~~ — **done 3 Nov 2026** (branch `v1-final`, docs to `docs/v1-archive/`, closing entry in `docs/v1-archive/HANDOFF.md`).
 2. **Create the v2 code skeleton in this repo (V2-D29) and port:**
    - the stats probe + known-answer tests (DSR, Lo, Newey–West, block bootstrap, **plus the mid-rank permutation-tie case**);
-   - the trial run-kind ontology, storing every counted trial's daily net returns and trade list (V2-D33);
+   - the trial run-kind ontology, storing every counted trial's daily net returns and trade list (V2-D33) and its data footprint (V2-D42: latest timestamp read, data hash, code coordinate, `partial` flag);
    - v1's search-fragmentation screen, as an edge-check warning (V2-D31);
    - the cost/slippage measurement code;
    - the touchstones as acceptance tests.
@@ -284,11 +284,11 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
    - (f) for V2-D36: IBKR's order precautions/limits reject an oversize **API** order on the contracts we trade, and a second API connection (the watchdog) can read positions and orders and cancel/flatten while the strategy node is connected. If the precautions don't apply, record it and re-argue V2-D36 layer 2.
 
    Criterion (c) needs a machine running IB Gateway for several days. Either keep the Mac plugged in and awake for those days, or rent the VPS early for it (then step 4's collectors can go on it at the same time).
-4. **Stand up the slim VPS and start collection** (moved after the spike, V2-D30): Postgres + scheduled collectors + simple alerts (§8). Runs alongside step 5 onward. Urgent only for what can't be recovered later (news/X sentiment for S-NEWS, live IBKR spread snapshots); price candles and Kraken trades can be downloaded or backfilled.
+4. **Stand up the slim VPS and start collection** (moved after the spike, V2-D30): Postgres + scheduled collectors + simple alerts (§8). The paid-API budget guard (V2-D41) is built and tested before any paid collector runs. Load Kraken's quarterly bulk trade files for BTC/ETH history alongside the forward recorder, after checking one real file's columns and timestamp resolution (founder, 5 Nov). Runs alongside step 5 onward. Urgent only for what can't be recovered later (news/X sentiment for S-NEWS, live IBKR spread snapshots); price candles and Kraken trades can be downloaded or backfilled.
 5. **Validation acceptance test** (§6). Must pass **before** any S-INTRADAY or S-TREND result is trusted. Includes the known-answer fixtures for V2-D31, V2-D32, V2-D34 and V2-D35 (`BUILD_NOTES.md` §2). The sealed block and confirm rule (V2-D38) and the funding stress rule (V2-D39) are already fixed; only V2-D39's number is computed from data, at the spike.
 6. **S-INTRADAY on BTC futures**, with S-TREND as regime filter and benchmark: research cards → pre-registered rules → counted screen → edge check → paper on IBKR (L3). Before the first paper trade: Nemesis per V2-D36 and the V2-D37 edge-decay alarm, with the limits and false-alarm budget of V2-D40.
 7. **Kronos:** backfill forecasts over the clean window; evaluate per spec on top of the S-INTRADAY/S-TREND baseline.
-8. **Research MCP server** (V2-D19), once steps 3 and 5 exist to wrap.
+8. **Research MCP server** (V2-D19), once steps 3 and 5 exist to wrap. Every answer carries summary + data + its footprint and trial count (V2-D42).
 9. **Unpark FX and equities** when crypto reaches paper (L3).
 
 ---
@@ -339,12 +339,15 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | V2-D38 | 5 Nov | **Sealed block start and confirm rule** (sets O-10; amends V2-D34's "about the last 25%", which would have sealed all of Kronos's usable post-cutoff data). **Crypto (BTC, ETH): everything from 1 Apr 2026 00:00 UTC onward is sealed**, for Kraken spot data and IBKR futures data alike; the block grows as time passes. A lineage's one look covers [1 Apr 2026, date of the look). **Confirm rule:** (1) at least 200 of the strategy's trades in the sealed block; (2) net result after 2× costs (V2-D35) > 0; (3) where funding applies, the adverse-funding run (V2-D39) > 0. No significance bar on the sealed block: it is short (~7 months vs ~9 years of research data), so a 5% bar would reject most real edges; the 2× cost margin does the filtering. Fewer than 200 sealed trades (likely for slow strategies): the same test is applied in L3 paper and must pass before L4. Data series that only start after 1 Apr 2026 (recorded Kraken trades, V2-D26; news/sentiment collection) get their own sealed final block, fixed before research on them starts. Moving the crypto seal date later is a protected change | Locked |
 | V2-D39 | 5 Nov | **Adverse-funding level** (sets O-11). Funding is charged against the position, for every hour the position is held (Coinbase US perpetual-style contracts accrue funding hourly), at the **95th percentile of the contract's own absolute hourly funding rate from launch to 1 Apr 2026**. Computed once from data (spike / O-4), stored with its source and hash, then fixed; the same level applies to every backtest year, including years before the contract existed. If that history can't be obtained, stop and flag it to the founder | Locked (number computed at the spike) |
 | V2-D40 | 5 Nov | **Size limits and false-alarm budget** (sets O-12). (1) Nemesis's per-order and position limit for a strategy = **exactly the contract count Themis approved** for it at that time, no extra contracts; every order must equal Themis's intended size. (2) A fixed **account-wide ceiling independent of Themis: total notional ≤ 2× account equity** during L3 paper; revisited with O-7 before L4. (3) V2-D37's **false-alarm budget: at most a 10% chance per year that a healthy strategy triggers a false alarm** (5% for each of its two references), calibrated on block-bootstrapped healthy streams of the strategy's own trades | Locked |
+| V2-D41 | 5 Nov | **Budget guard for paid APIs.** Every paid call (LLM APIs, data vendors) goes through one shared client: plan the run's maximum cost → reserve it in our own spend ledger (Postgres) → settle with the usage the API reports; unsettled reservations count as spent. Caps for AI APIs, to start: **$0.50 per run, $3 per day, $25 per month** (configuration, not a protected risk limit; reviewed after the first month). No automatic retries on paid calls (a failed item waits for the next run); one fixed host per provider; redirects refused; response-size cap and timeout; keys in the macOS Keychain or an owner-only file under the collector's own OS user, never in the repo or a chat. Alerts at 50/80/100% of the month; at 100% paid collectors stop (fail-closed) and free ones continue. Provider-side spend limits set where offered; weekly reconciliation against provider billing. Built and tested in step 4 before any paid collector runs; known-answer tests: over-budget plan → 0 calls, redirect → refused, oversize → cut, no key → 0 network attempts. (Was P-9, from S18) | Locked |
+| V2-D42 | 5 Nov | **Trial records carry their data footprint.** From step 2, every trial record in Mnemosyne stores: the latest timestamp actually read (availability time for non-price data), the data snapshot hash, the code coordinate (git commit + `uv.lock` hash + engine version) and a `partial` flag with a list of gaps. An audit scan over these proves no record read past a sealed date (V2-D34/D38). Partial results can't be compared with complete ones or stand as a complete trial. The research MCP server (V2-D19) returns every result as summary + data + this record, plus the trial id, kind, hypothesis lineage, lineage trial count and the DSR bar it implies. (Was P-10, from S18) | Locked |
 | — | 28 Oct | Intensity scorer: Grok + Claude both during collection, choose at rule-freeze | Leaning |
 | — | 28 Oct | Point-in-time fundamentals from SEC XBRL company facts (free) | Leaning |
 | — | 3 Nov | v2 doc pack: `docs/v2/CHRONOS_V2.md` is the single master doc; repo is canonical; v1 frozen under branch `v1-final` | Done (founder instruction 3 Nov) |
 | — | 5 Nov | Content analysis **resumes alongside building** (repos first). New items are judged by whether they replace something we would otherwise build in §9 steps 2–5; new design proposals face a higher bar until the spike passes | Founder instruction 5 Nov |
+| — | 5 Nov | Step 4 also loads **Kraken's quarterly bulk trade files** (BTC/ETH) for history, after one real file's columns and timestamp resolution are checked; no upstream bug report to freqtrade (S20) | Founder instruction 5 Nov |
 
-**Next decision ID: V2-D41.**
+**Next decision ID: V2-D43.** Next proposal ID: P-11.
 
 ---
 
@@ -387,6 +390,8 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | Copying a content source's validation or risk thresholds (60% of neighbours, 4 of 6 blocks, 30% drawdown kill, 5% monitor false alarms…) | Tuned by the author on his own planted answer; v2 calibrates its own (O-3, O-7) | S16–S17 |
 | Running an improvement loop or change check on a clock | Each run is another look at mostly the same data; run when enough new data has arrived | S15 |
 | Taking "0 false passes" in worlds where every false candidate loses money as proof a check works | Any profit requirement rejects them all, so later checks go untested. The acceptance test needs a drift-without-skill world (V2-D21 test (d)) | S15–S17 |
+| Skylit as a data source for the crypto track | US equity/index options only, no crypto or futures; its only crypto link (spot-BTC-ETF options) has ~16 months of pre-seal history in US hours; membership alone ≈ the start budget. Parked as a possible source for an equity-options family after L3 | S18 |
+| A vendor's hosted MCP server used for research in a chat (Skylit's, any other), and vendor paper-trade tools | Every look in a chat is an uncounted trial (V2-D03) on data that can't be pinned to what was served; paper-trade tools put an LLM on the order path (V2-D07). Vendor data enters through a collector and our own MCP server (V2-D19) | S18 |
 
 Full list with links: Project doc `claude/reference-library.md` §8.
 
@@ -404,6 +409,8 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | ~~P-6~~ | "2× costs" per component | **Resolved 5 Nov → V2-D35** | — |
 | ~~P-7~~ | Where Nemesis's boundary sits; limits vs approved size | **Resolved 5 Nov → V2-D36** (option a) | — |
 | ~~P-8~~ | Edge-decay alarm in Argus | **Resolved 5 Nov → V2-D37** | — |
+| ~~P-9~~ | Budget guard for paid APIs | **Resolved 5 Nov → V2-D41** | — |
+| ~~P-10~~ | Trial records carry their data footprint | **Resolved 5 Nov → V2-D42** | — |
 | P-2 | Add a HAR realised-variance baseline (5-min returns) to Kronos role C when the spec is re-checked for intraday bars | Proposed (S10) | Before Kronos work |
 | O-3 | Exact neighbourhood rule (size, allowed degradation) | Open → acceptance test | Step 5 |
 | O-4 | IBKR futures cost model: exchange/regulatory fees for Coinbase nano and CME contracts; perpetual-style funding mechanics; IBKR market-data cost | Open → spike | Step 3 |
