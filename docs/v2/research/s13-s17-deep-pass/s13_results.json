@@ -1,0 +1,478 @@
+{
+ "K0": {
+  "settings": {
+   "p3": "W=60 (+p3_decoy N=200)",
+   "p4": "W=150 (+p4_bypass)",
+   "p5": "W=150",
+   "p6": "W=100 (+p6_example via run_p6_example.py)",
+   "p7": "STAGES=cal,life,loc,example W=300 NCAL=500; then STAGES=gates"
+  },
+  "values_compared": {
+   "p3": 789,
+   "p4": 484,
+   "p5": 661,
+   "p6": 5362,
+   "p7": 31184
+  },
+  "differences": {
+   "p3": 0,
+   "p4": 0,
+   "p5": 0,
+   "p6": 0,
+   "p7": 0
+  },
+  "total_values": 38480,
+  "phase_gates": {
+   "gate1": 22,
+   "gate2": 40,
+   "gate3": 33,
+   "gate4": 13,
+   "gate5": 50
+  },
+  "tests": "157/157",
+  "note": "timings excluded from comparison"
+ },
+ "K1": {
+  "K1a forged ladder record for the decoy": {
+   "result": "ACCEPTED",
+   "live_after": "v3",
+   "real_decoy_ladder": {
+    "passed": false,
+    "stopped_at": "stress"
+   }
+  },
+  "K1b hand-typed monitor calibration": {
+   "result": "ACCEPTED",
+   "live_after": "v2"
+  },
+  "K1c tampered audit log swapped for a fresh one (no anchor)": {
+   "result": "ACCEPTED",
+   "live_after": "v2",
+   "real_audit_verifies": false,
+   "fresh_audit_verifies": true
+  }
+ },
+ "K3": {
+  "K3a call the broker handle directly": {
+   "control_oversize_via_submit": {
+    "status": "REJECTED",
+    "reasons": [
+     "MAX_ORDER_SIZE",
+     "MAX_POSITION"
+    ]
+   },
+   "fills_before": 0,
+   "fills_after": 1,
+   "bypass_in_audit": false,
+   "audit_verifies": true
+  },
+  "K3b swap the executor's risk handle": {
+   "result": {
+    "status": "FILLED",
+    "client_id": "bypass2"
+   },
+   "audit_verifies": true
+  },
+  "K3c un-halt by direct SQL (insert)": {
+   "before": {
+    "status": "REJECTED",
+    "reasons": [
+     "SYSTEM_HALTED"
+    ]
+   },
+   "halted_after": false,
+   "after": {
+    "status": "FILLED",
+    "client_id": "h2"
+   },
+   "audit_verifies": true,
+   "resume_in_audit": false
+  },
+  "K3c un-halt by direct SQL (delete)": {
+   "before": {
+    "status": "REJECTED",
+    "reasons": [
+     "SYSTEM_HALTED"
+    ]
+   },
+   "halted_after": false,
+   "after": {
+    "status": "FILLED",
+    "client_id": "h2"
+   },
+   "audit_verifies": true,
+   "resume_in_audit": false
+  },
+  "K3d risk process killed, then submit": {
+   "exception": "BrokenPipeError",
+   "fills_before": 0,
+   "fills_after": 0
+  },
+  "K3e size-bug sweep": {
+   "leverage": 3.0,
+   "worlds": 100,
+   "max_order": 5.0,
+   "results": {
+    "1.0": {
+     "order_size": 3.0,
+     "free": {
+      "ruined": 0.0,
+      "max_dd_median": 0.1682227062504697,
+      "max_dd_p90": 0.2562147898914626,
+      "final_median": 1.955982990651942,
+      "killed": 0.0,
+      "blocked_median": 0.0,
+      "reasons": {
+       "MAX_ORDER_SIZE": 0,
+       "MAX_POSITION": 0,
+       "KILL_SWITCH": 0,
+       "DAILY_LOSS_HALT": 0
+      }
+     },
+     "engine": {
+      "ruined": 0.0,
+      "max_dd_median": 0.1682227062504697,
+      "max_dd_p90": 0.2562147898914626,
+      "final_median": 1.955982990651942,
+      "killed": 0.05,
+      "blocked_median": 0.0,
+      "reasons": {
+       "MAX_ORDER_SIZE": 0,
+       "MAX_POSITION": 0,
+       "KILL_SWITCH": 1732,
+       "DAILY_LOSS_HALT": 0
+      }
+     }
+    },
+    "1.25": {
+     "order_size": 3.75,
+     "free": {
+      "ruined": 0.0,
+      "max_dd_median": 0.18905921778656204,
+      "max_dd_p90": 0.2709271042371287,
+      "final_median": 2.0988426239487907,
+      "killed": 0.0,
+      "blocked_median": 0.0,
+      "reasons": {
+       "MAX_ORDER_SIZE": 0,
+       "MAX_POSITION": 0,
+       "KILL_SWITCH": 0,
+       "DAILY_LOSS_HALT": 0
+      }
+     },
+     "engine": {
+      "ruined": 0.0,
+      "max_dd_median": 0.18905921778656204,
+      "max_dd_p90": 0.2709271042371287,
+      "final_median": 2.0988426239487907,
+      "killed": 0.07,
+      "blocked_median": 0.0,
+      "reasons": {
+       "MAX_ORDER_SIZE": 0,
+       "MAX_POSITION": 0,
+       "KILL_SWITCH": 2380,
+       "DAILY_LOSS_HALT": 0
+      }
+     }
+    },
+    "1.5": {
+     "order_size": 4.5,
+     "free": {
+      "ruined": 0.0,
+      "max_dd_median": 0.20951849028972108,
+      "max_dd_p90": 0.3094792504465672,
+      "final_median": 2.2581441192024405,
+      "killed": 0.0,
+      "blocked_median": 0.0,
+      "reasons": {
+       "MAX_ORDER_SIZE": 0,
+       "MAX_POSITION": 0,
+       "KILL_SWITCH": 0,
+       "DAILY_LOSS_HALT": 0
+      }
+     },
+     "engine": {
+      "ruined": 0.0,
+      "max_dd_median": 0.20951849028972108,
+      "max_dd_p90": 0.30192698993962935,
+      "final_median": 2.2036319215605804,
+      "killed": 0.13,
+      "blocked_median": 0.0,
+      "reasons": {
+       "MAX_ORDER_SIZE": 0,
+       "MAX_POSITION": 0,
+       "KILL_SWITCH": 5587,
+       "DAILY_LOSS_HALT": 0
+      }
+     }
+    },
+    "1.6": {
+     "order_size": 4.800000000000001,
+     "free": {
+      "ruined": 0.0,
+      "max_dd_median": 0.21834915825527196,
+      "max_dd_p90": 0.32023775342432925,
+      "final_median": 2.3317871507247268,
+      "killed": 0.0,
+      "blocked_median": 0.0,
+      "reasons": {
+       "MAX_ORDER_SIZE": 0,
+       "MAX_POSITION": 0,
+       "KILL_SWITCH": 0,
+       "DAILY_LOSS_HALT": 0
+      }
+     },
+     "engine": {
+      "ruined": 0.0,
+      "max_dd_median": 0.21834915825527196,
+      "max_dd_p90": 0.3082232025868862,
+      "final_median": 2.2711311856873886,
+      "killed": 0.16,
+      "blocked_median": 0.0,
+      "reasons": {
+       "MAX_ORDER_SIZE": 0,
+       "MAX_POSITION": 0,
+       "KILL_SWITCH": 6089,
+       "DAILY_LOSS_HALT": 0
+      }
+     }
+    },
+    "2.0": {
+     "order_size": 6.0,
+     "free": {
+      "ruined": 0.0,
+      "max_dd_median": 0.2485919073909313,
+      "max_dd_p90": 0.38262023292706016,
+      "final_median": 2.6628387446469963,
+      "killed": 0.0,
+      "blocked_median": 0.0,
+      "reasons": {
+       "MAX_ORDER_SIZE": 0,
+       "MAX_POSITION": 0,
+       "KILL_SWITCH": 0,
+       "DAILY_LOSS_HALT": 0
+      }
+     },
+     "engine": {
+      "ruined": 0.0,
+      "max_dd_median": 0.10850287838734674,
+      "max_dd_p90": 0.22216776300798438,
+      "final_median": 1.320545007880041,
+      "killed": 0.01,
+      "blocked_median": 526.5,
+      "reasons": {
+       "MAX_ORDER_SIZE": 52270,
+       "MAX_POSITION": 52270,
+       "KILL_SWITCH": 829,
+       "DAILY_LOSS_HALT": 0
+      }
+     }
+    },
+    "5.0": {
+     "order_size": 15.0,
+     "free": {
+      "ruined": 0.0,
+      "max_dd_median": 0.5365781376185056,
+      "max_dd_p90": 0.7217748541648993,
+      "final_median": 5.3157102757680414,
+      "killed": 0.0,
+      "blocked_median": 0.0,
+      "reasons": {
+       "MAX_ORDER_SIZE": 0,
+       "MAX_POSITION": 0,
+       "KILL_SWITCH": 0,
+       "DAILY_LOSS_HALT": 0
+      }
+     },
+     "engine": {
+      "ruined": 0.0,
+      "max_dd_median": 0.10850287838734674,
+      "max_dd_p90": 0.22216776300798438,
+      "final_median": 1.320545007880041,
+      "killed": 0.01,
+      "blocked_median": 526.5,
+      "reasons": {
+       "MAX_ORDER_SIZE": 52270,
+       "MAX_POSITION": 52270,
+       "KILL_SWITCH": 829,
+       "DAILY_LOSS_HALT": 0
+      }
+     }
+    },
+    "20.0": {
+     "order_size": 60.0,
+     "free": {
+      "ruined": 0.49,
+      "max_dd_median": 0.999189412201779,
+      "max_dd_p90": 1.0,
+      "final_median": 0.21677580828480175,
+      "killed": 0.0,
+      "blocked_median": 0.0,
+      "reasons": {
+       "MAX_ORDER_SIZE": 0,
+       "MAX_POSITION": 0,
+       "KILL_SWITCH": 0,
+       "DAILY_LOSS_HALT": 0
+      }
+     },
+     "engine": {
+      "ruined": 0.0,
+      "max_dd_median": 0.10850287838734674,
+      "max_dd_p90": 0.22216776300798438,
+      "final_median": 1.320545007880041,
+      "killed": 0.01,
+      "blocked_median": 526.5,
+      "reasons": {
+       "MAX_ORDER_SIZE": 52270,
+       "MAX_POSITION": 52270,
+       "KILL_SWITCH": 829,
+       "DAILY_LOSS_HALT": 0
+      }
+     }
+    }
+   }
+  }
+ },
+ "K2": {
+  "K2a default climb twice on one dataset": {
+   "looks": [
+    {
+     "status": "PASS",
+     "detail": {
+      "net_bps": 8.837789237895683,
+      "diff_t": 2.8055355273518345,
+      "trades": 207
+     }
+    },
+    {
+     "status": "PASS",
+     "detail": {
+      "net_bps": 8.837789237895683,
+      "diff_t": 2.8055355273518345,
+      "trades": 207
+     }
+    }
+   ],
+   "with_shared_SealedTest": [
+    "looked",
+    "BURNED"
+   ]
+  },
+  "K2b dataset one day longer": {
+   "sha_1500": "1ebae2658dc4",
+   "sha_1501": "dc350ecf13d4",
+   "sealed_1500": [
+    1125,
+    1500
+   ],
+   "sealed_1501": [
+    1125,
+    1501
+   ],
+   "overlap_share_of_first": 1.0,
+   "second_look": "allowed",
+   "identical_first_1500_days": true
+  },
+  "K2c Part 5 sealed windows": {
+   "windows": [
+    [
+     675,
+     900
+    ],
+    [
+     787,
+     1050
+    ],
+    [
+     900,
+     1200
+    ],
+    [
+     1012,
+     1350
+    ]
+   ],
+   "overlap_with_previous": [
+    null,
+    0.4296577946768061,
+    0.5,
+    0.5562130177514792
+   ]
+  },
+  "K2d Part 5 loop re-looks": {
+   "worlds": 60,
+   "sealed_looks": 50,
+   "worlds_with_a_look": 36,
+   "repeat_looks_same_idea_same_version": 6,
+   "worlds_with_repeat": 6,
+   "median_share_already_looked_on_repeats": 0.5,
+   "confirmed_on_repeat": 0,
+   "confirmed_on_first": 23,
+   "labels_repeated": [
+    "vol<=1.0",
+    "vol<=1.25"
+   ]
+  },
+  "K2e null idea, P(confirmed at least once)": {
+   "z": 1.6448536269514715,
+   "reps": 20000,
+   "overlapping_loop_windows": [
+    0.04945,
+    0.0889,
+    0.1263,
+    0.16005
+   ],
+   "non_overlapping_windows": [
+    0.05025,
+    0.09995,
+    0.14775,
+    0.19145
+   ]
+  }
+ },
+ "K4": {
+  "n_cal": 200,
+  "n_test": 200,
+  "ref_sd_median": 32.21725641323701,
+  "ref_mean_median": 5.465404580536069,
+  "post_mean": -4.020872430362653,
+  "detectors": {
+   "1 shadow ref, k=0.10 (book)": {
+    "h": 64.5,
+    "far_test": 0.045,
+    "detected": 0.61,
+    "early_alarm": 0.015,
+    "delay_days_median": 424.0,
+    "delay_trades_median": 226.5,
+    "delay_days_p90": 662.2
+   },
+   "2 break-even ref, k=0.10 (book)": {
+    "h": 29.5,
+    "far_test": 0.035,
+    "detected": 0.3,
+    "early_alarm": 0.01,
+    "delay_days_median": 434.5,
+    "delay_trades_median": 234.5,
+    "delay_days_p90": 681.1
+   },
+   "3 break-even ref, k=0.065": {
+    "h": 31.0,
+    "far_test": 0.045,
+    "detected": 0.565,
+    "early_alarm": 0.015,
+    "delay_days_median": 454.0,
+    "delay_trades_median": 242.0,
+    "delay_days_p90": 643.6
+   },
+   "4 shadow ref, k=0.17": {
+    "h": 39.0,
+    "far_test": 0.06,
+    "detected": 0.6,
+    "early_alarm": 0.02,
+    "delay_days_median": 344.5,
+    "delay_trades_median": 180.5,
+    "delay_days_p90": 632.1000000000001
+   }
+  }
+ }
+}
