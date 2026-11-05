@@ -9,6 +9,9 @@ A personal systematic trading system: crypto first (BTC/ETH intraday, long and s
 | `docs/v2/CHRONOS_V2.md` | Master document (read first) |
 | `docs/v2/BUILD_NOTES.md` | Known traps, by component |
 | `docs/v2/COMPONENTS.md` | Where every third-party and reused piece comes from |
+| `docs/v2/CODEBASE.md` | What every file in this repo is, v1 or v2, and its v2 fate |
+| `docs/v2/CHANGELOG.md` | Dated work log (decisions stay in the master doc) |
+| `docs/v2/research/` | Check scripts behind the content-analysis findings |
 | `docs/v2/specs/` | Detailed specs (Kronos shadow signal, news/sentiment strategy) |
 | `docs/v1-archive/` | Frozen v1 documents (reference only) |
 | `src/`, `tests/` | Frozen v1 code (branch `v1-final`); v2 ports pieces from it |

@@ -2,7 +2,7 @@
 
 Companion to `docs/v2/CHRONOS_V2.md` (read that first). This file is the "things to keep in mind" list: every trap we already found, so a build session doesn't rediscover it the expensive way. **Read the section for the component you're about to build.** Add new traps as you find them (CHRONOS_V2 §14 rule 3).
 
-Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in code or docs · [Likely] / [Guessing] = not verified. Source IDs (S1…S10) point to `claude/item-analyses*.md` in the claude.ai Project.
+Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in code or docs · [Likely] / [Guessing] = not verified. Source IDs (S1…S12) point to `claude/item-analyses*.md` in the claude.ai Project; check scripts for S10 onward are in `docs/v2/research/`.
 
 ---
 
@@ -34,13 +34,19 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
   - QuantDinger's DSR miscounts N this way (pruned trials dropped, count reset per job). Its "recommended" flag also *requires* a minimum number of trials, which rewards searching more [Certain — read, S6]. Don't copy either pattern.
 - **Don't average different checks into one score** (QuantDinger's robustness grade does). A strong score on one check can hide a fail on another.
 - **Don't reuse a holdout across reruns.** Repeated runs turn it into a selection set (QuantDinger, S3's version table).
-- **Raw N over-penalises correlated searches.** In a 20,000-formula noise search, the best |t| was 3.15, below the ≈4.06 expected from 20,000 *independent* tries, because formulas over the same inputs overlap [Certain — run, S10]. Estimating effective N needs stored per-trial return series (proposal P-1).
+- **Raw N over-penalises correlated searches.** In a 20,000-formula noise search, the best |t| was 3.15, below the ≈4.06 expected from 20,000 *independent* tries, because formulas over the same inputs overlap [Certain — run, S10]. Estimating effective N needs stored per-trial return series (now required, V2-D33).
 - **iid bootstrap on autocorrelated returns is badly overconfident:** 74% actual coverage for a nominal 95% interval (AR(1), φ = 0.5). The stationary bootstrap with automatic block length gives 92.7% [Certain — run, S10]. Use block methods.
 - **Set-level tests (SPA/StepM/MCS) only see what you hand them.** Handing SPA the best 50 of 2,000 noise variants gave p = 0.028 (a false find); all 2,000 gave p = 0.56 [Certain — run, S10]. They depend on honest counting exactly like DSR.
 - **The change check must allow changes that trade more.**
   - S1's gate requires drawdown ≤ and turnover ≤ baseline, and its proposer only tightens filters. That loop can only make a strategy trade less [Certain — read, S1].
   - S1's "walk_forward_2of3" is really a subperiod check: no refitting [Certain — read].
 - **S1's Šidák bar is correct and reusable:** `z = Φ⁻¹(0.95^(1/trials))` with cumulative trials.
+- **Count attempts across related hypotheses, not within a label (V2-D31).** S12's ledger counts per "family", a label the proposer picks. On pure noise with 12 candidates: counted together, 1% false finds; split into the book's natural families, 13%; one per family, 28% [Certain — run, S12 check]. v2 counts per hypothesis and has the same hole. The fix is v1's search-fragmentation screen (`src/chronos/moirai/stages/eligibility.py`, step (f)), reported as a warning with DSR at the union N.
+  - **Known-answer test to write:** two sibling hypotheses on adjacent grids of the same strategy class → warning present, with the sibling ids and DSR at the union N. v1's `test_eligibility_fragmentation_screen_union_n` (`tests/moirai/test_free_stages.py`) and probe G6a (`tests/moirai/test_plateau.py`) are the templates.
+- **Honest counting alone doesn't stop "trade less beats a losing baseline" (V2-D32).** With costs and no gross edge, net P&L is minus cost × trades, so any filter that trades less beats the baseline, repeatably. In S12's own data, 20% of best-of-12 winners cleared even the Šidák-corrected bar [Certain — run]. A paired-test-only change check at 2× costs accepted a change in 40% of no-edge worlds; requiring the candidate's own net > 0 after 2× costs cut that to 0%, at the price of about a quarter of genuine improvements (88% → 67%) [Certain — run, S12 check].
+  - **Known-answer tests to write:** (1) live version with zero gross edge and a net loss at 2× costs; candidate trades half as often with zero gross edge → change check REJECTS and opens a retirement review. (2) Candidate with a real gross edge that still clears 2× costs → ACCEPT.
+- **Mining "lessons" from our own history needs a minimum n per side and a correction for every group examined.** Uncorrected, a subgroup lesson appeared in 30% of no-structure worlds; with ≥ 30 trades per side and Bonferroni over the groups examined, 4.3% over 300 worlds (95% CI 2.5–7.3%) [Certain — run, S11 check]. A lesson is an association: turning it into a filter is a new, counted trial.
+- **Cheap look-ahead probe (S11's `causality_ok`):** nudge a future close up and down; no earlier entry may change. Probabilistic (it only checks around sampled trades), but it caught an injected next-bar peek in 30 of 30 cases [Certain — run, S12 rerun]. Worth adding to the v2 strategy test kit beside the structural no-look-ahead tests.
 - **Neighbourhood rule:** don't hard-code a rule; it's calibrated in the acceptance test with intraday planted edges (V2-D20, D28).
 - **v1 subperiod lesson:** at a 3-year window (K = 3) the subperiod gate failed for resolution reasons, not because the edge was missing. Short windows make subperiod checks unreliable, which is one reason they're warnings in v2.
 
@@ -89,10 +95,20 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
 ## 6. Experiment store and registry (Mnemosyne)
 
 - **Port the v1 SEARCH/VERIFICATION ontology:** `kind=` explicit at every run call; a sweep uses one hypothesis reused across all points; VERIFICATION runs (cost stress, null draws, walk-forward windows) don't count toward N.
-- **Store per-trial daily net returns and trade lists** if proposal P-1 is accepted. Without them, SPA/StepM, effective-N and CSCV can't be done after the fact.
+- **Store every counted trial's daily net returns and trade list (V2-D33, Locked).** Without them, SPA/StepM, effective-N and CSCV/PBO can't be done after the fact. Keep them on one calendar per dataset. Size: ~32 MB per 5,000 variants × 800 days [Certain — arithmetic].
+- **Ids from content, not counters** (S12 ledger, run 3 Nov):
+  - version id = hash of the parameters + the code coordinate, so any edit is a new version;
+  - experiment id = hash of the run spec (base, candidate, dataset hash, window, costs, seed), leaving out free text. An exact repeat is recognised and doesn't inflate N; a reworded repeat is caught too.
+  - Trap: a repeat filed under a different family keeps its first family. Count across families anyway (V2-D31).
+- **Code coordinate = git commit + `uv.lock` hash + engine version.** S12 hashed one engine file only, so a change to its statistics code showed up as MISMATCH, not CODE_CHANGED, and created no new version ids [Certain — read].
+- **Data coordinate = snapshot hash of the exact input.** In S12's test, editing one price left every metric unchanged in 120 of 120 cases; only the data hash noticed [Certain — run].
+- **Append-only in the database, not just in the app:** revoke UPDATE/DELETE (or use triggers) on result tables, store a hash per result row, and add an `audit()` that recomputes them. In S12's test the triggers blocked 8 of 8 destructive statements; without them 6 of 8 went through, and `audit()` still caught an edited number [Certain — run]. Not tamper-proof against someone with database access; a hash chain with its head stored elsewhere is the next step.
+- **Comparison guard:** two results may be compared only if dataset, window, costs, seed and baseline all match (S12 `compare()`).
+- **Reproduce on demand:** re-run a stored spec and report REPRODUCED / DATA_CHANGED / CODE_CHANGED / MISMATCH / NO_RESULT (S12 `reproduce()`).
 - **The version registry must be persisted** (S1's `VersionStore` was in-memory only).
 - **Live approvals are founder-signed registry entries** (V2-D23).
 - **v1 legacy records** (trial_index ≤ 284) have no `kind` and old 10 bps costs. Never backfill or mix them.
+- **Paper/live trade journal (at L3, not now):** record each trade with the conditions known at entry (strategy version, signal values, volatility state, session) kept apart from outcome labels. Every field used to look trades up must be computable before the outcome; reject unknown fields at the door (S11 episode schema). Feeds failure diagnosis and backtest-vs-live comparison.
 
 ## 7. LLM layer and collectors (Prometheus, S-NEWS)
 
@@ -128,6 +144,7 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
 
 - **S1–S4 are one author** (Arwaz Az). Agreement between them is not corroboration.
 - **S3/S4 numbers are internally inconsistent** (CAGR vs total return). S3 routes AI-approved strategies straight to execution (rejected).
+- **S11–S12 (Arwaz Az, "Self-Improving AI Trading Agent" Parts 1–2) are the same author as S1–S4.** Their code is honest and reproduces to the digit (62/62 tests; every figure reruns). But the synthetic worlds are built so the tool's inputs are the planted mechanism (memory's session key is exactly the planted session effect), which flatters the tool. Ask of any synthetic demo: would it still work if you didn't know the mechanism? (S11 check: a fifth to a half of the benefit disappeared.)
 - **S8a Daru Finance is one author.** Mostly pre-registered nulls, unreviewed working papers. Good model of honest reporting; one prose sentence mislabels its own percentages.
 - **Published anomalies weaken after publication** (McLean & Pontiff 2016) [Likely]. Discount any edge taken from a paper.
 - **Backtest rank barely predicts the next window.**
