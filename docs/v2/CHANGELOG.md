@@ -4,6 +4,15 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 5 Nov 2026 — decisions V2-D38–D40 locked; content analysis resumed
+
+- **Locked by the founder (5 Nov, "lock new decisions"):**
+  - **V2-D38** (O-10; amends V2-D34): crypto seal from 1 Apr 2026 00:00 UTC, growing; confirm rule ≥ 200 sealed trades, net after 2× costs > 0, adverse-funding run > 0; no significance bar; < 200 trades → same test in L3 paper. Reason for the amendment: "the last 25%" would have sealed all of Kronos's post-cutoff data.
+  - **V2-D39** (O-11): adverse funding = 95th percentile of the contract's own |hourly funding| from launch to the seal date, charged every hour held.
+  - **V2-D40** (O-12): limits = exactly Themis's approved contracts; account ceiling 2× equity notional in paper; false-alarm budget 10% per strategy-year.
+- **Founder instruction:** content analysis resumes alongside building, repos first, judged by whether they replace something in build steps 2–5.
+- **Updated:** `CHRONOS_V2.md` (§1, §2, §4, §6, §9, §10, §12), `BUILD_NOTES.md` §2, §5, §11, `specs/kronos-shadow.md`.
+
 ## 5 Nov 2026 — decisions V2-D34–D37 locked
 
 - **Locked by the founder (5 Nov, "commit to ur suggestions"):**
