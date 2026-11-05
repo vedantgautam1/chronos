@@ -22,3 +22,6 @@ diagnostics/
 
 # Experiment records (local run logs; Mnemosyne stub)
 records/
+
+# macOS folder metadata
+.DS_Store

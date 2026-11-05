@@ -2,7 +2,7 @@
 
 **Before doing anything, read `docs/v2/CHRONOS_V2.md`.** It is the master document: what Chronos is, what is built and not built, every decision and why, what we rejected and why, the build order, and where everything lives. If this file and the master doc ever disagree, the master doc wins.
 
-Then, for the component you're touching, read its section in `docs/v2/BUILD_NOTES.md` (known traps) and `docs/v2/COMPONENTS.md` (where third-party and v1 code come from).
+Then, for the component you're touching, read its section in `docs/v2/BUILD_NOTES.md` (known traps) and `docs/v2/COMPONENTS.md` (where third-party and v1 code come from). `docs/v2/CODEBASE.md` says what every file in the repo is and whether v2 ports, references or retires it.
 
 ## v1 is frozen — do not follow it
 
@@ -40,5 +40,6 @@ In the same commit as the work:
 - **Update `docs/v2/CHRONOS_V2.md`:** the status board (§2) for anything whose status changed; the decisions log (§10) **only** for decisions the founder locked; open questions (§12); "Last updated".
 - **Add any new trap** to `BUILD_NOTES.md`.
 - **Add any adopted library** to `COMPONENTS.md`.
+- **Add a dated entry to `docs/v2/CHANGELOG.md`** saying what was done; update `docs/v2/CODEBASE.md` if files were added, moved or retired.
 
 The founder is non-technical and works solo: keep the master doc's §1–§2 readable in two minutes, and tell the founder plainly what changed.

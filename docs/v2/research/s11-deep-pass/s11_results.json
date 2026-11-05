@@ -1,0 +1,61 @@
+{
+ "A": {
+  "worlds": 300,
+  "worlds_with_lesson": 13,
+  "rate": 0.043333333333333335,
+  "wilson95": [
+   0.025496203603204263,
+   0.07271812912806098
+  ],
+  "total_lessons": 17
+ },
+ "C_planted": {
+  "published": {
+   "spearman": 0.3064822689363973,
+   "spearman_sd": 0.03470897565070198,
+   "flagged": 0.17596849343786503,
+   "skip_gain": 5.696950950698253,
+   "skip_gain_pos": 1.0
+  },
+  "sess2": {
+   "spearman": 0.24480499430824182,
+   "spearman_sd": 0.04349147861508638,
+   "flagged": 0.13198377370206937,
+   "skip_gain": 4.448633827891608,
+   "skip_gain_pos": 1.0
+  },
+  "sess8": {
+   "spearman": 0.2638782526879467,
+   "spearman_sd": 0.045282663828062585,
+   "flagged": 0.11395753019555403,
+   "skip_gain": 3.6568101305430916,
+   "skip_gain_pos": 1.0
+  },
+  "no_session": {
+   "spearman": 0.19210589210157375,
+   "spearman_sd": 0.05560653692726597,
+   "flagged": 0.11537780319560668,
+   "skip_gain": 3.8432145285084687,
+   "skip_gain_pos": 1.0
+  },
+  "junk_plus": {
+   "spearman": 0.21993237525955478,
+   "spearman_sd": 0.03852033770000522,
+   "flagged": 0.08400307535338546,
+   "skip_gain": 2.900561923941485,
+   "skip_gain_pos": 1.0
+  },
+  "junk_only": {
+   "spearman": 0.03182520805255728,
+   "spearman_sd": 0.048367962863478414,
+   "flagged": 0.021920993791164738,
+   "skip_gain": 0.13895669628920798,
+   "skip_gain_pos": 0.55
+  }
+ },
+ "C_noise_junk_plus": {
+  "spearman": -0.0203288799388134,
+  "skip_gain": -0.22455708279197273,
+  "flagged": 0.09156067601738224
+ }
+}
