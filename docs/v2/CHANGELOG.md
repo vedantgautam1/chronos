@@ -4,6 +4,16 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 5 Nov 2026 — decisions V2-D34–D37 locked
+
+- **Locked by the founder (5 Nov, "commit to ur suggestions"):**
+  - **V2-D34** — sealed final block (~last 25% per instrument) confirmed with one look per hypothesis lineage, recorded in Mnemosyne; overlapping looks refused (was P-5, option c).
+  - **V2-D35** — 2× cost stress doubles only the frictions; funding and basis at modelled values; adverse-funding run where funding exists (was P-6; protected change, approved). Funding parts conditional on O-4.
+  - **V2-D36** — Nemesis in three layers: Nautilus risk engine, IBKR broker-side limits, independent watchdog with its own IBKR connection; limits from Themis's approved size; latched kill (was P-7, option a). Layer 2 conditional on new spike criterion (f).
+  - **V2-D37** — edge-decay alarm in Argus: CUSUM vs break-even and vs paper mean, k set from the shift, budget written first; alarm halts new entries (was P-8).
+- **Updated:** `CHRONOS_V2.md` (§1, §2, §4, §6, §9 step 3 criterion (f) and steps 5–6, §10, §12 with new O-10–O-12), `BUILD_NOTES.md` §2, §5, §11, `COMPONENTS.md` §2, `CODEBASE.md`, `specs/kronos-shadow.md` (staleness note).
+- **Still open (protected numbers, set before running):** sealed-block size and confirm rule (O-10), adverse-funding level (O-11), limit headroom and false-alarm budget (O-12).
+
 ## 5 Nov 2026 — content analysis S13–S17 (Parts 3–7); content analysis paused
 
 - **Items:** Arwaz Az, "Self-Improving AI Trading Agent" Parts 3–7 (evaluation gate, agent team, improvement loop, validation and safety layer, complete architecture). All five PDFs read; the full code pack run: 157/157 tests; every Part 3–7 figure reproduced (0 differences in 38,480 values).
