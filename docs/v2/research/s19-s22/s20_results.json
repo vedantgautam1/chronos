@@ -1,0 +1,40 @@
+{
+  "results": [
+    {
+      "variant": "a_whole_seconds",
+      "trades_in": 1000,
+      "trades_sharing_a_timestamp_with_an_earlier_trade": 519,
+      "trades_out": 481,
+      "trades_lost": 519,
+      "volume_in": 247.32538095,
+      "volume_out": 114.31946103,
+      "volume_lost_pct": 53.77770749169041,
+      "pass": false
+    },
+    {
+      "variant": "b_fractional",
+      "trades_in": 1000,
+      "trades_sharing_a_timestamp_with_an_earlier_trade": 482,
+      "trades_out": 518,
+      "trades_lost": 482,
+      "volume_in": 255.5894056,
+      "volume_out": 131.24295809,
+      "volume_lost_pct": 48.650861415047636,
+      "pass": false
+    },
+    {
+      "variant": "c_submillisecond",
+      "trades_in": 1000,
+      "trades_sharing_a_timestamp_with_an_earlier_trade": 519,
+      "trades_out": 481,
+      "trades_lost": 519,
+      "volume_in": 247.32538095,
+      "volume_out": 114.31946103,
+      "volume_lost_pct": 53.77770749169041,
+      "pass": false
+    }
+  ],
+  "verdict": {
+    "F1": false
+  }
+}

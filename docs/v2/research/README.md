@@ -13,6 +13,7 @@ Rules followed (V2-D25): pass/fail rules written down **before** running (`PRERE
 | `s12-deep-pass/` | S12: same series, Part 2 (experiment ledger) | (P-3 → V2-D31) false finds when a search is split across families; (P-4 → V2-D32) a change check with and without "the candidate must make money" | The author's `agentlab-lab` code pack (Part 2 or later) |
 | `s13-s17-deep-pass/` | S13–S17: same series, Parts 3–7 (evaluation gate, agent team, loop, safety layer, full system) | (K0) every author figure reproduced; (K1) forged promotion evidence; (K2) sealed-look enforcement and re-look cost; (K3) risk-engine bypass and size-bug headroom; (K4) why the break-even monitor detected less | The full `agentlab-lab` pack (`agentlab-code.zip`, Part 7 folder) |
 | `s18-skylit/` | S18: SkylitAI's three public repos (`skylit-mcp`, `skylit-agent-kit`, `skylit-agent-lab`) | (C1) their test suites pass; (C2) the offline modes make no network call; (C3) live mode without a key stays off the network. The service itself (data, scores) was not tested: it needs a paid key | Clones of the three repos (MIT; commits in `PREREGISTERED.md`); standard library only |
+| `s19-s22/` | S19 OpenBB, S20 freqtrade, S21 Qlib, S22 RD-Agent | (F1) freqtrade's Kraken trade-CSV importer drops every trade sharing a timestamp; (F2) freqtrade's look-ahead and warm-up tests pass on its own fixtures. OpenBB, Qlib and RD-Agent judged by reading (their data and LLM back-ends are unreachable from here) | A `uv` venv with freqtrade (repo commit in `PREREGISTERED.md`) and its core + test requirements |
 
 ## How to rerun S11/S12 (S13–S17: see the end)
 
@@ -48,3 +49,14 @@ python -I s18_checks.py /some/folder s18_results.json      # C1-C3, ~15 s, no ke
 ```
 
 Check out the commits listed in `PREREGISTERED.md` first. C1 as pre-registered uses `-I`, which can't import a repo's own package; `RESULTS.md` gives the documented rerun (167 + 345 tests OK).
+
+## How to rerun S19–S22
+
+```
+git clone https://github.com/freqtrade/freqtrade /some/folder/freqtrade   # commit in PREREGISTERED.md
+uv venv venv && . venv/bin/activate
+uv pip install -r /some/folder/freqtrade/requirements.txt -r /some/folder/freqtrade/requirements-hyperopt.txt -r /some/folder/freqtrade/requirements-plot.txt pytest pytest-asyncio pytest-mock pytest-xdist pytest-cov pytest-random-order pytest-timeout time-machine
+uv pip install --no-deps -e /some/folder/freqtrade
+python -I s20_kraken_csv_check.py s20_results.json                        # F1, a few seconds, no network
+(cd /some/folder/freqtrade && python -m pytest -q tests/optimize/test_lookahead_analysis.py tests/optimize/test_recursive_analysis.py)   # F2
+```
