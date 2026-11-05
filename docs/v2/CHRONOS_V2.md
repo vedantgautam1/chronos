@@ -39,7 +39,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 - **v2 code: none written yet.**
 - **v1: frozen** (branch `v1-final`).
 - **Data collection: not started.** Price candles and Kraken trades can be downloaded or backfilled later; what can't be recovered is news/X sentiment as it looked at the time (needed for S-NEWS) and our own snapshots of IBKR futures spreads.
-- **Content analysis:** 17 items done (S1–S17); **resumed 5 Nov alongside building** (founder), repos first, judged by whether they replace something in build steps 2–5. Parts 3–7 of the S11–S12 series produced V2-D34 to V2-D40. It feeds the design but does not replace building.
+- **Content analysis:** 22 items done (S1–S22); **resumed 5 Nov alongside building** (founder), repos first, judged by whether they replace something in build steps 2–5. Parts 3–7 of the S11–S12 series produced V2-D34 to V2-D40. S18–S22 (Skylit, OpenBB, freqtrade, Qlib, RD-Agent) replace nothing in steps 2–5; they added build notes (data traps, two look-ahead tests). It feeds the design but does not replace building.
 
 **First trading target.** BTC (then ETH) **intraday, long and short**, several trades a day with holds of minutes to hours. Traded through **IBKR crypto futures** (Coinbase nano BTC/ETH first, CME micro and Bitcoin Friday second). Signal history comes from Kraken spot data.
 
@@ -58,7 +58,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 | **This doc pack** (`docs/v2/`) | Single source of truth | **Done** 3 Nov | Founder request: one doc every session reads |
 | **v1 freeze** | Branch `v1-final`, v1 docs to `docs/v1-archive/` | **Done** 3 Nov | V2-D10 |
 | **Slim VPS + Postgres + collectors + alerts** | Always-on Linux box collecting data 24/7 | **Not started — after the spike** | V2-D23, V2-D26, V2-D30. Prices and Kraken trades can be backfilled; only news/sentiment snapshots and live spread records are unrecoverable |
-| **Kraken trade recorder** | Every BTC/USD + ETH/USD trade with aggressor side, recorded forward | **Not started** | V2-D26. Kraken has no bulk dump |
+| **Kraken trade recorder** | Every BTC/USD + ETH/USD trade with aggressor side, recorded forward | **Not started** | V2-D26. Kraken's bulk trade files (quarterly) appear to lack the aggressor side; the API has it (corrected 5 Nov, S20) |
 | **Collectors: S-NEWS (Grok/X, headlines, GDELT), S-MACRO actuals** | Forward collection, no trading | **Not started** | V2-D06, V2-D24 |
 | **v2 code skeleton + ported statistics** | Stats probe, known-answer tests, trial ontology, cost code, touchstones | **Not started** | V2-D10, V2-D29: in this repo, in a new package folder; v1 code untouched |
 | **NautilusTrader spike** (1 week) | Prove the engine before committing | **Not started** | V2-D04. Pass criteria in §9 step 3 |
@@ -90,7 +90,7 @@ Statistics with known-answer tests (Lo 2002, Newey–West, Politis–Romano stat
 ### 2c. Outside the repo
 
 - **Content-intake pipeline** on the founder's Mac (`~/chronos-intake`): downloads, transcribes and OCRs Instagram posts for analysis.
-- **Content analysis S1–S17** (resumed 5 Nov alongside building; next item S18): reasoning in the claude.ai Project (`claude/item-analyses.md`, `-2.md`, `-3.md`); check scripts for S10–S17 in `docs/v2/research/`.
+- **Content analysis S1–S22** (resumed 5 Nov alongside building; next item S23): reasoning in the claude.ai Project (`claude/item-analyses.md`, `-2.md`, `-3.md`); check scripts for S10–S22 in `docs/v2/research/`.
 
 ---
 
@@ -426,11 +426,11 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | Build traps per component | `docs/v2/BUILD_NOTES.md` | Read before building that component |
 | Third-party code + v1 code to reuse | `docs/v2/COMPONENTS.md` | Source, licence, version, test status |
 | Detailed specs | `docs/v2/specs/` | Kronos shadow; sentiment strategy (each with a staleness note at the top) |
-| Content-analysis results (reasoning per source S1–S17) | claude.ai Project: `claude/item-analyses.md`, `claude/item-analyses-2.md`, `claude/item-analyses-3.md` | Background; this doc wins |
+| Content-analysis results (reasoning per source S1–S22) | claude.ai Project: `claude/item-analyses.md`, `claude/item-analyses-2.md`, `claude/item-analyses-3.md` | Background; this doc wins |
 | Every option considered | Project: `claude/comparison-matrix.md` | Record of options |
 | Kept-for-later library (repos, data sources, findings, rejected) | Project: `claude/reference-library.md` | Check before re-researching anything |
 | How to run content analysis | Project: `claude/content-analysis-handoff.md` | Points back here |
-| Content-analysis check scripts (S10–S17) | `docs/v2/research/` (README inside) | Rerun with `python -I`; S11+ need the source's code pack |
+| Content-analysis check scripts (S10–S22) | `docs/v2/research/` (README inside) | Rerun with `python -I`; S11+ need the source's code pack |
 | Map of every file in the repo | `docs/v2/CODEBASE.md` | What each part is, v1 or v2, and its v2 fate |
 | What was done, when | `docs/v2/CHANGELOG.md` | Dated work log; decisions stay in §10 |
 | v1 frozen docs | `docs/v1-archive/` (incl. `HANDOFF.md`, the v1 log, closed 3 Nov) | Reference only |
