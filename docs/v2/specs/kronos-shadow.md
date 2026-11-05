@@ -2,6 +2,7 @@
 > - Wherever it says **Kraken fees / Kraken costs**, use **IBKR crypto futures costs**: commission + exchange fees + spread + slippage + funding + futures–spot basis. Signals still come from Kraken spot data.
 > - Its **1h/4h bars and horizons** must be re-checked against the intraday track (CHRONOS_V2 §12 O-8). The baseline strategy for role B is now S-INTRADAY / S-TREND.
 > - Proposed (P-2): add a HAR realised-variance baseline for role C on intraday bars.
+> - **5 Nov:** "2× costs" means frictions doubled, funding and basis at modelled values (V2-D35). The sealed holdout's single look is recorded in Mnemosyne by instrument + date range + lineage and an overlapping second look is refused (V2-D34).
 > - "Matrix refs" below point to `claude/comparison-matrix.md` in the claude.ai Project.
 > - Where this spec and `docs/v2/CHRONOS_V2.md` disagree, CHRONOS_V2 wins.
 

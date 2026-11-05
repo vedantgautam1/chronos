@@ -40,7 +40,7 @@ Things we're *not* using yet (with the trigger that would make them useful) live
 | Touchstones + regime generator | `src/chronos/moirai/calibration/touchstones.py`, `generator.py`, `fixtures/` | Acceptance test | T-b, T-d, T-e must still FAIL; T-a2 should PASS once sized by drawdown budget |
 | Null benchmark | `src/chronos/moirai/stages/null_bench.py` | Reference only | **Strict `<` rank at ~line 125: replace with mid-rank.** v2 null recipe differs (CHRONOS_V2 §6) |
 | Search-fragmentation screen | `src/chronos/moirai/stages/eligibility.py` step (f) (`_fragmentation_screen`, `_grid_axes`); sibling matching reused by `stages/plateau.py`; spec `docs/v1-archive/SPEC_MOIRAI.md` §4.0(f); tests `test_eligibility_fragmentation_screen_union_n` and probe G6a | Edge-check warning (V2-D31) | Warn-only; report DSR at the union N. Window from config (90 days in v1) |
-| Holdout seal | `src/chronos/oceanus/seal.py` | Optional | Additive-only sealing; v2 keeps "sealed holdouts touched once" |
+| Holdout seal | `src/chronos/oceanus/seal.py` | Reference for V2-D34 | Additive-only sealing and an access log with reasons. **It doesn't limit looks:** V2-D34 needs a database record per look (instrument + date range + lineage) that refuses overlaps (BUILD_NOTES §2) |
 | Data validation/cleaning policy | `src/chronos/oceanus/validate.py`, `clean.py` | Oceanus reference | Policy: never interpolate gaps; flag outliers; drop only provably impossible rows, reporting each |
 | v1 findings | `docs/v1-archive/` (SESSION_FINDINGS, SPEC_MOIRAI, handoffs) | Background | DSR laundering demo: same strategy 0.563 at N = 1 vs 0.054 at N = 280 |
 

@@ -54,7 +54,7 @@ v1 is frozen on branch `v1-final` (commit `6b2b628`). Never edit v1 code (V2-D29
 | `store.py` | Versioned Parquet snapshots + snapshot hash | Reference (the snapshot hash is the v2 "data coordinate", BUILD_NOTES §6) |
 | `validate.py`, `clean.py` | Detects data problems; applies an explicit cleaning policy | Reference (policy: never interpolate gaps; flag outliers; drop only impossible rows, reporting each) |
 | `access.py` | The single data door `get_bars()` | Reference (pattern) |
-| `seal.py` | Holdout seal (additive only) | Optional port ("sealed holdouts touched once" stays) |
+| `seal.py` | Holdout seal (additive only) | Reference for V2-D34 (sealed final block); add a look limit, which it lacks |
 
 ### `hephaestus/` — v1 backtest engine
 | File | What it does | v2 fate |
