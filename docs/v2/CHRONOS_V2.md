@@ -34,16 +34,16 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 
 **What changed.** v1 (Jul–Aug 2026) was a research instrument built to produce a clean, documented FAIL, with an 11-gate validation gauntlet and no way to trade. Its own results showed no honest should-pass test strategy could clear all 11 gates. v2 (designed 27 Oct–3 Nov 2026) keeps v1's honest statistics, replaces the rest with open-source parts (NautilusTrader as the engine), and adds a path to live trading.
 
-**Where we are today (3 Nov 2026).**
+**Where we are today (5 Nov 2026).**
 - **Design: done** (decisions V2-D01–D33, §10).
 - **v2 code: none written yet.**
 - **v1: frozen** (branch `v1-final`).
 - **Data collection: not started.** Price candles and Kraken trades can be downloaded or backfilled later; what can't be recovered is news/X sentiment as it looked at the time (needed for S-NEWS) and our own snapshots of IBKR futures spreads.
-- **Content analysis:** 12 items done (S1–S12). Parts 3–7 of the S11–S12 series (same author) are being analysed now; then content analysis pauses and building starts (founder, 3 Nov). It feeds the design but does not replace building.
+- **Content analysis:** 17 items done (S1–S17), now **paused so building can start** (founder, 3 Nov). The last five (Parts 3–7 of the S11–S12 series) produced four proposals waiting for the founder: P-5 to P-8 (§12). It feeds the design but does not replace building.
 
 **First trading target.** BTC (then ETH) **intraday, long and short**, several trades a day with holds of minutes to hours. Traded through **IBKR crypto futures** (Coinbase nano BTC/ETH first, CME micro and Bitcoin Friday second). Signal history comes from Kraken spot data.
 
-**Next step (§9):** finish Parts 3–7 of the Arwaz Az series, then the v2 code skeleton (in this repo, V2-D29) with ported statistics, then the one-week NautilusTrader spike. The data-collection server comes after the spike (V2-D30), then the validation acceptance test.
+**Next step (§9):** the v2 code skeleton (in this repo, V2-D29) with ported statistics, then the one-week NautilusTrader spike. The data-collection server comes after the spike (V2-D30), then the validation acceptance test.
 
 **Hard rules that never bend:** LLMs never size positions, never place orders and never decide validation verdicts. Every variant tried counts as a trial. Costs are always the real venue's full costs. No high-frequency trading.
 
@@ -63,10 +63,10 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 | **v2 code skeleton + ported statistics** | Stats probe, known-answer tests, trial ontology, cost code, touchstones | **Not started** | V2-D10, V2-D29: in this repo, in a new package folder; v1 code untouched |
 | **NautilusTrader spike** (1 week) | Prove the engine before committing | **Not started** | V2-D04. Pass criteria in §9 step 3 |
 | **Oceanus — data layer** | Kraken history + IBKR futures data, Parquet + DuckDB + Postgres | Not started (v1 version is Binance-only) | §4 |
-| **Moirai — validation** (edge check + change check) | Is a strategy real? Is a change better? | **Locked design, not built** | V2-D08, D20, D21, D31, D32. Not trusted until the acceptance test passes |
+| **Moirai — validation** (edge check + change check) | Is a strategy real? Is a change better? | **Locked design, not built** | V2-D08, D20, D21, D31, D32. Not trusted until the acceptance test passes. Proposals P-5, P-6 (§12) |
 | **Validation acceptance test** | Touchstones + null known-answer tests + planted-edge calibration | Not started | V2-D08, D20, D21, D25 |
 | **Themis — sizing** | Drawdown budget → size, vol targeting, ≤ ¼ Kelly | Locked principle, not built | §6 |
-| **Nemesis — hard guard + kill switch** | Limits outside strategy code | Leaning list, not built | §4 |
+| **Nemesis — hard guard + kill switch** | Limits outside strategy code | Leaning list, not built | §4. Where its boundary sits: P-7; edge-decay alarm for Argus: P-8 (§12) |
 | **Execution** (Nautilus OMS + IBKR adapter) | Orders to IBKR futures | Not started | V2-D27 |
 | **Aletheia — daily reconciliation** | Positions/balances vs the broker | Not started | §4 |
 | **Mnemosyne — experiment store + version registry** | Every trial and every strategy version recorded | Not started (v1 ontology to port) | §4. Stores every counted trial's daily returns and trade list (V2-D33) |
@@ -90,7 +90,7 @@ Statistics with known-answer tests (Lo 2002, Newey–West, Politis–Romano stat
 ### 2c. Outside the repo
 
 - **Content-intake pipeline** on the founder's Mac (`~/chronos-intake`): downloads, transcribes and OCRs Instagram posts for analysis.
-- **Content analysis S1–S12:** reasoning in the claude.ai Project (`claude/item-analyses.md`, `claude/item-analyses-2.md`); check scripts for S10–S12 in `docs/v2/research/`.
+- **Content analysis S1–S17** (paused 5 Nov for building): reasoning in the claude.ai Project (`claude/item-analyses.md`, `-2.md`, `-3.md`); check scripts for S10–S17 in `docs/v2/research/`.
 
 ---
 
@@ -203,7 +203,7 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
   2. Pass/fail rules are committed before a test runs.
   3. On high-stakes work, and on founder request, a separate agent that hasn't seen the work re-derives the result from the spec.
   4. The founder challenges Claude's calls.
-- **Kept from v1:** honest trial counting, DSR, Lo / Newey–West / block bootstrap (dependence-aware) statistics, provenance discipline (every threshold traceable to a reproducible path), no seed shopping, sealed holdouts touched once, state asymmetric findings asymmetrically.
+- **Kept from v1:** honest trial counting, DSR, Lo / Newey–West / block bootstrap (dependence-aware) statistics, provenance discipline (every threshold traceable to a reproducible path), no seed shopping, sealed holdouts touched once (how to enforce it: `BUILD_NOTES.md` §2), state asymmetric findings asymmetrically.
 
 ---
 
@@ -255,7 +255,7 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
 
 ## 9. Build order (what happens next, in order)
 
-**Before step 2:** finish analysing Parts 3–7 of the Arwaz Az series (founder, 3 Nov). Then content analysis pauses and building starts.
+~~**Before step 2:** finish analysing Parts 3–7 of the Arwaz Az series~~ — **done 5 Nov** (items S13–S17; proposals P-5–P-8 in §12). Content analysis is paused; building starts with step 2.
 
 1. ~~**Freeze v1**~~ — **done 3 Nov 2026** (branch `v1-final`, docs to `docs/v1-archive/`, closing entry in `docs/v1-archive/HANDOFF.md`).
 2. **Create the v2 code skeleton in this repo (V2-D29) and port:**
@@ -366,6 +366,9 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | "Edge is in the Process" selection claim (Daru) | Compares profit factors across portfolio sizes; pooled result still loses | S8a |
 | Counting attempts per family or label for the multiple-testing bar | A split search clears easier bars (false finds 1% → 13–28% on noise). Count across related hypotheses instead (V2-D31) | S12 |
 | A memory / nearest-neighbour "skip" rule as built-in infrastructure | Its benefit depends on indexing the right conditions: a fifth to a half was lost when its keys were wrong or diluted. Allowed only as a counted, edge-checked L1 filter | S11 |
+| Copying a content source's validation or risk thresholds (60% of neighbours, 4 of 6 blocks, 30% drawdown kill, 5% monitor false alarms…) | Tuned by the author on his own planted answer; v2 calibrates its own (O-3, O-7) | S16–S17 |
+| Running an improvement loop or change check on a clock | Each run is another look at mostly the same data; run when enough new data has arrived | S15 |
+| Taking "0 false passes" in worlds where every false candidate loses money as proof a check works | Any profit requirement rejects them all, so later checks go untested. The acceptance test needs a drift-without-skill world (V2-D21 test (d)) | S15–S17 |
 
 Full list with links: Project doc `claude/reference-library.md` §8.
 
@@ -380,6 +383,10 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | ~~P-3~~ | Search-fragmentation screen in the edge check | **Resolved 3 Nov → V2-D31** | — |
 | ~~P-4~~ | Change check requires a net-positive candidate | **Resolved 3 Nov → V2-D32** | — |
 | P-2 | Add a HAR realised-variance baseline (5-min returns) to Kronos role C when the spec is re-checked for intraday bars | Proposed (S10) | Before Kronos work |
+| P-5 | **Where the L2 edge check runs** relative to the history the L1 screen searched. Options: (a) as now — same history, DSR at honest N, L3 paper is the forward test; (b) reserve a final block (e.g. last ~25% of clean history) the screen may never read, used once per hypothesis lineage, keyed by date range; (c) both — DSR on the research block **and** one confirming look at the reserved block. Why: DSR can't count trials it never sees (an LLM's memory of BTC history, informal looks); a reserved block costs power. For LLM-sourced cards no pre-cutoff block is truly unseen | Proposed (S17) | Step 5 |
+| P-6 | **Define "2× costs" per component:** double commission, exchange/regulatory fees, spread and slippage; keep funding and basis at modelled values in both runs, plus a separate adverse-funding stress. Why: funding and basis can be income, so doubling them can make the 2× run easier than 1×; with all costs ≥ 0 the 1× check never changes a verdict (S13). **Protected change (validation threshold): needs the founder's approval** | Proposed (S13) | Step 5 (needs O-4) |
+| P-7 | **Where Nemesis's boundary sits, and limits vs approved size.** Options: (a) Nautilus risk engine in-process + IBKR order precautions/account limits + an independent watchdog process that reads positions from the broker and can halt/flatten on its own connection; (b) Nemesis is the only process holding the IBKR connection, strategies send intents (fights Nautilus's one-node model); (c) in-process only. Plus: per-order and position limits derived from Themis's approved size with small headroom, and an intended-vs-sent size check. Why: S16 check — with only the risk logic in a separate process, the broker handle, a swapped risk handle and a one-line SQL un-halt all got orders through; limits with 1.67× headroom missed every smaller size bug. **Limit numbers are risk limits: protected** | Proposed (S16) | Before L3 paper |
+| P-8 | **Edge-decay alarm in Argus:** one-sided CUSUM on per-trade net returns against two references — break-even (triggers V2-D32's retirement review) and the paper-period mean (below expectation). Slack k = half the shift to detect; threshold calibrated to a written false-alarm rate on healthy simulated or bootstrapped streams; an alarm halts new entries and opens a review, never adds risk; expected delay stated in trades. Why: v2 has no live "has the edge died?" alarm; S17's check showed the break-even version works once k is set from the shift (30% → 56.5% detected at the same false-alarm rate). Thresholds are risk controls: protected when set | Proposed (S16–S17) | Before L3 paper |
 | O-3 | Exact neighbourhood rule (size, allowed degradation) | Open → acceptance test | Step 5 |
 | O-4 | IBKR futures cost model: exchange/regulatory fees for Coinbase nano and CME contracts; perpetual-style funding mechanics; IBKR market-data cost | Open → spike | Step 3 |
 | O-5 | Consensus-forecast vendor for S-MACRO | Open | When S-MACRO leaves collection |
@@ -398,11 +405,11 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | Build traps per component | `docs/v2/BUILD_NOTES.md` | Read before building that component |
 | Third-party code + v1 code to reuse | `docs/v2/COMPONENTS.md` | Source, licence, version, test status |
 | Detailed specs | `docs/v2/specs/` | Kronos shadow; sentiment strategy (each with a staleness note at the top) |
-| Content-analysis results (reasoning per source S1–S12+) | claude.ai Project: `claude/item-analyses.md`, `claude/item-analyses-2.md` | Background; this doc wins |
+| Content-analysis results (reasoning per source S1–S17) | claude.ai Project: `claude/item-analyses.md`, `claude/item-analyses-2.md`, `claude/item-analyses-3.md` | Background; this doc wins |
 | Every option considered | Project: `claude/comparison-matrix.md` | Record of options |
 | Kept-for-later library (repos, data sources, findings, rejected) | Project: `claude/reference-library.md` | Check before re-researching anything |
 | How to run content analysis | Project: `claude/content-analysis-handoff.md` | Points back here |
-| Content-analysis check scripts (S10–S12+) | `docs/v2/research/` (README inside) | Rerun with `python -I`; S11+ need the source's code pack |
+| Content-analysis check scripts (S10–S17) | `docs/v2/research/` (README inside) | Rerun with `python -I`; S11+ need the source's code pack |
 | Map of every file in the repo | `docs/v2/CODEBASE.md` | What each part is, v1 or v2, and its v2 fate |
 | What was done, when | `docs/v2/CHANGELOG.md` | Dated work log; decisions stay in §10 |
 | v1 frozen docs | `docs/v1-archive/` (incl. `HANDOFF.md`, the v1 log, closed 3 Nov) | Reference only |

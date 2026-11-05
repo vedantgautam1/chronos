@@ -4,6 +4,19 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 5 Nov 2026 — content analysis S13–S17 (Parts 3–7); content analysis paused
+
+- **Items:** Arwaz Az, "Self-Improving AI Trading Agent" Parts 3–7 (evaluation gate, agent team, improvement loop, validation and safety layer, complete architecture). All five PDFs read; the full code pack run: 157/157 tests; every Part 3–7 figure reproduced (0 differences in 38,480 values).
+- **Own checks** (rules written before running, `research/s13-s17-deep-pass/`):
+  - K1: the book's promotion gate accepted forged evidence (a hand-built ladder record took a failed decoy to LIVE; a typed monitor calibration and a swapped audit log also passed).
+  - K2: its "one sealed look" is per object and per file hash; consecutive loop cycles reuse 43–56% of sealed days; a null idea looked at four times is confirmed 16% of the time vs 5%.
+  - K3: with the risk engine in its own process, the broker handle, a swapped risk handle and a one-line SQL un-halt still got orders through; its order-size limit misses every size bug below 1.67×. Killing the risk process failed closed, as intended.
+  - K4: the book's unexplained weak break-even monitor is a slack setting: 30% → 56.5% of dead edges found at the same false-alarm rate once k is set from the shift.
+- **Updated:** `CHRONOS_V2.md` (§1, §2, §6 pointer, §9 "before step 2" done, §11b three rows, §12 proposals **P-5–P-8**, §13), `BUILD_NOTES.md` (§2, §5, §6, §7, §10, new §11 Nemesis/Argus), `COMPONENTS.md` §3, `research/README.md`.
+- **Added:** `research/s13-s17-deep-pass/` (pre-registration, check scripts, results JSON, `RESULTS.md`). The author's code pack is not committed (licence not stated).
+- **Proposals for the founder (nothing locked):** P-5 where the edge check runs vs the searched history; P-6 per-component 2× cost stress (protected); P-7 Nemesis boundary and limit headroom (limit numbers protected); P-8 edge-decay alarm in Argus.
+- **Next:** content analysis pauses; §9 step 2 (v2 code skeleton) starts.
+
 ## 5 Nov 2026 — decisions V2-D31–D33 written in; repo documented
 
 - **Locked by the founder (3 Nov, "adopt everything"):**
