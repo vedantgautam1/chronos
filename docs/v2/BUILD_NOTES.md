@@ -19,6 +19,7 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
 - **Stop and flag** when a change forks into non-equivalent options. Present both and ask. (v1 rule; it was right every time)
 - **Time:** tz-aware UTC everywhere, half-open `[start, end)` ranges. Decimal for the money ledger, float64 for series maths. (v1 conventions, kept)
 - **Isolation:** run downloaded or third-party code with `python -I` from outside its own folder.
+  - **Exception: a repo's own test suite.** `-I` drops the working directory from the import path, so the repo's tests can't import its own package (S18: every agent-kit test module failed to import). Run its documented test command from its root, inside a throwaway venv or folder; use `-I` for our own scripts that read or call it [Certain — run, S18].
 - **v2 and v1 share this repo** (V2-D29). Put v2 in its own new package folder; never edit v1 code under `src/chronos/` or `tests/`. CI (`.github/workflows/tests.yml`) currently runs only the v1 suite: add the v2 tests to CI when they exist, and retire the v1 job only with the founder's OK. Watch for import-name clashes with the v1 `chronos` package.
 - **Environment:** the v1 repo uses `uv` (no bare `pip install` into the project). Keep that unless the founder decides otherwise.
 
@@ -140,6 +141,7 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
 - **"No diagnosis, no hypothesis"** for the failure-diagnosis agent: a diagnosis must pass a corrected test on development data before it may name a change. In S15's no-edge worlds this cut experiments from 12 to 0.14 per world [Certain — S15 rerun].
 - **Frequency = independent sources per event, not copies.** One wire story syndicated 40 times is one source. Cluster first.
 - **Grok** is valuable for live X access but can't supply honest *historical* sentiment.
+- **Paid-API clients (Grok, Claude, any data vendor): reserve the budget before the first paid call.** Pattern from S18's `skylit-agent-kit` (checked offline only): a free account/balance check first; the whole run's planned cost compared with a per-run cap before any paid request; one fixed destination host; redirects refused; response size capped; no automatic retries or budget increases; the key read from the OS keychain or an owner-only file, never from chat or a repo file. With no key, live mode refused with 0 network attempts [Certain — run, S18 C3]. Keeps collectors inside the V2-D13 budget when a loop or a bad parameter would otherwise spend all month's credits in a night.
 
 ## 8. Order-flow, Hawkes and market-profile ideas (parked, data collected now)
 
