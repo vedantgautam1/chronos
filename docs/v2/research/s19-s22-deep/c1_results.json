@@ -1,0 +1,8 @@
+{
+  "data": "Qlib official cn_data 'latest' (calendar ends 2020-09-25); sha256 of zip 8a323fec32e1bd0c1662c1fc753ad033f190523e450936e63c9509796ea32e41",
+  "configs": "examples/benchmarks/LightGBM/workflow_config_lightgbm_Alpha158.yaml, examples/benchmarks/Linear/workflow_config_linear_Alpha158.yaml (repo commit 5435523)",
+  "LightGBM_Alpha158": {"IC": 0.04681, "ICIR": 0.38157, "RankIC": 0.04905, "RankICIR": 0.40675, "ARR_with_cost": 0.080654, "IR_with_cost": 0.914486, "MDD_with_cost": -0.086083,
+     "readme": {"IC": 0.0448, "ICIR": 0.3660, "RankIC": 0.0469, "RankICIR": 0.3877, "ARR": 0.0901, "IR": 1.0164, "MDD": -0.1038}, "pass": true},
+  "Linear_Alpha158": {"IC": 0.03883, "ICIR": 0.29636, "RankIC": 0.04755, "RankICIR": 0.35593, "ARR_with_cost": 0.096366, "IR_with_cost": 1.306063, "MDD_with_cost": -0.162264,
+     "readme": {"IC": 0.0397, "ICIR": 0.3000, "RankIC": 0.0472, "RankICIR": 0.3531, "ARR": 0.0692, "IR": 0.9209, "MDD": -0.1509}, "pass": false, "note": "ARR +0.027 outside the +-0.02 tolerance; first attempt crashed reading an empty MLflow metric file, rerun once unchanged"}
+}
