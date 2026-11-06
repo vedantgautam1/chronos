@@ -39,7 +39,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 - **v2 code: none written yet.**
 - **v1: frozen** (branch `v1-final`).
 - **Data collection: not started.** Price candles and Kraken trades can be downloaded or backfilled later; what can't be recovered is news/X sentiment as it looked at the time (needed for S-NEWS) and our own snapshots of IBKR futures spreads.
-- **Content analysis:** 22 items done (S1–S22); **resumed 5 Nov alongside building** (founder), repos first, judged by whether they replace something in build steps 2–5. Parts 3–7 of the S11–S12 series produced V2-D34 to V2-D40. S18–S22 (Skylit, OpenBB, freqtrade, Qlib, RD-Agent) replace nothing in steps 2–5; they added build notes (data traps, two look-ahead tests). It feeds the design but does not replace building.
+- **Content analysis:** 24 items done (S1–S22, S31, S32; the last batch S23–S35 is in progress, 2 of 13 done); **resumed 5 Nov alongside building** (founder), repos first, judged by whether they replace something in build steps 2–5. Parts 3–7 of the S11–S12 series produced V2-D34 to V2-D40. S18–S22 (Skylit, OpenBB, freqtrade, Qlib, RD-Agent) replace nothing in steps 2–5; they added build notes (data traps, two look-ahead tests). It feeds the design but does not replace building.
 
 **First trading target.** BTC (then ETH) **intraday, long and short**, several trades a day with holds of minutes to hours. Traded through **IBKR crypto futures** (Coinbase nano BTC/ETH first, CME micro and Bitcoin Friday second). Signal history comes from Kraken spot data.
 

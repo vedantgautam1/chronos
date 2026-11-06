@@ -13,6 +13,13 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 - **§11b:** two Skylit rows added (no crypto coverage; vendor MCP servers for research in chat).
 - **Updated:** `CHRONOS_V2.md` §1, §2, §4, §8, §9 (steps 2, 4, 8), §10, §11b, §12; `BUILD_NOTES.md` §4, §6, §7; Project docs (handoff, library, read-first). `COMPONENTS.md` and `specs/` checked: no references to change.
 
+## 5–6 Nov 2026 — last repo batch S23–S35, Part 1: vectorbt (S32) and quantstats (S31)
+
+- Founder's last batch before building: 13 repos in four parts (Alpaca, Qlib and OpenAlice dropped). Part 1 pre-registered in `acde253`; results in `research/s23-s35/part1/RESULTS.md`.
+- **vectorbt:** maths exact; fast enough for counted sweeps (1,000 variants on 2 years of hourly BTC in ~3–11 s). Five optimistic defaults (same-bar fills, close-only stops, stop exits without slippage, no funding, silent missing Sharpe without `freq`) → a screening wrapper (BUILD_NOTES §2). Stays Leaning; COMPONENTS row updated.
+- **quantstats:** formulas exact, offline HTML report works; 252-day default is a trap for crypto (BUILD_NOTES §2). Candidate for Argus reports and for known-answer cross-checks.
+- Two harness errors of mine (an expected value, a unit mismatch) were found after the first run, corrected and recorded; no library result changed.
+
 ## 5 Nov 2026 — S19–S22 deep pass (everything tested)
 
 - Founder asked for every repo in S19–S22 to be tested and thought through. Pre-registered in `057184b`; results in `research/s19-s22-deep/RESULTS.md`. **No switch from any locked choice** (NautilusTrader V2-D04, IBKR futures V2-D27, Mnemosyne V2-D33/D42, research MCP server V2-D19); no new proposal.
