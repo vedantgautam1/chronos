@@ -4,6 +4,34 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 6 Nov 2026 — last repo batch S23–S35, Part 2: pysystemtrade (S30), Zipline (S28), RQAlpha (S29)
+
+- Pre-registered in `bc851d8`; results in `research/s23-s35/part2/RESULTS.md`. **No engine switch; none is a Nautilus fallback; no proposal, no lock.**
+  - **pysystemtrade** (GPL-3.0): 103 tests pass + 17 slow examples. Its sizing formula, per-trade cost formula and BTC back-adjustment (74 rolls) reproduce exactly. But:
+    - it is daily-only (24/7 data folded into Friday);
+    - it has no funding concept and no Coinbase contract;
+    - its default cost accounting is smoothed (+6.1% on a BTC run; exact with two defaults off);
+    - its trade and position limits clip.
+    
+    A reference for Themis and roll arithmetic only.
+  - **Zipline:** the original no longer installs. zipline-reloaded passes 3,313 tests and every fill, cost, volume-cap, short and no-peeking check. Its 24/7 BTC run crashed at the year end and needed three workarounds. It is equity-first, with no IBKR futures path.
+  - **RQAlpha:**
+    - non-commercial licence;
+    - every test failure traces to its data bundle, which downloads over plain HTTP with no checksum and is unpacked without a filter;
+    - its validators reject by default, but a backtest-only option fills part of an order instead.
+- Deviations recorded:
+  - pre-registration header time (05:45 written, 05:35 committed);
+  - Z0 on Python 3.8;
+  - two Z6 harness fixes;
+  - RQAlpha test dependencies added.
+- `BUILD_NOTES.md`:
+  - §1: HTTPS or checksum for downloads; unpack archives with a filter;
+  - §3: Carver's sizing as a Themis known-answer test, and the /16 annualisation trap;
+  - §4: business-day resampling stamps weekend prices with Friday's date;
+  - §5: pysystemtrade's cost defaults; 24/7 edge-of-run tests for the spike;
+  - §11: two systems that clip.
+- `CHRONOS_V2.md` §1 content-analysis count (27 items) and "Last updated". `COMPONENTS.md` unchanged (nothing adopted).
+
 ## 5 Nov 2026 — decisions V2-D41 and V2-D42 locked
 
 - **Locked by the founder ("lock p9 and p10"):**

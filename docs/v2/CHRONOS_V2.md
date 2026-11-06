@@ -1,7 +1,7 @@
 # CHRONOS v2 — the master document
 
 **Read this first. Every Claude chat, every Claude Code session, every time.**
-Last updated: **5 Nov 2026** (V2-D41, V2-D42). Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
+Last updated: **6 Nov 2026** (content analysis S28–S30; last decisions locked: V2-D41, V2-D42). Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
 
 This one file answers: what Chronos is, what is built, what is not built, what we decided and why, what we rejected and why, what to watch out for when building, and where everything else lives. If anything else disagrees with this file, **this file wins** (see §0 for the order).
 
@@ -34,12 +34,12 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 
 **What changed.** v1 (Jul–Aug 2026) was a research instrument built to produce a clean, documented FAIL, with an 11-gate validation gauntlet and no way to trade. Its own results showed no honest should-pass test strategy could clear all 11 gates. v2 (designed 27 Oct–3 Nov 2026) keeps v1's honest statistics, replaces the rest with open-source parts (NautilusTrader as the engine), and adds a path to live trading.
 
-**Where we are today (5 Nov 2026).**
+**Where we are today (6 Nov 2026).**
 - **Design: done** (decisions V2-D01–D42, §10).
 - **v2 code: none written yet.**
 - **v1: frozen** (branch `v1-final`).
 - **Data collection: not started.** Price candles and Kraken trades can be downloaded or backfilled later; what can't be recovered is news/X sentiment as it looked at the time (needed for S-NEWS) and our own snapshots of IBKR futures spreads.
-- **Content analysis:** 24 items done (S1–S22, S31, S32; the last batch S23–S35 is in progress, 2 of 13 done); **resumed 5 Nov alongside building** (founder), repos first, judged by whether they replace something in build steps 2–5. Parts 3–7 of the S11–S12 series produced V2-D34 to V2-D40. S18–S22 (Skylit, OpenBB, freqtrade, Qlib, RD-Agent) replace nothing in steps 2–5; they added build notes (data traps, two look-ahead tests). It feeds the design but does not replace building.
+- **Content analysis:** 27 items done (S1–S22, S28–S32; the last batch S23–S35 is in progress, 5 of 13 done); **resumed 5 Nov alongside building** (founder), repos first, judged by whether they replace something in build steps 2–5. Parts 3–7 of the S11–S12 series produced V2-D34 to V2-D40. S18–S22 (Skylit, OpenBB, freqtrade, Qlib, RD-Agent) replace nothing in steps 2–5; they added build notes (data traps, two look-ahead tests). S28–S32 (Zipline, RQAlpha, pysystemtrade, quantstats, VectorBT) don't either: none is a fallback engine; VectorBT stays the screening engine, quantstats is for reports, pysystemtrade is a reference for sizing and roll arithmetic. It feeds the design but does not replace building.
 
 **First trading target.** BTC (then ETH) **intraday, long and short**, several trades a day with holds of minutes to hours. Traded through **IBKR crypto futures** (Coinbase nano BTC/ETH first, CME micro and Bitcoin Friday second). Signal history comes from Kraken spot data.
 

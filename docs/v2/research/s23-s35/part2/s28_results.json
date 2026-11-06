@@ -1,0 +1,47 @@
+{
+  "Z2_fill_and_costs": {
+    "fill_day": "2023-01-11",
+    "expected_day": "2023-01-11",
+    "fill_price": 103.78186500000001,
+    "hand_price": 103.781865,
+    "commission": 0.1,
+    "hand_commission": 0.1,
+    "pass": true
+  },
+  "Z3_volume_cap": {
+    "fills_per_day": {
+      "2023-01-11": 2000,
+      "2023-01-12": 2000,
+      "2023-01-13": 2000,
+      "2023-01-17": 2000,
+      "2023-01-18": 2000
+    },
+    "total": 10000
+  },
+  "Z4_short": {
+    "short_fill": [
+      "2023-01-11",
+      82.30882500000001,
+      -100
+    ],
+    "cover_fill": [
+      "2023-01-17",
+      83.76186,
+      100
+    ],
+    "zipline_pnl_from_fills": -145.50349999999855,
+    "hand_pnl": -145.50349999999997,
+    "commission": 0.2,
+    "pass": true
+  },
+  "Z5_no_peeking": {
+    "days": 60,
+    "mismatches": 0,
+    "examples": [],
+    "pass": true
+  },
+  "Z6_247": {
+    "error": "IndexError('index 362 is out of bounds for axis 0 with size 362')",
+    "pass": false
+  }
+}
