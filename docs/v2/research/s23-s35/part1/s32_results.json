@@ -1,0 +1,113 @@
+{
+  "V2a_default_fill": {
+    "entry_price": 100.0,
+    "entry_time": "2025-01-01 00:00:00+00:00",
+    "close_of_signal_bar": 100.0,
+    "note": "default fills at the signal bar's close"
+  },
+  "V2b_next_open": {
+    "entry_price": 101.99999999999999,
+    "expected": 102.0,
+    "exit_price": 105.0,
+    "expected_exit": 105.0,
+    "note": "expected_exit corrected 106 -> 105 after first run: 106 was bar 3 close, the rule is bar 3 open (fixture error)",
+    "pass": true
+  },
+  "V3a_prop_fee": {
+    "pnl": 4.795,
+    "hand": 4.795,
+    "pass": true
+  },
+  "V3b_fixed_fee": {
+    "pnl": 4.460000000000001,
+    "hand": 4.46,
+    "pass": true
+  },
+  "V3c_short": {
+    "pnl": -5.745,
+    "hand": -5.745,
+    "pass": true
+  },
+  "V3d_funding_native": {
+    "funding_like_params": [],
+    "native_funding": false
+  },
+  "V4a_gap_with_ohlc": {
+    "exit_price": 90.0,
+    "realistic": 90.0,
+    "exit_time": "2025-01-01 01:00:00+00:00",
+    "pass": true
+  },
+  "V4b_close_only": {
+    "exit_price": 96.0,
+    "exit_time": "2025-01-01 02:00:00+00:00",
+    "status": "Open"
+  },
+  "V4c_stop_slippage_default": {
+    "exit_price": 95.0,
+    "stop_price": 95.0,
+    "with_slippage_would_be": 94.905,
+    "slippage_applied": false
+  },
+  "V5_stats": {
+    "sharpe_vbt": 6.555066842313936,
+    "sharpe_hand": 6.555066842313936,
+    "mdd_vbt_pct": 5.352396397147681,
+    "mdd_hand_pct": 5.352396397147685,
+    "pass": true
+  },
+  "V5_no_freq": {
+    "sharpe_present": false,
+    "keys": []
+  },
+  "V8_vs_quantstats": {
+    "vbt": 6.555066842313936,
+    "quantstats": 6.555066842313936,
+    "pass": true
+  },
+  "V6_speed": {
+    "bars": 17544,
+    "variants": 1000,
+    "seconds_incl_numba_compile": 7.03,
+    "peak_rss_mb": 1491.3,
+    "pass": true,
+    "note": "toy grid; returns not evidence",
+    "portfolio_only_second_run_s": 2.8
+  },
+  "V7_lookahead": {
+    "MA20": {
+      "mismatches": 0,
+      "of": 200,
+      "worst_rel": 0.0
+    },
+    "EMA50": {
+      "mismatches": 0,
+      "of": 200,
+      "worst_rel": 0.0
+    },
+    "MSTD20": {
+      "mismatches": 0,
+      "of": 200,
+      "worst_rel": 0.0
+    },
+    "BB_upper20": {
+      "mismatches": 0,
+      "of": 200,
+      "worst_rel": 0.0
+    },
+    "RSI14": {
+      "mismatches": 0,
+      "of": 200,
+      "worst_rel": 0.0
+    },
+    "ATR14": {
+      "mismatches": 0,
+      "of": 200,
+      "worst_rel": 0.0
+    },
+    "EMA200_warmup_500_vs_5000": {
+      "rel_diff": 4.1778357758454296e-05
+    },
+    "pass": true
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "recorded": [
+    "8acd7d189997407c8af769c9aa1d0958",
+    "b24e2f5c52884b2db183df82c0d14007"
+  ],
+  "edit_after_finish": {
+    "allowed": true,
+    "latest_sharpe": 1.9
+  },
+  "delete": {
+    "allowed": true,
+    "remaining": [
+      "8acd7d189997407c8af769c9aa1d0958"
+    ]
+  },
+  "verdict_append_only": false
+}

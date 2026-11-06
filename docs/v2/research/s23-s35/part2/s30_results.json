@@ -1,0 +1,93 @@
+{
+  "P2_247_business_days": {
+    "label_to_source_hour": {
+      "2024-03-04 Monday": "2024-03-04 23:00:00",
+      "2024-03-05 Tuesday": "2024-03-05 23:00:00",
+      "2024-03-06 Wednesday": "2024-03-06 23:00:00",
+      "2024-03-07 Thursday": "2024-03-07 23:00:00",
+      "2024-03-08 Friday": "2024-03-10 23:00:00",
+      "2024-03-11 Monday": "2024-03-11 23:00:00",
+      "2024-03-12 Tuesday": "2024-03-12 23:00:00"
+    },
+    "labels_present": [
+      "Friday",
+      "Monday",
+      "Thursday",
+      "Tuesday",
+      "Wednesday"
+    ],
+    "total_move_hourly": 671.0,
+    "total_move_daily": 671.0,
+    "pass_no_move_lost": true
+  },
+  "P3a_cost_formula": {
+    "pysystemtrade": 9.14,
+    "hand": 9.14,
+    "spread_cost_cfg": 13.0,
+    "per_block_cfg": 3.27,
+    "pointsize": 0.1,
+    "pass": true
+  },
+  "P7_speed": {
+    "seconds_btc_only_backtest": 0.72
+  },
+  "P3b_costs_in_backtest": {
+    "n_position_changes": 589,
+    "contracts_traded": 1412.0,
+    "system_total_costs": 6849.359259177649,
+    "hand_total_costs_daily_close": 6452.839999999948,
+    "rel_diff": 0.0614487976112384,
+    "pass": false,
+    "use_SR_costs": false
+  },
+  "P4_sizing": {
+    "date": "2024-03-28 00:00:00",
+    "system_position": 7.14013582061782,
+    "hand_position": 7.140135820617821,
+    "forecast": 4.93269837252169,
+    "daily_cash_vol_target": 3125.0,
+    "capital_x_volpct_over_16": 3125.0,
+    "pass": true,
+    "block_value_matches_price_x_point_x_0.01": true
+  },
+  "P5_controls": {
+    "overrides": {
+      "reduce_only_growing(+2 at 3)": 0,
+      "reduce_only_shrinking(-2 at 3)": -2,
+      "reduce_only_flipping(-5 at 3)": -3,
+      "close(+2 at 3)": -3,
+      "no_trading(+2 at 3)": 0,
+      "float_0.5(+2 at 3)": -1
+    },
+    "overrides_pass": true,
+    "trade_limit_3_used_2_proposed_5": 1,
+    "position_limit_4_at_3_proposed_+3": 1
+  },
+  "P6_back_adjustment": {
+    "rows_checked": 26900,
+    "rows_matching": 26900,
+    "share_matching": 1.0,
+    "n_rolls": 74,
+    "largest_roll_gap_price_points": 965.0,
+    "pass": true,
+    "first": "2017-12-22 02:00:00",
+    "last": "2024-03-28 23:00:00"
+  },
+  "P3b_followup_roll_costs": {
+    "rolls_per_year": 12,
+    "pseudo_roll_contracts": 4427.313295979382,
+    "pseudo_roll_cost": 20232.821762625776,
+    "trading_plus_roll_cost": 26685.661762625725,
+    "system_total_costs": 6849.359259177649,
+    "rel_diff": 2.896081480449263
+  },
+  "P3b_followup2_raw_costs": {
+    "system_total_costs_raw": 6452.84,
+    "hand_commission_plus_spread": 6452.839999999948,
+    "hand_commission_only": 4617.24,
+    "trade_fills": 589,
+    "trade_fills_without_slippage_flag": 0,
+    "matches_commission_plus_spread": true,
+    "matches_commission_only": false
+  }
+}

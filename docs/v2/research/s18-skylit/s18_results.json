@@ -1,0 +1,213 @@
+{
+  "C1": {
+    "agent-kit": {
+      "exit": 1,
+      "summary": [
+        "----------------------------------------------------------------------",
+        "Ran 13 tests in 0.002s",
+        "",
+        "FAILED (errors=13)"
+      ]
+    },
+    "agent-lab": {
+      "exit": 1,
+      "summary": [
+        "----------------------------------------------------------------------",
+        "Ran 204 tests in 10.799s",
+        "",
+        "FAILED (failures=13, errors=14, skipped=1)"
+      ]
+    }
+  },
+  "C2": [
+    {
+      "repo": "agent-kit",
+      "cmd": [
+        "module",
+        "skylit_agent_kit",
+        "doctor"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": "\u2713 Python          3.13.18 (needs 3.11+)\n\u2713 Git             2.43.0\n\u2713 Repository      main @ 0e7b068\n\u2713 Agent access    kit commands allowed by .claude/settings.json\n\u2713 Reports folder  reports/ will be created\n\u2022 Skylit key      not stored yet\n\nYour path:\n\u2713 1. Check setup           Agent\n\u2192 2. Create a key          You\n  3. Store the key         You\n  4. Prove the connection  Agent\n  5. First live data       Agent, after you say yes\n\nNext: Create a key at https://app.skylit.ai/developer (API keys \u2192 New key), then run in your own terminal: python3 -m skylit_agent_kit login\n",
+      "stderr_tail": ""
+    },
+    {
+      "repo": "agent-kit",
+      "cmd": [
+        "module",
+        "skylit_agent_kit",
+        "endpoints"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": " for a ticker\nflowseeker.getUnderlyingStats: Daily stats for a single underlying\nflowseeker.getUnderlyingTrades: Raw enriched trades for a ticker\nflowseeker.getVolOi: Volume-vs-Open-Interest accumulation analysis\natlas.getConfig: Datafeed configuration\natlas.getHistory: OHLCV price bars for a symbol and resolution\natlas.getOpenAPI: This OpenAPI specification, as JSON\natlas.searchSymbols: Search symbols\natlas.resolveSymbol: Resolve a symbol\natlas.getServerTime: Server time\nTry: python3 -m skylit_agent_kit endpoint <ID>\nInspect inputs: python3 -m skylit_agent_kit endpoint <ID> --show-parameters\n",
+      "stderr_tail": ""
+    },
+    {
+      "repo": "agent-kit",
+      "cmd": [
+        "module",
+        "skylit_agent_kit",
+        "endpoint",
+        "heatseeker.getHeatmap"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": "     \"shareable\": false,\n        \"terms\": \"synthetic\",\n        \"text\": \"synthetic\",\n        \"url\": \"synthetic\"\n      },\n      \"cached\": false,\n      \"delayMinutes\": 100,\n      \"delayed\": false,\n      \"metric\": \"gamma\",\n      \"mode\": \"live\",\n      \"resolution\": \"1s\"\n    }\n  },\n  \"schema_note\": \"Fictional schema-shaped fields; not necessarily a coherent financial scenario.\",\n  \"next_step\": \"Inspect live per-strike heatmap (one or more symbols) and its source timestamp; keep missing values visible before adding this input to a saved report.\",\n  \"source\": \"https://api.skylit.ai/v1/openapi.json\"\n}\n",
+      "stderr_tail": ""
+    },
+    {
+      "repo": "agent-kit",
+      "cmd": [
+        "module",
+        "skylit_agent_kit",
+        "use-case",
+        "node-tracker"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": "ld it yourself\n\n1. Choose one exact symbol and explicit coverage.\n2. Build the endpoint plans shown above with `plan_request`.\n3. Load saved JSON or execute the entire list once with `execute_plans` and explicit caps.\n4. Preserve source timestamps, gaps and labels; render the evidence tables locally.\n\nSee [the use-case tutorial](../docs/use-cases.md) for copyable commands and agent prompts.\n\n\nSaved report: /home/claude/ext/skylit/skylit-agent-kit/reports/node-tracker-20261105T192012757912Z.md\nSaved chart: /home/claude/ext/skylit/skylit-agent-kit/reports/node-tracker-20261105T192012757912Z.svg\n",
+      "stderr_tail": ""
+    },
+    {
+      "repo": "agent-kit",
+      "cmd": [
+        "module",
+        "skylit_agent_kit",
+        "use-case",
+        "price-levels"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": "_notes\": [],\n    \"stream\": null,\n    \"auth_required\": true,\n    \"live_blocked\": null\n  }\n]\n```\n\n## Build it yourself\n\n1. Choose one exact symbol and explicit coverage.\n2. Build the endpoint plans shown above with `plan_request`.\n3. Load saved JSON or execute the entire list once with `execute_plans` and explicit caps.\n4. Preserve source timestamps, gaps and labels; render the evidence tables locally.\n\nSee [the use-case tutorial](../docs/use-cases.md) for copyable commands and agent prompts.\n\n\nSaved report: /home/claude/ext/skylit/skylit-agent-kit/reports/price-levels-20261105T192012848689Z.md\n",
+      "stderr_tail": ""
+    },
+    {
+      "repo": "agent-kit",
+      "cmd": [
+        "module",
+        "skylit_agent_kit",
+        "use-case",
+        "flow-investigator"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": "s\": [],\n    \"stream\": null,\n    \"auth_required\": true,\n    \"live_blocked\": null\n  }\n]\n```\n\n## Build it yourself\n\n1. Choose one exact symbol and explicit coverage.\n2. Build the endpoint plans shown above with `plan_request`.\n3. Load saved JSON or execute the entire list once with `execute_plans` and explicit caps.\n4. Preserve source timestamps, gaps and labels; render the evidence tables locally.\n\nSee [the use-case tutorial](../docs/use-cases.md) for copyable commands and agent prompts.\n\n\nSaved report: /home/claude/ext/skylit/skylit-agent-kit/reports/flow-investigator-20261105T192012939822Z.md\n",
+      "stderr_tail": ""
+    },
+    {
+      "repo": "agent-kit",
+      "cmd": [
+        "module",
+        "skylit_agent_kit",
+        "use-case",
+        "volatility-context"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": "\": [],\n    \"stream\": null,\n    \"auth_required\": true,\n    \"live_blocked\": null\n  }\n]\n```\n\n## Build it yourself\n\n1. Choose one exact symbol and explicit coverage.\n2. Build the endpoint plans shown above with `plan_request`.\n3. Load saved JSON or execute the entire list once with `execute_plans` and explicit caps.\n4. Preserve source timestamps, gaps and labels; render the evidence tables locally.\n\nSee [the use-case tutorial](../docs/use-cases.md) for copyable commands and agent prompts.\n\n\nSaved report: /home/claude/ext/skylit/skylit-agent-kit/reports/volatility-context-20261105T192013029865Z.md\n",
+      "stderr_tail": ""
+    },
+    {
+      "repo": "agent-kit",
+      "cmd": [
+        "module",
+        "skylit_agent_kit",
+        "watchlist",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": "ed.\nSymbols: SPXW, SPY, QQQ, TSLA, MSFT, AAPL, AMZN, META\nAssuming heatmap batches of 10: 12 requests including 2 free discovery calls; 10 documented credits.\nYour caps: 12 requests, 10 documented credits, 120 seconds.\nHeatmaps: gamma and vanna, up to 92 strikes / nearest 5 expirations. Flow: 1d, up to 10 trades each.\nAccount limits and symbol support are checked before paid calls; a smaller account batch may require a larger plan and stop this run.\nTo connect, run again with --live. If needed, create your key at https://app.skylit.ai/developer and enter it only at the hidden terminal prompt.\n",
+      "stderr_tail": ""
+    },
+    {
+      "repo": "agent-kit",
+      "cmd": [
+        "module",
+        "skylit_agent_kit",
+        "sample"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": "s are fictional.**\nFixture timestamp: 2026-09-30T20:00:00+00:00\n\n## Observations\n\n- Revenue change: 25.00% (2025-Q2 \u2192 2026-Q2). [1]\n- Call share of observed premium: 60.00%. [1]\n- Premium mix alone does not establish trade direction or investor intent.\n\n## Gaps\n\nNo live Skylit data, SEC filings, prices or recommendations are included.\n\n## Sources\n\n[1] Synthetic fixture: \"examples/fixtures/demo.json\".\nRevenue fields illustrate filing facts; premium fields illustrate market observations.\nThis fixture is not an API response schema.\n\n## Usage\n\n0 network requests \u00b7 0 model calls \u00b7 0 Skylit credits\n",
+      "stderr_tail": ""
+    },
+    {
+      "repo": "agent-lab",
+      "cmd": [
+        "path",
+        "experiments/journal-reviewer/run.py",
+        "--output",
+        "/tmp/s18out_n_8khryd/j.md"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": "Saved private paper-journal report: /tmp/s18out_n_8khryd/j.md\nSaved private run record: /tmp/s18out_n_8khryd/j.md.run.json\n",
+      "stderr_tail": ""
+    },
+    {
+      "repo": "agent-lab",
+      "cmd": [
+        "path",
+        "experiments/market-brief/run.py",
+        "--output",
+        "/tmp/s18out_n_8khryd/m.md"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": "Saved brief: /tmp/s18out_n_8khryd/m.md\nSaved private run record: /tmp/s18out_n_8khryd/m.md.run.json\n",
+      "stderr_tail": ""
+    },
+    {
+      "repo": "agent-lab",
+      "cmd": [
+        "path",
+        "templates/experiment/run.py"
+      ],
+      "exit": 0,
+      "net_attempts": [],
+      "stdout_tail": "/home/claude/ext/skylit/skylit-agent-lab/templates/experiment/reports/example.md\n",
+      "stderr_tail": ""
+    }
+  ],
+  "C3": [
+    {
+      "repo": "agent-kit",
+      "cmd": [
+        "module",
+        "skylit_agent_kit",
+        "endpoint",
+        "heatseeker.getHeatmap",
+        "--param",
+        "symbols=SPY",
+        "--param",
+        "metric=gamma",
+        "--live"
+      ],
+      "exit": 1,
+      "net_attempts": [],
+      "stdout_tail": "",
+      "stderr_tail": "Live plan: 2 request(s), 1 reserved credits; no retries or polling.\nNo Skylit API key found. In a terminal, run: python3 -m skylit_agent_kit login (hidden prompt, stored locally). Never paste a key into chat.\n"
+    },
+    {
+      "repo": "agent-kit",
+      "cmd": [
+        "module",
+        "skylit_agent_kit",
+        "watchlist",
+        "--live"
+      ],
+      "exit": 1,
+      "net_attempts": [],
+      "stdout_tail": "",
+      "stderr_tail": "Live caps: 12 requests / 10 documented credits; one run, no retries.\nNo Skylit API key found. In a terminal, run: python3 -m skylit_agent_kit login (hidden prompt, stored locally). Never paste a key into chat.\n"
+    }
+  ],
+  "verdict": {
+    "C1": false,
+    "C2": true,
+    "C3": true
+  }
+}
