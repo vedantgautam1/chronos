@@ -1,0 +1,26 @@
+{
+  "B1_full_suite": {"result": "7 failed, 4710 passed, 20 skipped", "excluded": "tests/freqai (FreqAI extras not installed)",
+    "failures": {
+      "environment (FreqAI extras missing)": ["tests/commands/test_commands.py::test_start_list_freqAI_models", "tests/rpc/test_rpc_apiserver.py::test_api_freqaimodels"],
+      "environment (running as root)": ["tests/test_log_setup.py::test_set_loggers_Filehandler_without_permission"],
+      "environment (network/audit service)": ["tests/test_pip_audit.py::test_pip_audit_no_vulnerabilities", "tests/test_pip_audit.py::test_pip_audit_runs_successfully", "tests/rpc/test_rpc_emc.py::test_emc_create_connection_invalid_url[...]"],
+      "unexplained, also fails alone (scheduler/time handling; not backtesting)": ["tests/freqtradebot/test_freqtradebot.py::test_process_scheduled_job_error"]}},
+  "B2_fills": {
+    "a_entry_next_open": {"open_rate": 102.0, "expected": 102, "pass": true},
+    "b_fees": {"profit_ratio": 0.0978021978021978, "hand": 0.0978021978021979, "pass": true},
+    "c1_gap_whole_candle_below_stop": {"close_rate": 90.0, "realistic": 90, "pass": true},
+    "c2_gap_open_below_stop_then_rally": {"close_rate": 95.0, "realistic": 90, "pass": false, "note": "books -5% for a real -10% loss"},
+    "d_stop_and_roi_same_candle": {"exit_reason": "stop_loss", "close_rate": 95.0, "note": "low assumed first (pessimistic), as documented"},
+    "e_funding": {"short_funding": 0.05, "expected": 0.05, "pass": true, "edge_open_08_close_16": 0.02, "note": "funding stamps at both the open and the close time are charged"}},
+  "B3_hyperopt_on_noise": {
+    "fee_0.1pct": {"epochs": 200, "best_params": {"fast": 26, "slow": 181}, "in_sample_sharpe": 0.18, "in_sample_profit": 0.0149, "out_of_sample_sharpe": -1.79, "out_of_sample_profit": -0.389, "trades_in": 83, "trades_out": 79},
+    "zero_fee_exploratory": {"epochs": 200, "best_params": {"fast": 25, "slow": 181}, "in_sample_sharpe": 2.02, "in_sample_profit": 0.158, "out_of_sample_sharpe": -0.62, "out_of_sample_profit": -0.108},
+    "adjustment_for_number_of_tries_reported": false},
+  "B4_leak_tools": {
+    "lookahead_clean": {"has_bias": false}, "lookahead_lead1": {"has_bias": true, "flagged": ["next_close", "enter_long"]},
+    "lookahead_fullmean_first_fixture": {"inconclusive": "0 signals in the window"},
+    "lookahead_fullmean2_revised_fixture": {"has_bias": true, "false_entry_signals": 16, "of": 20},
+    "recursive_sma_clean": {"flagged": {}}, "recursive_ema200": {"flagged": {"ema200": {"30": "nan", "100": "nan", "200": "0.0535%"}}},
+    "pass": true},
+  "B5_speed": {"candles": 210528, "timeframe": "5m", "span": "2023-01-02..2024-12-31 (Bitstamp BTC/USD)", "backtest_s": 3.63, "load_s": 1.16, "trades": 587, "peak_rss_mb": 614.4}
+}
