@@ -160,7 +160,7 @@ The full table with the weak point of each is in BLUEPRINT 2.9. In order:
 
 | # | Spend | Cost | Why |
 |---|---|---|---|
-| 1 | **Claude Max for the build months** | $100/month | About five times the allowance, and Fable for planning inside the plan. On Pro, one planning session plus one review emptied a five-hour window on 16 Nov. **My recommendation: switch when B01 starts** |
+| 1 | **Claude Max for the build months** | $100/month | About five times the allowance, and Fable for planning inside the plan. On Pro, one planning session plus one review emptied a five-hour window on 16 Nov. **You said on 16 Nov: not now, maybe in a couple of months.** The plan runs on Pro, slower; G1 brings this back with a measured cost per build |
 | 2 | **A few hours of an independent human reviewer** at G5 and before real money | a few hundred dollars, twice [Guessing] | Every checker in this system is an AI. Where the thresholds get set, one human who has seen none of it is a different kind of check |
 | 3 | **A second reviewer from a different AI family**, acting through its own GitHub identity | $20/month from G1 (you confirm then) | Different blind spots, on every build; and it is the one thing that would make "a build can't approve itself" a wall. Kept only if G2 shows it caught something |
 | 4 | **The server from G2, not after the spike** (proposal P-21, needs your yes) | $10–30/month [Guessing] | A few more weeks of headline history. A small gain; I'd take it only if the spike slips |
@@ -170,7 +170,7 @@ The full table with the weak point of each is in BLUEPRINT 2.9. In order:
 
 **Not worth money** [Likely]: hardware for local AI models · a new Mac · pay-per-use credits as the loop's main fuel · the top Claude plan before the middle one has been measured.
 
-**The rule for stepping back down, written now:** B05 measures what a build tick and a review tick cost. At G1, if a week of the loop used less than a fifth of Max's weekly allowance, go back to Pro for the slow phases (the spike, collection) and return to Max for the heavy ones (phases 1 and 4). [The one-fifth threshold is my suggestion; change it at G1.]
+**While you are on Pro:** build and review on Opus (Fable costs extra on Pro once the launch offer ends [Likely]); remember the allowance is shared with your ordinary chats; and expect sessions to be cut off by the limit now and then. That is harmless: every build saves its work step by step and the next session picks up where it stopped. **The rule for revisiting, written now:** B05 measures what a build and a review cost. The G1 report states how many builds a week that allows on Pro and how long 54 builds would take. That number decides whether Max is worth it, not a feeling.
 
 ---
 
@@ -221,7 +221,7 @@ Anything written by a tool other than the loop's own builder goes on a branch na
 
 **Before B01 starts:**
 4. Set the usage-credit limit (§6).
-5. Decide on Claude Max (§6, row 1).
+5. *(Decided 16 Nov: stay on Pro for now; Max comes back at G1 with measurements.)* Use Opus, not Fable, for build and review sessions.
 
 **Before B05 (15 minutes, any time):**
 6. Create a second, free GitHub account for the automation (for example `<yourname>-chronos-bot`) with its own email address. B05 walks you through adding it as a collaborator and connecting it. It is never the owner.

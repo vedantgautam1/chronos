@@ -464,13 +464,19 @@ The founder's figure for month one was US$100 for everything, with this instruct
 | Item | Monthly | Status |
 |---|---|---|
 | Claude Pro | $20 | Have it |
-| Claude Max | $100 | **Recommended from the start of B01**, reviewed at G1 from B05's measurements |
+| Claude Max | $100 | Claude's recommendation was "from B01". **Founder, 16 Nov: not now, maybe in a couple of months.** Revisited at G1 with B05's measurements |
 | Second-family reviewer | $20 | From G1 (P-20), reviewed at G2 |
 | Server | $10–30 [Guessing] | After the spike (V2-D30), or from G2 if you accept P-21 |
 | Human review | one-off, a few hundred dollars [Guessing] | At G5; your call then |
 | Paid APIs (Grok, Claude API for collectors) | budgeted in V2-D41 | Phase 3, behind the budget guard |
 
-That is roughly $120 a month through phase 1 and $130–150 from G2: inside the running budget already locked in V2-D13.
+With Max that would be roughly $120 a month through phase 1 and $130–150 from G2: inside the running budget already locked in V2-D13. On Pro it is $20, plus $20 from G1 if the second reviewer is confirmed.
+
+**Staying on Pro (the founder's choice for now).** The plan works on Pro; it is slower. Builds are cut into steps that are saved as they go, so a session cut off by the usage limit resumes where it stopped. Three things follow:
+
+1. **Build and review on Opus, not Fable.** On Pro, Fable is billed separately as usage credits once the launch offer ends [Likely]. Planning sessions use Opus too unless you choose to pay for Fable.
+2. **The allowance is shared with ordinary chatting** [Certain — Anthropic help page, read 16 Nov]. A heavy chat day slows the build.
+3. **Nobody knows yet how many builds a week Pro supports.** B05 measures what a build and a review cost; the G1 report turns that into "54 builds take about this long on Pro", and the question comes back then with a number.
 
 ---
 

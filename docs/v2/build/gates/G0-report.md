@@ -30,7 +30,7 @@ First pass: a builder could have approved itself; the checks could have been edi
 - Protected values are **not** changed by this pull request. The seal dates and stress settings are written into their protected file in build B02, with you present, with exactly the values already locked (V2-D35, V2-D38, V2-D39, V2-D31).
 
 **Waiting for you, not needed today:**
-- **Claude Max** for the build months (blueprint 2.9, row 1). My recommendation: yes, from B01.
+- **Claude Max:** my recommendation was yes, from B01. You said (16 Nov): not now, maybe in a couple of months. The plan runs on Pro, slower; G1 brings the question back with a measured cost per build (blueprint 2.9).
 - **P-21:** rent the server at G2 instead of after the spike. My view: a small gain; take it only if the spike slips.
 - **O-14:** does a chain of sibling hypotheses share one sealed look? Needed before B46 is specified.
 - P-12, P-14(a) and P-15 from the pre-build audit are still open.
