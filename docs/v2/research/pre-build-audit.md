@@ -1,6 +1,6 @@
 # Pre-build audit (16 Nov 2026 UTC)
 
-The founder asked for an in-depth audit of everything decided, documented and coded so far, before §9 step 2 (the code skeleton). This file records what was checked, what was found and what was proposed. **Nothing here is a decision.** Proposals P-12 to P-15 are in the master doc §12 until the founder answers.
+The founder asked for an in-depth audit of everything decided, documented and coded so far, before §9 step 2 (the code skeleton). This file records what was checked, what was found and what was proposed. **Nothing here is a decision.** Proposals P-12 to P-15 are in the master doc §12. **Answers so far (16 Nov):** P-13 → option (c), locked as V2-D46; P-14(b) answered (more capital available); forks 1–2 → V2-D45.
 
 **Caveat:** Claude wrote most of the material audited here, so this audit is partly self-grading. Under V2-D25 rule 3, an audit by a separate agent that hasn't seen this work is available if the founder wants an independent pass.
 
@@ -89,11 +89,33 @@ IB Gateway needs a **manual weekly re-login** (IBKR docs). Consequences:
 - The cost model's components are right. What's missing is the size of the numbers relative to the edge (§2).
 - Engine risk is contained: the spike tests the one make-or-break point, criterion (e), before anything is built on Nautilus.
 
-## Sources
+## 9. Is there a cheaper venue than IBKR? (founder question, 16 Nov)
+
+**No usable one found. Stay with IBKR.** What was checked:
+
+| Option | Per-side cost for 0.01 BTC of exposure | Usable? |
+|---|---|---|
+| IBKR, Coinbase nano (current plan) | ≈ USD 0.31 (0.20 IBKR + 0.10 exchange + 0.01 NFA) | Yes |
+| IBKR fixed plan instead of tiered | Same: fixed still adds exchange and regulatory fees (IBKR's ES example: 0.85 commission, 2.24 total) [Likely] | No saving |
+| IBKR, CME Micro Bitcoin (0.1 BTC) | ≈ USD 0.20 (2.0 per contract ÷ 10) — about a third cheaper per BTC | Yes, once positions are ≥ 0.1 BTC. Not 24/7, monthly rolls, no funding |
+| Coinbase's own futures for Canadians | 0.02% + USD 0.11 (launch promotion): ≈ 0.24 at USD 64k, ≈ 0.31 at USD 100k | **No**: offered only to Canadians with ≥ USD 5M net financial assets or to registered firms (Cointelegraph) |
+| NinjaTrader / Tradovate (accept Ontario residents; list Coinbase nano BTC) | Commission not readable on their pages; the exchange (0.10) and NFA fees are the same everywhere, so the most any broker can save is IBKR's 0.20 | Possible, but **NautilusTrader has no adapter** for them: we'd build and maintain our own order connection, and lose IBKR's FX/equities path |
+| Spot venues usable from Ontario (Kraken, Coinbase spot, NDAX, Wealthsimple, IBKR spot crypto) | Typically ~0.1–0.5% (10–50 bps) a side [Likely] | No: dearer and no shorting |
+| Offshore perpetual exchanges | Cheapest | Rejected (V2-D27): not legal for Ontario residents |
+
+**Bottom line:** the exchange and regulator fees (~USD 0.11 per nano) are fixed whoever the broker is. Switching broker could save at most IBKR's USD 0.20, at the cost of building our own order connection. The two levers that actually move cost are inside the current plan:
+- **MBT for larger positions:** ~35% less per BTC.
+- **Longer holds:** going from 1-hour to 4-hour moves roughly halves costs as a share of the move (§2).
+
 
 - IBKR, [Daily & weekly reauthentication](https://www.interactivebrokers.com/docs/third-party-integrations/tws-settings/daily-weekly-reauthentication) (read 16 Nov).
 - IBKR Canada, [Coinbase Derivatives trading](https://www.interactivebrokers.ca/en/trading/coinbase-derivatives.php) (read 16 Nov).
 - IBKR Canada, [Required minimums](https://www.interactivebrokers.ca/en/accounts/required_minimums.php) (read 16 Nov).
 - Coinbase, [US perpetual-style futures 101](https://www-marketing.coinbase.com/learn/futures/us-perpetual-style-futures-101): 0.01 BTC, hourly funding settled twice daily, up to 10× intraday; tick size not stated.
 - PyPI `nautilus_trader` JSON (1.231.0).
+- IBKR Canada, [Commissions: futures](https://www.interactivebrokers.ca/en/index.php?f=49560) (read 16 Nov).
+- IBKR, [CME exchange and regulatory fees](https://interactivebrokers.com/en/accounts/fees/CME.php) (read 16 Nov).
+- [Cointelegraph: Coinbase launches regulated crypto derivatives in Canada](https://cointelegraph.com/news/coinbase-launches-regulated-crypto-derivatives-in-canada); [Fintech.ca, 2 Sep 2026](https://www.fintech.ca/2026/09/02/coinbase-opens-crypto-futures-to-canadian-traders/).
+- [NinjaTrader: trade US futures from Canada](https://ninjatrader.com/futures/trade-us-futures-from-canada/); [Tradovate: Coinbase nano bitcoin](https://info.tradovate.com/coinbase-derivatives-nano-bitcoin).
+- [NautilusTrader integrations](https://nautilustrader.io/docs/latest/integrations).
 - Move-size table: `/home/claude/data/bitstamp/btc_bitstamp_5m_2023_2024.feather` (`ff137/bitstamp-btcusd-minute-data`, MIT, pre-seal), 2024 rows, last close per [start, end) bucket, absolute log returns.

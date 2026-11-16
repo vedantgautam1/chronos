@@ -4,6 +4,21 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 16 Nov 2026 — V2-D46 locked; cheaper-venue check
+
+- **V2-D46 (locked, founder "go with C"):** series that start after the crypto seal (news, recorded trades) get a research window plus their own sealed block. Inside the window, same-date prices are read only through code joined to the series, with footprints. P-13 resolved.
+  - Swept: master doc §6, §10 (V2-D38 status), §12; BUILD_NOTES §2; sentiment spec; order-flow dossier.
+- **Founder's Mac is on macOS 26:** Nautilus wheels install (BUILD_NOTES §5, COMPONENTS).
+- **Venue check** (audit §9): no cheaper Ontario-usable venue. Findings:
+  - IBKR's fixed plan still adds exchange fees;
+  - Coinbase's Canadian futures are for ≥ USD 5M investors only;
+  - NinjaTrader/Tradovate have no Nautilus adapter;
+  - spot venues are dearer and can't short.
+  - Corrected the "fixed plan includes fees" claim (master doc §3, BUILD_NOTES §5).
+  - Added CME exchange fees: MBT is ~⅓ cheaper per BTC than nano once positions reach 0.1 BTC.
+
+---
+
 ## 16 Nov 2026 — founder answers to the audit; V2-D45 locked
 
 - **V2-D45 (locked):** v2 is its own `uv` project in its own folder, with its own `pyproject.toml` and lock file; v1's files stay untouched; Python 3.14. Checked on PyPI that Nautilus and every dependency in view (numpy, pandas, scipy, numba, pyarrow, duckdb, psycopg, torch, tick, arch) publish 3.14 wheels. Swept: V2-D29 status, CODEBASE (root `pyproject.toml` row, planned v2 folder), COMPONENTS (Nautilus row), audit §6.

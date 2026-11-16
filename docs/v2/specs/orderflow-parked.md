@@ -81,6 +81,7 @@ So any signal is a partial view. Measure how Kraken flow relates to the nano con
 3. Kraken's share of BTC volume, and how Kraken flow relates to Coinbase nano price moves at the horizons we trade.
 4. Whether IBKR offers trade-level data for the nano contracts, and at what cost.
 5. A research card per thesis, with falsifiers and the trial count written before any screen.
+6. **Seal (V2-D46):** recorded trades start after the crypto seal. Fix the series' research window [start, X) and its own sealed block from X before any research; inside the window, prices are read only through code joined to the trades. Bulk-file history before 1 Apr 2026 is ordinary pre-seal data.
 
 ## 6. Where the evidence lives
 
