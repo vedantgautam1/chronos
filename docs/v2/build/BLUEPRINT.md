@@ -350,7 +350,7 @@ flowchart LR
 | 0 | **Spec** | Before any code | The pass/fail checks and the known answers are written first, by a session that isn't doing the build. The builder can't move the goalposts: the checks read each spec from the base branch, so editing your own spec on your own branch changes nothing |
 | 1 | **Automatic checks on every pull request** | Every build | Wrong numbers (known-answer tests). Edits to v1 (compared against `v1-final`: must be empty). Edits outside the files the spec lists. An earlier test deleted, skipped or switched off. A role writing what it may not. A protected value changed. Timezone not UTC. **The checking code runs from the base branch, never from the pull request**, so a build can't loosen the checks that judge it |
 | 2 | **Independent reviewer** | Every build | Code that passes tests but doesn't do what the spec says. Tests that can't fail. Hard-rule violations (CLAUDE.md 1–10). It must run the checks itself and break one thing on purpose to see a test go red |
-| 3 | **Gate audit** | End of each phase | Blind re-derivation of key numbers. **Sabotage run** (the tool is build B22): the code is changed on purpose, automatically, many times; every change the tests don't notice is listed and must be answered with a test or explained. End-to-end run. Docs match reality. Estimates vs actuals |
+| 3 | **Gate audit** | End of each phase | The tests as they stood at the previous gate, taken from `main`, re-run unmodified against today's code. Blind re-derivation of key numbers. **Sabotage run** (the tool is build B22): the code is changed on purpose, automatically, many times; every change the tests don't notice is listed and must be answered with a test or explained. End-to-end run. Docs match reality. Estimates vs actuals |
 | 4 | **Founder** | Gates only | Whether the direction is still right. Each gate report has "three things you can check yourself" in plain language |
 
 Two rules sit across all layers:
@@ -365,7 +365,7 @@ Two rules sit across all layers:
 | v1 can't be edited | B02 (check from the base branch) | — |
 | A build can't touch files outside its spec, or widen its own spec | B02 | — |
 | A build can't change the checks, the workflows or the rules | B02 as a check; **B05** as a GitHub rule needing your review | Before B05: a session acting as you could approve itself |
-| Earlier tests can't be deleted, skipped or switched off | B02 | A *new* test that checks less than the spec says is caught only by the reviewer and the sabotage run |
+| Earlier tests can't be changed, deleted, skipped or switched off | B02: existing test files are frozen (a file comparison done from the base branch), and pytest hooks are banned by a text scan | A *new* test that checks less than its spec says is caught only by the reviewer and the sabotage run. A session determined to fake a test run from inside new code could still try; the gate audit re-runs the previous gate's tests, unmodified, against the current code |
 | The builder can't mark its own work passed | B02 (role labels) | That the reviewer is a truly separate session. It is, by construction of the loop; nothing proves it. A reviewer with its own identity or from another AI family (V2-D51) would |
 | `main` moves only with your approval | **B05** | Before B05: instructions only |
 | Protected values (seal dates, stress settings) change only with your approval | **B05** | Before B05: the check flags it, but can't tell who approved |

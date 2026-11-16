@@ -36,7 +36,7 @@ may_modify_tests: []
 
 ## Deliver
 1. `oceanus/door.py`: `get_bars(...) -> BarsResult(frame, footprint)`, `available_range(key)`, `SealedDataError`, `DataIntegrityError`. Reads go through B12's store and B13's validation; gaps found become `Footprint.gaps` and set `partial = True`.
-2. `oceanus/instruments.py`: the instrument → seal-asset mapping for the spot pairs and futures named in the master doc §3.
+2. `oceanus/instruments.py`: the instrument → seal-asset mapping for the spot pairs and futures named in the master doc §3. Its tests assert that each listed mapping exists and that an unknown instrument is refused; they don't assert that the list is complete (B15 adds a series, and existing test files are frozen).
 3. A test that no module under `v2/src/` other than `oceanus/door.py` and `oceanus/loaders/` imports `oceanus.store`, and that nothing outside `oceanus/` calls a parquet reader directly. (This is a test, not an operating-system barrier: it catches accidents, not determination.)
 
 ## Steps

@@ -35,7 +35,7 @@ Build numbers are the **new** ones (the mapping from old numbers is below).
 
 | # | Finding | What was done | Where |
 |---|---|---|---|
-| 4 | Earlier tests could be switched off without deleting them (a `conftest.py` hook, a pytest option) | New `test_set` guard: the set of collected tests on the branch must contain the base branch's; zero skipped, zero expected-fail; no collection hooks or `addopts` | B02 |
+| 4 | Earlier tests could be switched off without deleting them (a `conftest.py` hook, a pytest option) | New `test_set` guard: existing test files are frozen (compared from the base branch); pytest hooks and options are banned by a text scan; the collected tests must contain the base branch's, with zero skipped and zero expected-fail. The gate audit re-runs the previous gate's tests unmodified | B02; BLUEPRINT 2.5 |
 | 5 | **Wrong known answer:** the "laundering" pair (0.5630 / 0.0542) only comes out with the sample skewness and kurtosis passed in; the spec didn't pass them (it would have got 0.56300 / 0.05438 and passed a loose check) | Values pinned to 1e-12 with skew 0.7203182819604969 and kurtosis 16.842229132109118 [Certain — run on v1's fixture with v1's functions], plus a test that the default call gives a *different* number | B10, B20 |
 | 6 | **Wrong known answer:** the generator's "planted Sharpe" check used one frame with seed 314, which is a regime world, and one frame is off target by about ±0.5 anyway | Replaced with v1's own test: the mean over 1,000 frames per rung is within ±0.05 of the target | B19 |
 | 7 | **Flaky known answer:** the bootstrap cross-check at 5,000 resamples with unpinned seeds would fail a correct build about one run in twenty | 40,000 resamples, seeds pinned, 6% band: the same numbers v1's probe uses [Certain — read in `chronos_math_probe.py`] | B08 |
@@ -70,9 +70,10 @@ The v1 line counts; the statistics counts (17 functions, 35 tests, 28 probe chec
 ## Found by the author while fixing (not by the red team)
 
 - The first version of the new sabotage spec (B22) said every change to its toy `clamp` function would be caught. Two of them (`<` to `<=` at a boundary) can never be caught by any test: they don't change behaviour. The expected result was corrected by applying all 11 changes by hand and running them: 7 caught, 4 survive, 2 of those equivalent.
+- Several builds share a tests folder, so "stay inside your listed files" did not stop a later build from loosening an earlier build's assertion in place. Existing test files are now frozen outright.
 - The master doc says an external SSD is available; the first budget note told the founder to buy one.
 
-Both are the same kind of error the red team found: a confident statement nobody had run.
+The first and third are the same kind of error the red team found: a confident statement nobody had run. The second is a hole the first pass didn't reach, which is the argument for a second pass.
 
 ## What this file does not show
 
