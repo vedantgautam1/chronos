@@ -4,6 +4,27 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 16 Nov 2026 — build blueprint, build specs B01–B18, founder handbook (draft, awaiting gate G0)
+
+- **Founder asked for** a build skeleton with line diagrams, session-sized builds, automated build-and-check loops in place of the chat → paste → Claude Code relay, a handbook, and a re-audit of v1. Nothing here is adopted until the founder approves gate G0.
+- **New folder `docs/v2/build/`:**
+  - `BLUEPRINT.md`: eight diagrams (the whole machine top to bottom, the evidence ladder, the order path, the seal, where things run, the build loop, branches, the build ladder); the build system (four roles, ticks, five layers of checking, brakes, size classes, model routing, money); when each outside component enters; **49 builds and 6 gates to the end of the acceptance test**.
+  - `specs/B01`–`B18` (full) with `specs/README.md` (rules for every builder and reviewer); `BUILD_CARDS.md` for B19–B49; `LADDER.yaml`; `LEDGER.md`; `V1_CARRYOVER.md`; `HANDBOOK.md`.
+- **v1 re-audit** (all of `src/`, `tests/`, root scripts): the data layer (schema, store, snapshot hash, validate, clean) moves from "reference" to "port" (P-16); touchstone *definitions* are separated from their gauntlet-bound runner; trade-shuffle drawdown and round-trip code are ported into sizing. `main` equals `v1-final` on every v1 path [run].
+- **Checked by running:**
+  - Python 3.14 with numpy, scipy, pandas, pyarrow, duckdb, arch, quantstats, vectorbt, psycopg and NautilusTrader 1.231.0 installs with no conflicts (Linux).
+  - Cloud sessions have PostgreSQL 16 and the Claude Code CLI, so database tests and the loop can run there.
+  - The mid-rank tie demonstration for build B05: with `numpy.sum`, strict ranking gives a mean rank of 38.9 on identical sums and mid-rank 50.2. **New trap:** Python's built-in `sum()` is compensated since 3.12 and hides the artefact; numpy and running totals don't.
+  - All eight diagrams render (mermaid-cli).
+- **Corrections:**
+  - `BUILD_NOTES.md` §4: a true Sharpe of 0.5 needs about **25** years to show, not 18 (v1's own function: 24.73).
+  - Master doc §12: the second "O-12" (AGPL) renumbered O-13; §13: content analysis is S1–S35 with `item-analyses-4.md`; §9 step 2: the strict-rank fix is in the v2 port, v1 stays frozen.
+- **Master doc:** §1 next step, §2a new row, §9 step 2, §10 three founder-instruction rows (16 Nov), §12 proposals **P-16 to P-20** (none locked), §13. Next IDs: V2-D47, P-21.
+- **Red team** (founder: yes): findings and what was done about each in `docs/v2/build/gates/G0-redteam.md`.
+- **Not done:** no v2 code; no loop yet (builds B01–B03); full specs for B19–B49 are written when each phase opens.
+
+---
+
 ## 16 Nov 2026 — V2-D46 locked; cheaper-venue check
 
 - **V2-D46 (locked, founder "go with C"):** series that start after the crypto seal (news, recorded trades) get a research window plus their own sealed block. Inside the window, same-date prices are read only through code joined to the series, with footprints. P-13 resolved.

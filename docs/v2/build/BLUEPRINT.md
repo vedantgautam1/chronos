@@ -354,16 +354,16 @@ Two rules sit across all layers:
 
 ### 2.6 Brakes: when the loop stops itself
 
-The loop halts (status `halted`, a reason file, one notification, schedule off) when:
+A build is **halted** (status `halted`, a reason file with the options, one notification) when any of these happens. A halted build blocks only the builds that need it; the loop carries on with any other chain that is runnable, and switches its schedule off when nothing is. The two triggers marked *global* stop everything.
 
 | Trigger | Why |
 |---|---|
 | A build fails review twice | Two tries means the spec or the approach is wrong, not the typing |
 | A build overruns its size budget (2.7) | The estimate was wrong. Stop, split it, renumber, record it |
-| Tests go red on `v2-build` | Something merged that shouldn't have |
+| Tests go red on `v2-build` *(global)* | Something merged that shouldn't have |
 | The builder hits a fork between non-equivalent options, or a conflict with the master doc | Hard rule 9: only the founder decides |
 | A change touches a protected value (validation thresholds, risk limits, promotion to live, a seal date) | Hard rule 7: show the diff and wait |
-| The v1 guard trips | v1 is frozen |
+| The v1 guard trips *(global)* | v1 is frozen |
 
 A halt is cleared by the founder, usually with one sentence in a session ("split it as proposed", "take option b"). Nothing proceeds around a halt.
 

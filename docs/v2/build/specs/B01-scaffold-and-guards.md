@@ -10,6 +10,8 @@ touches:
   - v2/**
   - .github/workflows/v2.yml
   - docs/v2/BUILD_NOTES.md
+  - scratch/.gitkeep
+  - docs/drafts/.gitkeep
 may_modify_tests: []
 ```
 
@@ -32,6 +34,7 @@ Everything later stands on this: a separate v2 project that can't touch v1, test
 5. Guards under `v2/tools/guards/`, each a small script with a `main()` that exits non-zero on failure, plus `run_all.py`:
    - `v1_frozen.py`: `git diff --quiet origin/v1-final -- src tests pyproject.toml uv.lock` must be empty. [Certain — run 16 Nov: it is empty on `main` today.]
    - `scope.py`: reads the build id from the branch name (`claude/b04-…` → B04), loads that spec's `touches` + the always-allowed paths (`specs/README.md`), and fails if the diff against `v2-build` touches anything else.
+     A branch named `lane/…` (work by any tool other than the loop's builder, HANDBOOK §7) may touch only `scratch/**` and `docs/drafts/**`. Any other branch name without a build id fails.
    - `test_integrity.py`: any file under `v2/tests/` that exists on `v2-build` may not be modified or deleted unless listed in `may_modify_tests`.
    - `protected.py`: any change under `v2/config/protected/`, `v2/migrations/protected/` or `v2/src/chronos2/fixtures/touchstones/` fails unless the pull request carries the label `founder-approved`.
 6. `.github/workflows/v2.yml`, on pull requests and on pushes to `v2-build` and `main`: job **tests** (`TZ=UTC`, `astral-sh/setup-uv`, `uv sync --frozen` in `v2/`, `uv run pytest -q`, with a `postgres:16` service declared now for B07); job **guards** (full fetch, fetch `v1-final`, `run_all.py`); job **lint** (`ruff check`).
@@ -52,7 +55,7 @@ Everything later stands on this: a separate v2 project that can't touch v1, test
 - `HalfOpen(2026-03-31T00:00Z, 2026-04-01T00:00Z)`: contains `2026-03-31T23:59:59Z`; does **not** contain `2026-04-01T00:00:00Z`; constructing it with a bare `date` raises.
 - `assert_process_utc()` passes under `TZ=UTC` and raises under `TZ=America/Toronto` (run in a subprocess).
 - Environment test: Python is 3.14; `importlib.util.find_spec("chronos") is None` (v1 isn't importable from the v2 environment).
-- Guard tests, one failing and one passing case each: v1 file edited → fail; file outside `touches` → fail, inside → pass; an existing test deleted → fail, a new test added → pass; a file under `v2/config/protected/` changed without the label → fail.
+- Guard tests, one failing and one passing case each: v1 file edited → fail; file outside `touches` → fail, inside → pass; an existing test deleted → fail, a new test added → pass; a file under `v2/config/protected/` changed without the label → fail. A `lane/x` branch touching `v2/src/chronos2/__init__.py` → fail; touching `scratch/note.md` → pass.
 - On GitHub: three green jobs on the B01 pull request; one red **guards** job on the proof branch.
 
 ## Not in this build

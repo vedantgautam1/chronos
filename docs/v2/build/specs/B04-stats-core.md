@@ -61,4 +61,4 @@ The math probe (B05) · mid-rank counters (B05) · outside-library cross-checks 
 - Parity fails beyond 1e-10 for any function. For `stationary_bootstrap_indices` specifically: if the cause is a change in numpy's random methods between versions, say so with the evidence and stop; the fix (compare distributions, or pin the draw order) is a statistical choice.
 
 ## Doc rows to update
-`BUILD_NOTES.md` §4: **correct** "0.5 needs about 18 [years]" to "about 25": the formula in v1 gives 6.2 years for a true Sharpe of 1.0 and 24.7 for 0.5 [Certain — run]. `COMPONENTS.md` §2 "Statistics core": ported in B04.
+`COMPONENTS.md` §2 "Statistics core": ported in B04. `BUILD_NOTES.md` §2: the oracle method (v1 environment writes a JSON of known answers; a CI job regenerates and diffs it).

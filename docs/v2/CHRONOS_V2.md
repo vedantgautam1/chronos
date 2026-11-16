@@ -1,7 +1,7 @@
 # CHRONOS v2 — the master document
 
 **Read this first. Every Claude chat, every Claude Code session, every time.**
-Last updated: **16 Nov 2026** (pre-build audit; proposals P-12–P-15 await the founder; last decisions locked: V2-D45, V2-D46). Dates in this pack are UTC. Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
+Last updated: **16 Nov 2026** (build blueprint drafted, awaiting gate G0; proposals P-12, P-14(a), P-15–P-20 await the founder; last decisions locked: V2-D45, V2-D46). Dates in this pack are UTC. Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
 
 This one file answers: what Chronos is, what is built, what is not built, what we decided and why, what we rejected and why, what to watch out for when building, and where everything else lives. If anything else disagrees with this file, **this file wins** (see §0 for the order).
 
@@ -43,7 +43,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 
 **First trading target.** BTC (then ETH) **intraday, long and short**, several trades a day with holds of minutes to hours. Traded through **IBKR crypto futures** (Coinbase nano BTC/ETH first, CME micro and Bitcoin Friday second). Signal history comes from Kraken spot data.
 
-**Next step (§9):** the v2 code skeleton (in this repo, V2-D29) with ported statistics, with content analysis (repos) running alongside; then the one-week NautilusTrader spike. The data-collection server comes after the spike (V2-D30), then the validation acceptance test.
+**Next step (§9):** approve the **build blueprint** (`docs/v2/build/BLUEPRINT.md`, gate G0), then step 2 runs as builds B01–B18 through the build loop (blueprint Part 2), with a gate after each phase; then the one-week NautilusTrader spike. The data-collection server comes after the spike (V2-D30), then the validation acceptance test. Count to the end of the acceptance test: 49 builds, 6 gates.
 
 **Hard rules that never bend:** LLMs never size positions, never place orders and never decide validation verdicts. Every variant tried counts as a trial. Costs are always the real venue's full costs. No high-frequency trading.
 
@@ -60,6 +60,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 | **Slim VPS + Postgres + collectors + alerts** | Always-on Linux box collecting data 24/7 | **Not started — after the spike** | V2-D23, V2-D26, V2-D30. Prices and Kraken trades can be backfilled; only news/sentiment snapshots and live spread records are unrecoverable |
 | **Kraken trade recorder** | Every BTC/USD + ETH/USD trade with aggressor side, recorded forward | **Not started** | V2-D26. Kraken's quarterly bulk trade files **do carry a buy/sell field** (columns: timestamp, price, volume, type b/s, order_type, misc, trade_id; Kraken support, read 16 Nov), so history with side can be loaded too; the recorder keeps it current |
 | **Collectors: S-NEWS (Grok/X, headlines, GDELT), S-MACRO actuals** | Forward collection, no trading | **Not started** | V2-D06, V2-D24. Every paid call goes through the budget guard (V2-D41) |
+| **Build blueprint + build loop** (`docs/v2/build/`) | How Chronos gets built: diagrams, session-sized builds with pass/fail checks written first, an automated build–review–test loop, gates for the founder | **Drafted 16 Nov — awaiting gate G0** | Founder instructions 16 Nov (§10). Loop built in B01–B03 |
 | **v2 code skeleton + ported statistics** | Stats probe, known-answer tests, trial ontology, cost code, touchstones | **Not started** | V2-D10, V2-D29: in this repo, in a new package folder; v1 code untouched |
 | **NautilusTrader spike** (1 week) | Prove the engine before committing | **Not started** | V2-D04. Pass criteria in §9 step 3 |
 | **Oceanus — data layer** | Kraken history + IBKR futures data, Parquet + DuckDB + Postgres | Not started (v1 version is Binance-only) | §4 |
@@ -274,7 +275,9 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
    - the cost/slippage measurement code;
    - the touchstones as acceptance tests.
    
-   Fix the strict-`<` rank in v1 `src/chronos/moirai/stages/null_bench.py` when porting (`BUILD_NOTES.md` §2).
+   v1's strict-`<` rank (`src/chronos/moirai/stages/null_bench.py`) is **not carried over**: v2 counts ranks only through its own mid-rank counter (build B05). v1's file stays as it is (frozen, V2-D29).
+
+   **How step 2 is built:** as builds B01–B18 in `docs/v2/build/` (blueprint Part 5; one spec per build). Founder answers of 16 Nov (§10): package `chronos2` in folder `v2/`; Postgres from the first trial-store build; the touchstones are written down as fixtures now and executed in step 5; the cost-vs-moves check (P-12) is the last build of the step.
 3. **NautilusTrader spike (one week).** Pass criteria:
    - (a) one MA strategy on Kraken BTC data matches v1 Hephaestus within explainable differences, and the five known-answer fill tests give the same fills on Nautilus and on ml4t-backtest, or every difference is explained (V2-D43);
    - (b) our cost/slippage model plugs in;
@@ -351,8 +354,11 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | — | 5 Nov | Content analysis **resumes alongside building** (repos first). New items are judged by whether they replace something we would otherwise build in §9 steps 2–5; new design proposals face a higher bar until the spike passes | Founder instruction 5 Nov |
 | — | 5 Nov | Step 4 also loads **Kraken's quarterly bulk trade files** (BTC/ETH) for history, after one real file's columns and timestamp resolution are checked; no upstream bug report to freqtrade (S20) | Founder instruction 5 Nov |
 | — | 15 Nov | **S-NEWS source list starts from World Monitor's news catalog** (koala73/worldmonitor `shared/`: 757 feeds, source tiers, source types), imported as-is, then observed and refined (founder). Its licence is **AGPL-3.0**: importing it into this repo while the repo is public makes the repo AGPL. **Founder, 15 Nov: keep the repo public and accept AGPL-3.0** for the whole repo. When the catalog is imported, add the AGPL licence file and keep World Monitor's notices. Third-party code that can't go under AGPL is used as a dependency only, never copied in (as already for GPL code). Import happens with step 4's collectors. A minimal news-feed recorder ahead of the spike was offered and **declined: skeleton first** (founder) | Locked (founder) |
+| — | 16 Nov | **Step-2 forks answered** (pre-build audit §6; founder: "choose whatever you want", "A", "A", "take the call"): (1) the v2 package is **`chronos2`**, in folder **`v2/`** (completes V2-D45); (2) **the trial store uses Postgres from its first build**, tested against a local Postgres in CI and on any machine; no server is rented for it (V2-D30 unchanged); (3) **the touchstones are committed in step 2 as pre-registered fixtures** (worlds, rules, expected verdicts) and executed in step 5; (4) the cost-feasibility check (P-12) is built as the last build of step 2 | Founder instruction 16 Nov |
+| — | 16 Nov | **How Chronos is built** (replaces the chat → paste → Claude Code → paste relay). Specs live in the repo; an automated loop builds, a separate session reviews, automatic tests judge. **Builds merge into a working branch on their own when tests and reviewer pass; `main` moves only at gates the founder approves;** forks, protected changes and halts wait for the founder. Model per build is set in its spec and enforced (Opus for anything touching code, tests, reviews or audits). **Budget cap for month one: US$100 for everything.** A separate agent red-teams a plan before it is adopted. Details: `docs/v2/build/BLUEPRINT.md` Part 2, `HANDBOOK.md` | Founder instruction 16 Nov (blueprint itself awaits gate G0) |
+| — | 16 Nov | **Re-audit v1 for anything more to reuse** (founder). Result: `docs/v2/build/V1_CARRYOVER.md`; the data-layer port it proposes is P-16 | Founder instruction 16 Nov |
 
-**Next decision ID: V2-D47.** Next proposal ID: P-16.
+**Next decision ID: V2-D47.** Next proposal ID: P-21.
 
 ---
 
@@ -421,13 +427,18 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | ~~P-13~~ | **Research on series that start after the crypto seal** (S-NEWS, recorded Kraken trades; audit §3a). As written, V2-D38 forbids reading BTC/ETH prices after 31 Mar 2026, which those series need. Options: **(a)** no backtest phase: their rules are frozen from collection data without prices and tested only in L3 paper; **(b)** such research may read post-seal prices *only through code joined to that series* (never charts or LLM views), every read footprinted (V2-D42), and S-INTRADAY's sealed block is treated as contaminated for any lineage that used them; **(c)** each post-seal series gets a research window [start, X) and its own sealed block from X, and prices in [start, X) become readable for that series only. Touches a locked decision: founder decides | **Resolved 16 Nov → V2-D46 (option c)** | — |
 | P-14 | **Small-capital fit** (audit §4). **(a)** Themis rounding when the target is below one contract: round down and skip; round to nearest with a cap of 1; or ETH nano (0.1 ETH, finer) first. Risk-limit-adjacent: founder decides before L3. ~~(b) running-cost vs capital check before step 4~~ **answered 16 Nov:** the founder has access to more capital when required; the check stays with O-7 | (a) Proposed; (b) answered | (a) before L3 |
 | P-15 | **Basis reality check** (audit §3b). Before the edge check trusts a spot-signal backtest, rerun each S-INTRADAY candidate on the real nano contract's own bars for Jul 2025–31 Mar 2026 (pre-seal) as a VERIFICATION run, and state the basis model used for years before the contract existed | Proposed (audit) | Step 5 acceptance test design |
+| P-16 | **Step 2 also ports a minimal data layer** (builds B10–B12: bar schema, Parquet store and snapshot hash, validate/clean, the data door with the seal guard). V2-D42 requires a data hash and latest-timestamp-read on every trial "from step 2"; without a data door that is a stub. v1's code and tests for it exist and pass (`docs/v2/build/V1_CARRYOVER.md`) | Proposed (blueprint) | Gate G0 |
+| P-17 | **The edge check takes one standard input** (returns, trade list, cost components per trade; `TrialResult`, build B09) from any engine. The acceptance test runs on the screening wrapper for speed; a sample is re-run on the real engine to show both give the same verdicts | Proposed (blueprint) | Before build B42 |
+| P-18 | **Pre-register v2 expectations for touchstones T-a1 and T-c** (§6 states them only for T-a2, T-b, T-d, T-e). Proposed: T-c (the deliberate look-ahead) must be caught by the look-ahead kit and never reach the edge check; T-a1's expectation is written with its reasoning in build B17, before anything runs | Proposed (blueprint) | Build B17 |
+| P-19 | **Engine-independent parts of step 5 (builds B38–B45) may be built before the spike finishes**, so the build loop isn't idle while the spike waits on the founder. Nothing from step 5 is trusted before its gate | Proposed (blueprint) | Gate G2 |
+| P-20 | **Second-opinion reviewer from another AI family at gates** (ChatGPT's Codex, US$20/month, inside the month-one cap), kept only if a measured comparison at gate G2 shows it catches what the Claude reviewer missed | Proposed (blueprint) | Gate G1 |
 | P-2 | Add a HAR realised-variance baseline (5-min returns) to Kronos role C when the spec is re-checked for intraday bars | Proposed (S10) | Before Kronos work |
 | O-3 | Exact neighbourhood rule (size, allowed degradation) | Open → acceptance test | Step 5 |
 | O-4 | IBKR futures cost model. **Partly answered 16 Nov:** Coinbase nano ≈ USD 0.31 a side on tiered pricing (0.20 commission + 0.10 exchange + 0.01 NFA). Still open: CME fees for MBT/BFF; how IBKR passes Coinbase funding through (cash adjustment per settlement); IBKR market-data cost; confirm all in the paper account | Open → spike | Step 3 |
 | O-5 | Consensus-forecast vendor for S-MACRO | Open | When S-MACRO leaves collection |
 | O-6 | Mac RAM (only matters for local model sizes) | Open | Before local models |
 | O-7 | Before live: actual capital, sleeve %, max losses, running cost vs expected returns; revisit the 2× equity account ceiling (V2-D40) | Open | Before L4 |
-| ~~O-12~~ | World Monitor's catalog is AGPL-3.0: repo private, or accept AGPL? | **Resolved 15 Nov: stay public, accept AGPL-3.0** (founder) | — |
+| ~~O-13~~ | *(was listed as a second O-12; renumbered 16 Nov)* World Monitor's catalog is AGPL-3.0: repo private, or accept AGPL? | **Resolved 15 Nov: stay public, accept AGPL-3.0** (founder) | — |
 | ~~O-9~~ | Should data collection block the build order? | **Resolved 3 Nov → V2-D30: server after the spike** | — |
 | O-8 | Kronos spec horizons (1h/4h bars) vs the intraday track | Open | Before Kronos work |
 | ~~O-10~~ | Sealed-block size and confirm rule | **Resolved 5 Nov → V2-D38** | — |
@@ -444,13 +455,14 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | Build traps per component | `docs/v2/BUILD_NOTES.md` | Read before building that component |
 | Third-party code + v1 code to reuse | `docs/v2/COMPONENTS.md` | Source, licence, version, test status |
 | Detailed specs | `docs/v2/specs/` | Kronos shadow; sentiment strategy (each with a staleness note at the top); parked order-flow dossier (`orderflow-parked.md`) |
-| Content-analysis results (reasoning per source S1–S22) | claude.ai Project: `claude/item-analyses.md`, `claude/item-analyses-2.md`, `claude/item-analyses-3.md` | Background; this doc wins |
+| Content-analysis results (reasoning per source S1–S35) | claude.ai Project: `claude/item-analyses.md`, `-2.md`, `-3.md`, `-4.md` | Background; this doc wins |
 | Every option considered | Project: `claude/comparison-matrix.md` | Record of options |
 | Kept-for-later library (repos, data sources, findings, rejected) | Project: `claude/reference-library.md` | Check before re-researching anything |
 | How to run content analysis | Project: `claude/content-analysis-handoff.md` | Points back here |
 | Content-analysis check scripts (S10–S22) | `docs/v2/research/` (README inside) | Rerun with `python -I`; S11+ need the source's code pack |
 | Map of every file in the repo | `docs/v2/CODEBASE.md` | What each part is, v1 or v2, and its v2 fate |
 | What was done, when | `docs/v2/CHANGELOG.md` | Dated work log; decisions stay in §10 |
+| **How it gets built** | `docs/v2/build/`: `BLUEPRINT.md` (diagrams, the build loop, the ladder), `HANDBOOK.md` (founder's manual), `LADDER.yaml`, `specs/`, `BUILD_CARDS.md`, `V1_CARRYOVER.md`, `LEDGER.md`; later `reports/`, `reviews/`, `gates/` | This file still wins on decisions |
 | v1 frozen docs | `docs/v1-archive/` (incl. `HANDOFF.md`, the v1 log, closed 3 Nov) | Reference only |
 | v1 frozen code | `src/`, `tests/`, branch `v1-final` | Port from it; don't extend it |
 | Content intake pipeline | Founder's Mac `~/chronos-intake` | Not in the repo |
