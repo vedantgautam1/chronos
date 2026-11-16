@@ -195,7 +195,7 @@ Anything written by a tool other than the loop's own builder goes on a branch na
 
 1. Look at `BLUEPRINT.md` Part 1 (diagrams) and Part 5 (the ladder). Ask about anything that doesn't match your picture of Chronos.
 2. Answer the five proposals in Part 8 (P-16 to P-20). One line each is enough.
-3. Read the red-team findings (`gates/G0-redteam.md`) and what was done about each.
+3. Read the red-team findings (`gates/G0-redteam.md`) and what was done about each. **Don't approve G0 while that file says "not complete".**
 4. Set the usage-credit limit (§6).
 5. Read Memory and Storage off About This Mac (§5).
 6. When convenient, not urgent: download one Kraken BTC/USD 1-minute OHLCVT file to a folder on the Mac. Build B18 uses it.

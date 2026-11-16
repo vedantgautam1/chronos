@@ -10,6 +10,8 @@ touches:
   - v2/src/chronos2/research/**
   - v2/tests/research/**
   - docs/v2/research/cost-feasibility/**
+  - docs/v2/research/README.md
+  - docs/v2/CHRONOS_V2.md
 may_modify_tests: []
 ```
 

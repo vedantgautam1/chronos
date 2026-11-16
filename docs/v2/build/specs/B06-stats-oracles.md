@@ -10,6 +10,7 @@ touches:
   - v2/pyproject.toml
   - v2/uv.lock
   - v2/tests/stats/oracles/**
+  - v2/tests/test_oracles_are_test_only.py
   - docs/v2/COMPONENTS.md
   - docs/v2/BUILD_NOTES.md
 may_modify_tests: []
@@ -26,7 +27,7 @@ These libraries are **test-only**: nothing under `v2/src/` may import them.
 - `COMPONENTS.md` §1 rows `arch`, `quantstats`, `ml4t-diagnostic`. `BUILD_NOTES.md` §2: the quantstats bullet, the "Not every DSR is v1's DSR" bullet, the bootstrap-coverage bullet.
 
 ## Deliver
-1. A `oracles` dependency group in `v2/pyproject.toml`: `arch`, `quantstats`, `ml4t-diagnostic`, pinned by the lock. Installed in CI's **tests** job.
+1. A `oracles` dependency group in `v2/pyproject.toml`: `arch`, `quantstats`, `ml4t-diagnostic`, pinned by the lock. CI's **tests** job already installs all groups (B01).
 2. `v2/tests/stats/oracles/test_arch.py`, `test_quantstats.py`, `test_ml4t_diagnostic.py`.
 3. `v2/tests/test_oracles_are_test_only.py`: fails if any file under `v2/src/` imports one of the three.
 

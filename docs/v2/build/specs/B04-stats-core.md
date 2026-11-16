@@ -35,7 +35,7 @@ These functions decide whether a strategy's result is luck. v1 has them, tested 
 3. **The v1 oracle.** `v2/tools/v1_oracle/dump_stats.py`, run in the **v1** environment (`uv run python v2/tools/v1_oracle/dump_stats.py` from the repo root), calls v1's functions on fixed inputs and writes `v2/tests/known_answers/v1_oracle/stats.json` (floats by `repr`; a header with the v1 commit, numpy and scipy versions).
    - Inputs: for each function, seeds 1000–1049 into `numpy.random.default_rng`, drawing arguments from ranges written at the top of the script (returns: normal, mean 1e-4, sd 2e-3, length 500–5,000; AR(1) series with φ ∈ {0, 0.3, 0.6}; N ∈ {1.0001, 2, 10, 280, 5,000}; V ∈ [1e-6, 1e-3]; T ∈ [100, 50,000]).
 4. `v2/tests/stats/test_v1_parity.py`: every v2 function reproduces the oracle to a relative tolerance of **1e-10** (the two environments use different numpy versions, so last-digit differences are allowed and nothing larger).
-5. A fourth job in `.github/workflows/v2.yml`, **v1-oracle**: in the v1 environment, re-run the dump script and fail if the committed JSON differs. That proves the oracle file really comes from v1.
+5. A fourth job in `.github/workflows/v2.yml`, **v1-oracle**: in the v1 environment, run **every** `v2/tools/v1_oracle/dump_*.py` and fail if any committed JSON differs. That proves the oracle files really come from v1, and later builds (B10, B16) add a dump script without touching the workflow.
 
 ## Steps
 1. Copy the six test files with the import changes; commit (red: module missing).

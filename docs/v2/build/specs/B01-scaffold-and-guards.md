@@ -37,7 +37,7 @@ Everything later stands on this: a separate v2 project that can't touch v1, test
      A branch named `lane/…` (work by any tool other than the loop's builder, HANDBOOK §7) may touch only `scratch/**` and `docs/drafts/**`. Any other branch name without a build id fails.
    - `test_integrity.py`: any file under `v2/tests/` that exists on `v2-build` may not be modified or deleted unless listed in `may_modify_tests`.
    - `protected.py`: any change under `v2/config/protected/`, `v2/migrations/protected/` or `v2/src/chronos2/fixtures/touchstones/` fails unless the pull request carries the label `founder-approved`.
-6. `.github/workflows/v2.yml`, on pull requests and on pushes to `v2-build` and `main`: job **tests** (`TZ=UTC`, `astral-sh/setup-uv`, `uv sync --frozen` in `v2/`, `uv run pytest -q`, with a `postgres:16` service declared now for B07); job **guards** (full fetch, fetch `v1-final`, `run_all.py`); job **lint** (`ruff check`).
+6. `.github/workflows/v2.yml`, on pull requests and on pushes to `v2-build` and `main`: job **tests** (`TZ=UTC`, `astral-sh/setup-uv`, `uv sync --frozen --all-groups` in `v2/` so later dependency groups need no workflow change, `uv run pytest -q`, with a `postgres:16` service declared now for B07); job **guards** (full fetch, fetch `v1-final`, `run_all.py`); job **lint** (`ruff check`).
 7. `v2/README.md`: how to run the tests and the guards, in under ten lines.
 
 ## Steps

@@ -50,9 +50,9 @@ ladder:
   - {id: B12, title: "Data III: the data door, seal guard, footprints, Kraken candle loader", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B09, B11], spec: specs/B12-data-door.md}
   - {id: B13, title: "Costs: venue fees, components, 2x and adverse-funding stress", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [G1],  spec: specs/B13-costs.md}
   - {id: B14, title: "Slippage and spread measurement method", phase: 1, size: S, model: opus, who: loop, ticks: 2, needs: [B13], spec: specs/B14-slippage-method.md}
-  - {id: B15, title: "Search-fragmentation warning", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B05, B08], spec: specs/B15-fragmentation-warning.md}
+  - {id: B15, title: "Search-fragmentation warning", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B04, B08], spec: specs/B15-fragmentation-warning.md}
   - {id: B16, title: "Synthetic world generator", phase: 1, size: S, model: opus, who: loop, ticks: 2, needs: [B10], spec: specs/B16-generator.md}
-  - {id: B17, title: "Touchstones as pre-registered fixtures", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B16, B05], spec: specs/B17-touchstone-fixtures.md}
+  - {id: B17, title: "Touchstones as pre-registered fixtures", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B16, B04], spec: specs/B17-touchstone-fixtures.md}
   - {id: B18, title: "Costs vs typical price moves by holding time (P-12)", phase: 1, size: S, model: opus, who: loop, ticks: 2, needs: [B12, B13], spec: specs/B18-cost-feasibility.md}
   - {id: G2,  gate: true, title: "Foundations audit (step 2 done)", phase: 1, needs: [B04, B05, B06, B07, B08, B09, B10, B11, B12, B13, B14, B15, B16, B17, B18]}
 

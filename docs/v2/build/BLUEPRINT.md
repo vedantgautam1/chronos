@@ -503,9 +503,9 @@ Nothing third-party enters the code base until the build named here, and never w
 | B12 | Data III: the data door with the seal guard and footprints; Kraken candle-file loader | M | Opus | loop | B09, B11 |
 | B13 | Costs: venue fee schedules, cost components, 2× and adverse-funding stress | M | Opus | loop | B01 |
 | B14 | Slippage and spread measurement method | S | Opus | loop | B13 |
-| B15 | Search-fragmentation warning | M | Opus | loop | B05, B08 |
+| B15 | Search-fragmentation warning | M | Opus | loop | B04, B08 |
 | B16 | Synthetic world generator | S | Opus | loop | B10 |
-| B17 | Touchstones as pre-registered fixtures (written down, not run) | M | Opus | loop | B16 |
+| B17 | Touchstones as pre-registered fixtures (written down, not run) | M | Opus | loop | B16, B04 |
 | B18 | Costs vs typical price moves by holding time (proposal P-12) | S | Opus | loop | B12, B13 + a data file |
 | **G2** | **Foundations audit.** v1-vs-v2 parity table, sabotage run, blind re-derivation, doc sync, re-size | — | Opus | gate | B04–B18 |
 
@@ -654,4 +654,4 @@ Open items carried from elsewhere that bite during phases 0–1:
 2. **A spec is frozen once its build starts.** If it is wrong, the build halts and the spec is corrected in its own small pull request, visible in history.
 3. **Every gate re-reads this file** against what was built and corrects it. The blueprint is versioned at each gate (v0.1 now, v1.0 at G0).
 4. **Master-doc rules still apply** (its §14): decisions are logged there, traps go to `BUILD_NOTES.md`, libraries to `COMPONENTS.md`, work to `CHANGELOG.md`. Build reports and gate reports live here.
-5. **This blueprint was attacked before adoption** by a separate agent that had not seen it being written. Its findings and what was done about each are in `gates/G0-redteam.md`.
+5. **This blueprint is attacked before adoption** by a separate agent that has not seen it being written. Its findings, and what was done about each, go in `gates/G0-redteam.md`. **As of 16 Nov that review is not complete** (it was stopped by the usage limit before reporting); G0 waits for it.

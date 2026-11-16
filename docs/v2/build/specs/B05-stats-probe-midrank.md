@@ -10,6 +10,7 @@ touches:
   - v2/src/chronos2/stats/**
   - v2/tests/stats/**
   - v2/tests/known_answers/**
+  - v2/tests/test_no_naive_rank.py
   - docs/v2/BUILD_NOTES.md
   - docs/v2/COMPONENTS.md
 may_modify_tests: []

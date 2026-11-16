@@ -4,7 +4,7 @@ title: Touchstones as pre-registered fixtures (written down, not run)
 size: M
 model: opus
 who: loop
-needs: [B16, B05]
+needs: [B16, B04]
 ticks: 3
 touches:
   - v2/src/chronos2/fixtures/**

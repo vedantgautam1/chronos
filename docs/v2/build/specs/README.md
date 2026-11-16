@@ -40,7 +40,7 @@ The reviewer is a different session from the builder, on Opus, and has not seen 
 3. **Break one thing on purpose.** Pick the function the build is about, change one operator or constant locally, and confirm a test goes red. Revert. If nothing goes red, the build fails review.
 4. Check the hard rules (CLAUDE.md 1–10) and the standing rules above. Look specifically for: a tolerance wider than the spec's; a seed not in the spec; a test that asserts something weaker than the spec; a skipped or xfail test; look-ahead; a bare date used as a range end; a local-time read.
 5. Write `reviews/<id>-r<round>.md`: verdict `PASS` or `CHANGES`, findings as a numbered list (each with file, line, what is wrong, what the spec says), and what you broke in step 3 and which test caught it.
-6. `PASS` + automatic tests green → set status `passed`, squash-merge into `v2-build`, write the ledger row. `CHANGES` → set `changes_requested`. A second `CHANGES` on the same build → `halted`.
+6. `PASS` → set status `passed`. When the automatic tests are green on that commit: add one last commit **on the build branch** that writes the ledger row and sets the status to `merged`, wait for green again, then squash-merge into `v2-build`. (`v2-build` only accepts pull requests, so the final state has to travel inside the pull request. If a session dies between that commit and the merge, the next tick sees `merged` on an unmerged branch and simply finishes the merge.) `CHANGES` → set `changes_requested`. A second `CHANGES` on the same build → `halted`.
 7. The reviewer commits only under `docs/v2/build/reviews/`, `status/` and `LEDGER.md`. It never edits code or tests, even for a one-character fix.
 
 ## Sections of a spec

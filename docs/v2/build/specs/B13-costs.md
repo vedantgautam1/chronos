@@ -33,7 +33,7 @@ At a few trades a day, costs are the same size as the edge. The fees on the cont
    - `ibkr_cme_bff`: multiplier 0.02 BTC; commission 0.25, exchange 0.35, regulatory `unknown` → the loader refuses to price it until filled.
 2. `v2/config/protected/validation.yaml`: `stress_friction_multiplier: 2.0`; `adverse_funding_percentile: 95`; `adverse_funding_hourly_rate: null` per contract (computed at the spike, V2-D39).
 3. `costs/venue.py`: load and validate a venue file; refuse `unknown` values; expose `fees_per_side(contracts)`.
-4. `costs/model.py`: `CostBreakdown` (the seven components of B09's `Trade`, as Decimals) and `price_trade(venue, side, contracts, entry_price, exit_price, hours_held, half_spread, slippage_per_side, funding_rate_path, basis_at_entry, basis_at_exit) -> CostBreakdown`.
+4. `costs/model.py`: `CostBreakdown` with exactly these seven Decimal fields: `commission`, `exchange_fee`, `regulatory_fee`, `spread`, `slippage`, `funding`, `basis` (the same names B09's `Trade` uses; whichever of B09 and B13 is built second adds a test that the two sets of names are equal) and `price_trade(venue, side, contracts, entry_price, exit_price, hours_held, half_spread, slippage_per_side, funding_rate_path, basis_at_entry, basis_at_exit) -> CostBreakdown`.
 5. `costs/stress.py`: `stress(breakdown, mode, config)` for `mode` in `x1`, `x2_frictions`, `adverse_funding`.
 6. `costs/units.py`: `fees_in_bps(venue, price)`: round-trip fixed fees as basis points of notional at a given price.
 7. A test that every public function in `costs/` returns a full `CostBreakdown`: no function returns a P&L without one (the "no cost-free path" rule).

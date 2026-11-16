@@ -4,7 +4,7 @@ title: Search-fragmentation warning
 size: M
 model: opus
 who: loop
-needs: [B05, B08]
+needs: [B04, B08]
 ticks: 3
 touches:
   - v2/migrations/**

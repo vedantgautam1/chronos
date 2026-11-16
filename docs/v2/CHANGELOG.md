@@ -20,7 +20,7 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
   - `BUILD_NOTES.md` §4: a true Sharpe of 0.5 needs about **25** years to show, not 18 (v1's own function: 24.73).
   - Master doc §12: the second "O-12" (AGPL) renumbered O-13; §13: content analysis is S1–S35 with `item-analyses-4.md`; §9 step 2: the strict-rank fix is in the v2 port, v1 stays frozen.
 - **Master doc:** §1 next step, §2a new row, §9 step 2, §10 three founder-instruction rows (16 Nov), §12 proposals **P-16 to P-20** (none locked), §13. Next IDs: V2-D47, P-21.
-- **Red team** (founder: yes): findings and what was done about each in `docs/v2/build/gates/G0-redteam.md`.
+- **Red team** (founder: yes): started on a separate agent and a different model; **stopped by the five-hour usage limit before it reported anything.** It resumes after the reset. `docs/v2/build/gates/G0-redteam.md` holds the log, the author's own list of known weaknesses, and a "real walls vs guard rails" table. G0 waits for the findings.
 - **Not done:** no v2 code; no loop yet (builds B01–B03); full specs for B19–B49 are written when each phase opens.
 
 ---
