@@ -18,7 +18,7 @@ v1 is frozen on branch `v1-final` (commit `6b2b628`). Never edit v1 code (V2-D29
 |---|---|---|---|
 | `CLAUDE.md` | Rules for Claude Code sessions | v2 | Keep |
 | `README.md` | Front page; points to the master doc | v2 | Keep |
-| `pyproject.toml`, `uv.lock` | Python environment (managed with `uv`) | v1 | Keep; v2 extends it in its own package (V2-D29) |
+| `pyproject.toml`, `uv.lock` | Python environment (managed with `uv`) | v1 | Keep untouched; v2 is a separate `uv` project with its own `pyproject.toml` and `uv.lock` in its own folder (V2-D45) |
 | `.github/workflows/tests.yml` | CI: runs the v1 test suite on every push | v1 | Keep; add the v2 suite when it exists; retire the v1 job only with the founder's OK |
 | `.gitignore` | Ignores `data/`, caches, `.venv/`, `*.png` | v1 | Keep |
 | `chronos_math_probe.py` | 28 known-answer checks for the statistics (DSR, Lo, Newey–West…) | v1 | **Port** into the v2 test suite |
@@ -111,5 +111,5 @@ v1 is frozen on branch `v1-final` (commit `6b2b628`). Never edit v1 code (V2-D29
 
 ## What v2 will add (not created yet)
 
-- A new v2 package folder (name and layout set in the §9 step-2 build session, V2-D29), with its own tests added to CI.
+- A new v2 folder holding its own `uv` project (V2-D45: own `pyproject.toml` + `uv.lock`, Python 3.14; package name set at the start of step 2), with its own tests added to CI.
 - First contents (§9 step 2): ported statistics + known-answer tests, the trial ontology with per-trial return storage (V2-D33), the search-fragmentation screen (V2-D31), cost/slippage measurement, touchstones.

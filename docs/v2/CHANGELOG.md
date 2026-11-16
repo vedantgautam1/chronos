@@ -4,6 +4,16 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 16 Nov 2026 — founder answers to the audit; V2-D45 locked
+
+- **V2-D45 (locked):** v2 is its own `uv` project in its own folder, with its own `pyproject.toml` and lock file; v1's files stay untouched; Python 3.14. Checked on PyPI that Nautilus and every dependency in view (numpy, pandas, scipy, numba, pyarrow, duckdb, psycopg, torch, tick, arch) publish 3.14 wheels. Swept: V2-D29 status, CODEBASE (root `pyproject.toml` row, planned v2 folder), COMPONENTS (Nautilus row), audit §6.
+- **New trap (BUILD_NOTES §5):** Nautilus's macOS wheels need macOS 26+ on Apple Silicon.
+- **P-14(b) answered:** the founder has more capital available when required. P-14(a) (rounding below one contract) stays open.
+- **P-12 note:** founder plans no holds under 15 minutes and 3:1 stops. The answer on why stops don't remove the cost hurdle is recorded in the P-12 row.
+- **Strategy rules in a public repo:** founder will change this before real rules exist.
+
+---
+
 ## 16 Nov 2026 — pre-build audit
 
 Founder asked for an in-depth audit before §9 step 2. Full report: `docs/v2/research/pre-build-audit.md`.

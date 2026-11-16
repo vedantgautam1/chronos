@@ -59,6 +59,8 @@ This doesn't change any decision. It says S-INTRADAY's realistic horizon is prob
 
 ## 6. Forks the step-2 session must settle first (CLAUDE.md rule 9)
 
+**Answered 16 Nov:** 1 → option (a), locked as V2-D45; 2 → Python 3.14 (V2-D45); 3 → founder: "we'll change before that" (read as: strategy rules move out of the public repo before real ones exist; confirm at step 6). Package name still to propose at the start of step 2.
+
 These are non-equivalent options, so they go to the founder at the start of step 2, not decided by the builder:
 
 1. **Where v2 lives and what it's called.** v1's root `pyproject.toml` already defines the package `chronos` with its own `uv.lock`.
