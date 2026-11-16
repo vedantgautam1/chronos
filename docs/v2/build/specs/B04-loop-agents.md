@@ -22,13 +22,13 @@ may_modify_tests: []
 B03 decides what to do. This build defines who does it: a builder, a reviewer and an auditor, each a fresh session with its own instructions and its model fixed in its definition, plus the `/tick` command that asks B03's script for the action and hands it to the right one. Nothing here decides anything; if a rule appears here that isn't in `specs/README.md` or the blueprint, that is a defect.
 
 ## Read first
-- `specs/README.md` (all), BLUEPRINT 2.2–2.8, the B03 report.
+- `specs/README.md` (all), BLUEPRINT 2.2–2.8, the B03 report. `gates/G0-redteam.md`, second pass, findings 4, 8, 13.
 - Claude Code docs, read fresh at build time (they change): subagents (`.claude/agents/*.md` frontmatter: `name`, `description`, `tools`, `disallowedTools`, `model`, `effort`, `maxTurns`), skills, permission modes. Index: `https://code.claude.com/docs/llms.txt`. Verify each frontmatter key against the docs before using it.
 
 ## Deliver
 1. `.claude/agents/chronos-builder-opus.md`, `chronos-builder-sonnet.md` (same body, different `model`), `chronos-reviewer.md` (opus; no file-editing tools beyond what writing the review and status files needs), `chronos-auditor.md` (opus). Each body: the role's rules from `specs/README.md`, the commit trailer it must use, and "read the spec from `v2-build`".
 2. `.claude/skills/tick/SKILL.md`: run `v2/tools/loop/next_action.py`; if the action's model differs from the session's, print one plain sentence and stop; take the lock; dispatch to the named agent; release the lock; print `status_report`. It never chooses the action itself and never merges into `main`.
-3. `.claude/skills/status`, `halt` (opens a `chronos-halt` issue), `resume` (closes it; switches the scheduled task on if it exists).
+3. `.claude/skills/status`, `halt` (opens a `chronos-halt` issue), `resume` (switches the scheduled task on if it exists; **it never closes a `chronos-halt` issue**: if one is open it says "close the issue yourself on GitHub; only your account releases the stop").
 4. Templates in `docs/v2/build/templates/`: `report.md` (with the "For the gate" section), `review.md` (with "code commit reviewed"), `gate-report.md` (sections per BLUEPRINT Part 6).
 5. `CLAUDE.md`: extend the "Build loop" section (added at G0) with the real command names (`/tick`, `/status`, `/halt`, `/resume`) and where the agents are defined. The three rules already in that section stay word for word.
 6. `HANDBOOK.md` §1–§3: "planned" wording replaced with the real command names and outputs.
@@ -41,6 +41,8 @@ B03 decides what to do. This build defines who does it: a builder, a reviewer an
 - The file test passes; changing one agent's model to `fable` makes it fail.
 - `/tick` run on a model other than the action's prints the mismatch sentence and makes no commit.
 - `/tick` with a fresh lock held by someone else prints "claimed, nothing to do" and makes no commit.
+- `/resume` with a `chronos-halt` issue open leaves the issue open (asserted against a fake GitHub layer).
+- Each agent file's body says: never create a `CLAUDE.md`, an `AGENTS.md` or a `.claude` folder anywhere; check `still_mine` before every push.
 - The toy run produces: a builder commit with the builder trailer, a review file naming that commit, a reviewer commit setting `merged`, and B02's guards green on the toy pull request.
 - `CLAUDE.md`'s "Build loop" section still contains its three original bullets unchanged (compared against the base branch), plus the command names.
 

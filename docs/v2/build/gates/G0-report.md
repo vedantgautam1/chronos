@@ -20,7 +20,7 @@ See `G0-redteam.md`. Short version: a builder could have approved itself; the ch
 
 ## 4. Decisions
 
-**Already yours, recorded in the master doc §10 (16 Nov):** V2-D47–V2-D51 (were P-16–P-20).
+**Already yours, recorded in the master doc §10 (16 Nov):** V2-D47–V2-D50 (were P-16–P-19). P-20 (a second reviewer from another AI family) you left to my call; my call is a trial from G1, and it is **not locked**: you confirm it at G1 before any money is spent.
 
 **What merging this pull request also approves** (rule files, shown in the diff):
 - `CLAUDE.md`: a new "Build loop" section. A build writes a report and a changelog entry; it never edits the master doc; the master doc is updated at gates in a write-up you approve.

@@ -1,6 +1,6 @@
 # CHRONOS BUILD HANDBOOK — for the founder
 
-**Status: DRAFT v0.2, 16 Nov 2026 (UTC), revised after the red team's review.** Sections marked *(planned)* describe commands that exist only after builds B04 and B05; those builds replace the wording with what really happens on screen.
+**Status: DRAFT v0.3, 16 Nov 2026 (UTC), revised after two red-team passes.** Sections marked *(planned)* describe commands that exist only after builds B04 and B05; those builds replace the wording with what really happens on screen.
 
 You don't need to read code to run this. You need to know five things: where to look, how to start and stop the loop, what to do when it stops, how to approve a gate, and what to do when usage runs out.
 
@@ -16,17 +16,19 @@ Facts are tagged: [Certain] = verified · [Likely] · [Guessing]. Sources are at
 
 | You | How often | How long |
 |---|---|---|
-| Be present for the **first five builds** (B01–B05), which build the loop and its walls | Once | Five to eight short sessions; B05 needs about 30 minutes of clicking in GitHub and Claude settings |
+| Be present for the **first five builds** (B01–B05), which build the loop and its walls | Once | Five to eight short sessions; B05 needs about 45 minutes of clicking in GitHub and Claude settings |
 | Approve a **gate** (end of each phase) | 6 times to the end of the acceptance test | 2–15 minutes each, two clicks on GitHub |
-| Approve a **rule change** (a corrected spec, the touchstones, a protected value) | Occasionally | One click after reading a short summary |
+| Approve a **rule change** (a corrected spec, a new library, the touchstones, a protected value) | Occasionally | One click after reading a short summary |
 | Answer a **halt** (a fork, a protected value, a build that needs splitting) | Sometimes | Usually one sentence |
 | The **engine spike** (your broker account, your Mac) | Once, about a week of calendar time | A few short sessions |
 | Rent the **server**, hold the **API keys** | Once | 30 minutes |
 
 **The three rules that keep you safe:**
 1. `main` moves only when you approve a gate, from your own GitHub account. Everything else happens on a working branch you can throw away.
-2. The session that writes code never grades it, and no build can change the checks that judge it.
+2. The session that writes code never grades it, and the checks that judge a build are read from the approved copy, not from the build's own.
 3. If the loop is unsure, it stops. A stopped loop costs nothing. A loop that guessed costs weeks.
+
+**What you should not assume.** Between gates, the automatic checks catch mistakes and shortcuts; they would not stop an AI session that set out to deceive. Two red-team passes made that plain. What you are guaranteed is narrower and firmer: nothing reaches `main` without you, every phase is re-checked from clean at its gate, and the worst case is redoing part of one phase. If you want more than that, G1 offers two ways (BLUEPRINT 2.5, last paragraph).
 
 ---
 
@@ -51,7 +53,7 @@ The GitHub mobile app shows pull requests, reports and the diagrams. You never n
 
 **Start it:** switch it on, or say "resume the Chronos loop."
 
-**Emergency stop for everything:** say "halt Chronos" to Claude, **or** do it yourself from the GitHub app on your phone: Issues → New issue → any title → add the label `chronos-halt`. While such an issue is open, every session, scheduled or manual, refuses to act. Close the issue to release it. This works even if Claude is unavailable.
+**Emergency stop for everything:** say "halt Chronos" to Claude, **or** do it yourself from the GitHub app on your phone: Issues → New issue → any title → add the label `chronos-halt`. While such an issue is open, every session, scheduled or manual, refuses to act. **Only you closing it releases it**: if any other account closes it, the loop treats it as still open. This works even if Claude is unavailable.
 
 **Take over by hand** (when you have time and want it faster, or usage is short and you want to choose what gets done):
 1. Open a Claude Code session on the repo (cloud, desktop app, or `claude` in the Mac terminal inside `~/chronos`).
@@ -94,7 +96,7 @@ At the end of each phase the loop writes `docs/v2/build/gates/Gn-report.md` and 
 1. **"Gate Gn: write-up"** holds the report and the updates to the master document. This is the one to read. Approve and merge it.
 2. **"Gate Gn: move main"** appears right after. Approve and merge it (choose "Create a merge commit" if GitHub asks).
 
-Once B05 is done, telling Claude "approve G2" in a chat is not enough, on purpose: the approval must come from your own GitHub account. When the second pull request is merged, the loop carries on at its next wake-up.
+Once B05 is done, telling Claude "approve G2" in a chat is not enough, on purpose: the approval must come from your own GitHub account. If something is pushed to a pull request after you approved it, GitHub discards your approval and asks again; that is deliberate, so read what changed. When the second pull request is merged, the loop carries on at its next wake-up.
 
 **Don't approve if:** the sabotage section lists survivors that aren't explained; a number re-derived blind doesn't match; the report can't tell you plainly what was built.
 
@@ -103,7 +105,7 @@ Once B05 is done, telling Claude "approve G2" in a chat is not enough, on purpos
 | Gate | What you are really approving |
 |---|---|
 | G0 | This plan |
-| G1 | That the loop works, that GitHub refuses what it should, and what a tick costs. Which Claude plan to stay on |
+| G1 | That the loop works, that GitHub refused each of the eleven attacks B05 ran against it, and what a tick costs. Which Claude plan to stay on. Whether builds keep merging on their own between gates, or you want a reviewer with its own identity, or to merge each build yourself |
 | G2 | The foundations (statistics, trial store, data, costs) are correct and match v1 |
 | G3 | The engine choice |
 | G4 | The server's monthly cost and that collection is running clean |
@@ -158,7 +160,7 @@ The full table with the weak point of each is in BLUEPRINT 2.9. In order:
 |---|---|---|---|
 | 1 | **Claude Max for the build months** | $100/month | About five times the allowance, and Fable for planning inside the plan. On Pro, one planning session plus one review emptied a five-hour window on 16 Nov. **My recommendation: switch when B01 starts** |
 | 2 | **A few hours of an independent human reviewer** at G5 and before real money | a few hundred dollars, twice [Guessing] | Every checker in this system is an AI. Where the thresholds get set, one human who has seen none of it is a different kind of check |
-| 3 | **A second reviewer from a different AI family** | $20/month from G1 | Different blind spots, on every build. Kept only if G2 shows it caught something |
+| 3 | **A second reviewer from a different AI family**, acting through its own GitHub identity | $20/month from G1 (you confirm then) | Different blind spots, on every build; and it is the one thing that would make "a build can't approve itself" a wall. Kept only if G2 shows it caught something |
 | 4 | **The server from G2, not after the spike** (proposal P-21, needs your yes) | $10–30/month [Guessing] | A few more weeks of headline history. A small gain; I'd take it only if the spike slips |
 | 5 | **Storage** | $0 if your external SSD has 500 GB free; else $80–120 once [Guessing] | 256 GB won't hold the data comfortably |
 | 6 | Rented compute for the phase-4 calibration run | tens of dollars, once [Guessing] | Hours instead of days |
@@ -220,7 +222,7 @@ Anything written by a tool other than the loop's own builder goes on a branch na
 5. Decide on Claude Max (§6, row 1).
 
 **Before B05 (15 minutes, any time):**
-6. Create a second, free GitHub account for the automation (for example `<yourname>-chronos-bot`) with its own email address. B05 walks you through connecting it. Don't give it admin rights.
+6. Create a second, free GitHub account for the automation (for example `<yourname>-chronos-bot`) with its own email address. B05 walks you through adding it as a collaborator and connecting it. It is never the owner.
 
 **When convenient:**
 7. Download Kraken's BTC/USD 1-minute OHLCVT history to a folder on the Mac (B21 uses one file; B42 loads all of it).
@@ -231,7 +233,7 @@ Anything written by a tool other than the loop's own builder goes on a branch na
 
 ## 9. Glossary
 
-**Build** one session-sized piece of work, one pull request · **Tick** one wake-up of the loop · **Gate** a checkpoint that waits for you · **Halt** the loop stopping itself · **Spec** the written instructions and pass/fail checks for one build · **Known answer** a result we know is right before the code exists, used as a test · **Pull request** a proposed change, with its tests and review attached · **Working branch (`v2-build`)** where builds land · **`main`** the approved line; moves only at gates · **Sabotage run** deliberately breaking the code to prove the tests notice · **Blind re-derivation** a separate session recomputing a result from the spec without seeing the original · **Protected value** a validation threshold, risk limit, seal date or go-live decision; always yours · **Wall** a protection enforced by code, GitHub or the database, whatever an agent intends · **Guard rail** a protection that depends on a session following its instructions · **Code owner** the account GitHub requires a review from before certain files can change (you) · **Lock** a marker a session takes before acting on a build, so two sessions can't work on the same thing · **Seal** the date (1 Apr 2026) after which research can't read price data · **Footprint** the record of what data a result actually read.
+**Build** one session-sized piece of work, one pull request · **Tick** one wake-up of the loop · **Gate** a checkpoint that waits for you · **Halt** the loop stopping itself · **Spec** the written instructions and pass/fail checks for one build · **Known answer** a result we know is right before the code exists, used as a test · **Pull request** a proposed change, with its tests and review attached · **Working branch (`v2-build`)** where builds land · **`main`** the approved line; moves only at gates · **Sabotage run** deliberately breaking the code to prove the tests notice · **Blind re-derivation** a separate session recomputing a result from the spec without seeing the original · **Protected value** a validation threshold, risk limit, seal date or go-live decision; always yours · **Wall** a protection enforced by GitHub or the database whatever an agent intends, and that has been attacked and held · **Tripwire** an automatic check that catches mistakes and shortcuts but that a session set on cheating could get around · **Guard rail** a protection that depends on a session following its instructions · **Code owner** the account GitHub requires a review from before certain files can change (you) · **Lock** a marker a session takes before acting on a build, so two sessions can't work on the same thing · **Seal** the date (1 Apr 2026) after which research can't read price data · **Footprint** the record of what data a result actually read.
 
 ---
 

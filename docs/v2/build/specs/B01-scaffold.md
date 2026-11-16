@@ -14,12 +14,14 @@ touches:
   - v2/src/chronos2/core/**
   - v2/tests/core/**
   - v2/tests/test_environment.py
+  - v2/tests/test_workflow_file.py
   - v2/tests/conftest.py
   - v2/tools/v1_oracle/README.md
   - .github/workflows/v2.yml
   - scratch/.gitkeep
   - docs/drafts/.gitkeep
 may_modify_tests: []
+adds_dependencies: [numpy, scipy, pandas, pyarrow, pytest, ruff, pyyaml]
 ```
 
 # B01 — v2 project scaffold, core helpers, automatic tests
@@ -38,7 +40,7 @@ Everything later stands on this: a separate v2 project that can't see v1, two sm
 3. `core/timeutil.py`: `require_utc(dt)` (raises on naive or non-UTC), `assert_process_utc()` (raises unless the process time zone is UTC), `HalfOpen(start, end)` (both tz-aware UTC, `start < end`, `contains(ts)` true for `start <= ts < end`).
 4. `core/canonical.py`: `canonical_json(obj) -> str` and `content_hash(obj) -> str` (SHA-256 hex). Sorted keys; `Decimal` → its string; `datetime` → ISO-8601 UTC with `Z`; floats by `repr`; tuples as lists; enums by value. Raises on NaN, infinities, naive datetimes, sets, and unknown types.
 5. `v2/tests/conftest.py`: empty apart from a docstring saying that hooks which change test collection are forbidden (B02 enforces it).
-6. `.github/workflows/v2.yml`, on pull requests and on pushes to `v2-build` and `main`. Jobs:
+6. `.github/workflows/v2.yml`, on `pull_request` and on pushes to `v2-build` and `main`, with `permissions: contents: read` at the top (these jobs run the pull request's own code, so they get a read-only token and use no secrets). Jobs:
    - **tests**: `TZ=UTC`; `astral-sh/setup-uv`; a `postgres:16` service with a health check, and `CHRONOS2_TEST_DSN` exported; `uv sync --frozen --all-groups` in `v2/`; `uv run pytest -q -rsx --junitxml=junit.xml`; the junit file uploaded as an artifact.
    - **lint**: `ruff check`.
    - **v1-oracle**: in the **v1** environment (repo root, `uv sync --frozen`), run every `v2/tools/v1_oracle/dump_*.py` and fail if `git diff --exit-code v2/tests/known_answers/v1_oracle/` is non-empty. With no dump scripts yet, it passes.
@@ -57,6 +59,7 @@ Everything later stands on this: a separate v2 project that can't see v1, two sm
 - `HalfOpen(2026-03-31T00:00Z, 2026-04-01T00:00Z)`: contains `2026-03-31T23:59:59Z`; does **not** contain `2026-04-01T00:00:00Z`; constructing it with a bare `date` raises.
 - `assert_process_utc()` passes under `TZ=UTC` and raises under `TZ=America/Toronto` (run in a subprocess).
 - Environment test: Python is 3.14; `importlib.util.find_spec("chronos") is None` (v1 isn't importable from the v2 environment).
+- The workflow file contains `permissions:` with only `contents: read`, and no `secrets.` reference (asserted by a test that reads the file).
 - On GitHub: three green jobs on the pull request. The **tests** job's log shows a Postgres connection succeeded (one trivial `SELECT 1` test, so B09 inherits a working service).
 
 ## Not in this build

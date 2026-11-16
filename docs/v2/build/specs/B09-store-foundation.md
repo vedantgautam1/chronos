@@ -15,6 +15,7 @@ touches:
   - v2/tests/mnemosyne/conftest.py
   - docs/v2/COMPONENTS.md
 may_modify_tests: []
+adds_dependencies: [psycopg]   # v2/pyproject.toml is founder-owned: this build's pull request needs the founder's review
 ```
 
 # B09 — Trial store I

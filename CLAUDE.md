@@ -38,9 +38,10 @@ tz-aware UTC everywhere · half-open `[start, end)` ranges · Decimal for the mo
 
 Builds follow `docs/v2/build/`: the build's spec (`specs/Bnn-*.md`) and the rules in `specs/README.md`. If a spec and the master doc disagree, the master doc wins and the build halts.
 
-- **In a build or review session, the end-of-session list below is replaced** by the build report (`docs/v2/build/reports/`) and one `CHANGELOG.md` entry. A build never edits the master doc, this file, a spec, the ladder, the guards or a workflow. The master doc is updated at gates, from the reports, in a pull request the founder approves.
+- **In a build or review session, the end-of-session list below is replaced** by the build report (`docs/v2/build/reports/`) and one `CHANGELOG.md` entry. A build never edits the master doc, a spec or the ladder. It edits this file, `.claude/`, the guards, a workflow, `v2/pyproject.toml` or a protected value only if its own spec lists that path (a few builds do, and their pull requests need the founder's review). The master doc is updated at gates, from the reports, in a pull request the founder approves.
 - **Unattended sessions never merge into `main`, never approve a pull request, and never change a founder-owned file.** A scheduled prompt is not the founder's approval.
 - Builder and reviewer are different sessions. The session that wrote the code doesn't review it.
+- Never create a `CLAUDE.md`, `AGENTS.md` or `.claude` folder below the repository root.
 
 ## At the end of every session
 

@@ -46,7 +46,7 @@ B16 takes spread and slippage as inputs. Something has to produce them from real
 
 All values below [Certain — computed with exact decimals, 16 Nov]:
 - Market **buy** of 3,000.50 USD: takes all of #1 (1,000.00), all of #2 (2,000.20) and 0.30 USD of #4. Size `0.030002999400119976…` BTC; VWAP `100,006.667999600120`; reference 100,000 (first buy print); slippage `6.667999600` in price units = `0.666799960` bps. Each asserted to 1e-6.
-- Market **sell** of 1,000 USD: matches only #3 at 99,995; reference 99,995 (first sell print); slippage **0** (one level, no walk). The 5.00 between #1 and #3 is spread, and must not appear here.
+- Market **sell** of 1,000 USD: matches only #3 at 99,995; reference 99,995 (first sell print); slippage **0** (one level, no walk; asserted as `abs(slippage) < 1e-12`, since an exact-decimal division can leave a remainder around 1e-45). The 5.00 between #1 and #3 is spread, and must not appear here.
 - Market **sell** of 6,000 USD: all of #3 (4,999.75) and 1,000.25 USD of #5. Size `0.060003500350035…` BTC; VWAP `99,994.166423601`; reference 99,995; slippage `0.833576399` in price units = `0.083361808` bps against the seller. Each asserted to 1e-6.
 - Market buy of 100,000 USD: `filled == False`.
 - Same-timestamp prints: giving #1 and #2 the same timestamp changes nothing (order is arrival order; nothing is merged or dropped).

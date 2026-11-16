@@ -4,7 +4,7 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
-## 16 Nov 2026 — build blueprint v0.2 (after the red team), specs B01–B22, founder handbook; V2-D47–D51 locked (awaiting gate G0)
+## 16 Nov 2026 — build blueprint v0.3 (after two red-team passes), specs B01–B22, founder handbook; V2-D47–D50 locked (awaiting gate G0)
 
 - **Founder asked for** a build skeleton with line diagrams, session-sized builds, automated build-and-check loops in place of the chat → paste → Claude Code relay, a handbook, and a re-audit of v1. Nothing here is adopted until the founder approves gate G0.
 - **New folder `docs/v2/build/`:**
@@ -31,7 +31,7 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 - **Corrections:**
   - `BUILD_NOTES.md` §4: a true Sharpe of 0.5 needs about **25** years to show, not 18 (v1's own function: 24.73).
   - Master doc §12: the second "O-12" (AGPL) renumbered O-13; §13: content analysis is S1–S35 with `item-analyses-4.md`.
-- **Master doc:** header, §1 next step, §2a new row, §3 hardware, §9 step 2, §10 (three founder-instruction rows, V2-D47–D51), §12 (P-16–P-20 closed, P-21, O-6 closed, O-14), §13, §14 rule 3. Next IDs: V2-D52, P-22.
+- **Master doc:** header, §1 next step, §2a new row, §3 hardware, §9 step 2, §10 (four founder-instruction rows, V2-D47–D50), §12 (P-16–P-20 closed, P-21, O-6 closed, O-14), §13, §14 rule 3. Next IDs: V2-D52, P-22.
 - **Not done:** no v2 code; no loop yet (builds B01–B05); full specs for B23–B54 are written when each phase opens.
 
 ---

@@ -10,10 +10,10 @@ The estimates are guesses until B01–B05 have run [Guessing]. That is the point
 |---|---|---|---|---|---|---|---|---|---|
 | **G0** | **Blueprint approved** | gate | — | — | | | | | |
 | B01 | v2 project scaffold, core helpers, automatic tests | M | 2–3 | 1 | | | | | |
-| B02 | The guards: checks that run from the base branch, protected values, code owners | M | 2–3 | 1 | | | | | |
+| B02 | The guards: tripwire checks on every pull request, protected values, code owners | M | 2–3 | 1 | | | | | |
 | B03 | The loop's decision core: ladder reader, next action, locks | M | 2–3 | 1 | | | | | |
 | B04 | The loop's hands: agent definitions, commands, templates | M | 2–3 | 1 | | | | | |
-| B05 | The automation's own GitHub identity, GitHub rules, first unattended run | S | 1–2 | 1 | | | | | |
+| B05 | The automation's own GitHub identity, GitHub rules, attack tests, first unattended run | M | 2–3 | 1 | | | | | |
 | **G1** | **The loop is proven** | gate | — | — | | | | | |
 | B06 | Statistics I: the ported core, its known-answer tests, the v1 oracle | M | 2–3 | 1 | | | | | |
 | B07 | Statistics II: the 28-check probe as tests, mid-rank counters, the floating-point tie case | M | 2–3 | 1 | | | | | |

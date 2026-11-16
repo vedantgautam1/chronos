@@ -32,7 +32,7 @@ may_modify_tests: []
 - **`"sealed_look"` is refused always in this build.** The one-look path arrives with the ledger in B46. Until then nothing can read sealed data: fail closed.
 - An instrument with no seal date can't be read at all.
 - The mapping from `instrument_id` to the seal's asset (for example `XBTUSD` on Kraken and a nano BTC future both map to `BTC`) is a table in code, tested; an unmapped instrument is refused.
-- **Bars are stamped by their open time.** A read is legal exactly when every bar returned opens before the seal date. `Footprint.max_timestamp_read` is the **open time of the last bar actually returned**, computed from the data, not from the request. B11's `audit_seal` treats `max_timestamp_read >=` the seal date as a breach; the two rules agree.
+- **Bars are stamped by their open time.** A read is legal exactly when every bar returned opens before the seal date. `Footprint.max_timestamp_read` is the **open time of the last bar actually returned**, computed from the data, not from the request; `Footprint.assets` is the seal asset of the instrument read, from the mapping in `instruments.py`. B11's `audit_seal` treats `max_timestamp_read >=` the seal date as a breach; the two rules agree.
 
 ## Deliver
 1. `oceanus/door.py`: `get_bars(...) -> BarsResult(frame, footprint)`, `available_range(key)`, `SealedDataError`, `DataIntegrityError`. Reads go through B12's store and B13's validation; gaps found become `Footprint.gaps` and set `partial = True`.

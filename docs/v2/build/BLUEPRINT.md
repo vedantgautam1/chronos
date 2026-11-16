@@ -1,6 +1,6 @@
 # CHRONOS v2 — BUILD BLUEPRINT (the skeleton)
 
-**Status: DRAFT v0.2, 16 Nov 2026 (UTC): revised after the red team's review (`gates/G0-redteam.md`). Not adopted until the founder approves gate G0.**
+**Status: DRAFT v0.3, 16 Nov 2026 (UTC): revised after two red-team passes (`gates/G0-redteam.md`). Not adopted until the founder approves gate G0.**
 Companion to the master document `docs/v2/CHRONOS_V2.md`, which still wins if the two disagree (§0 there).
 
 This file answers three questions:
@@ -311,7 +311,7 @@ flowchart TD
 
 Every commit on a build branch says which role made it. The checks read that label and refuse a builder commit that writes a review or marks its own work passed, a reviewer commit that touches code, and a "passed" with no review of the current code (`specs/README.md`, "Who may write what"; built in B02).
 
-**What that does and doesn't prove.** The first draft of this plan let the builder approve itself, and the red team showed how (`gates/G0-redteam.md`, finding 1). The label check closes the accidental version of that. It can't prove the "reviewer" is really a different session, because until B05 every session acts on GitHub as you. Section 2.5 lists, line by line, which protections are walls and which are guard rails.
+**What that does and doesn't prove.** The label is one a session puts on its own commit, and builder and reviewer act through the same GitHub account. So the check catches a session doing the wrong job by mistake; it can't catch one that lies about which role it is. Both red-team passes pressed on this (`gates/G0-redteam.md`). The honest position: builder–reviewer separation is a **guard rail**, kept by the loop starting a fresh session for each action and checked afterwards at each gate. It becomes a wall only if the reviewer gets an identity of its own, which is a decision for you at G1 (2.5).
 
 Why builder and reviewer are separate sessions and not "one smart agent": a session that wrote the code believes its own story about it. Every tick of the loop starts a fresh session with no memory of the last one [Certain — Claude Code scheduled-task docs, read 16 Nov].
 
@@ -338,19 +338,20 @@ flowchart LR
   VB -->|"you approve the move"| MN["main<br/>moves ONLY at gates"]
 ```
 
-- Builds merge into **`v2-build`** on their own, when the checks are green and the reviewer has passed them.
+- **`main` is the only thing that is trusted.** `v2-build` is a workbench: builds merge into it on their own when the checks are green and the reviewer has passed them, and anything on it can be thrown away back to the last gate.
 - **`main` moves only when you approve a gate.** A gate is two pull requests, both opened for you by the loop: first the **write-up** (the gate report and the updates to the master document), which is the one to read; then the **move** of `main`, which is one click. A gate counts as done when its report is on `main`.
-- **Rule changes need you.** The files that define the rules (the checks, the workflows, the specs, the ladder, this blueprint, the master document, `CLAUDE.md`, the protected values, the touchstones) have a named owner: you. A pull request that touches one can't merge without your review.
-- **These become real walls at build B05**, when the automation gets its own GitHub account with ordinary write access. Until then every Claude session acts on GitHub as you, so GitHub can't tell your approval from the agent's. Phase 0 (B01–B05) is run with you present for that reason, and the loop is not switched on before B05 has shown, on GitHub, that the automation's attempts to merge into `main`, to approve a pull request and to change a protected value are refused.
+- **Rule changes need you.** The files that define the rules (the checks, the workflows, the specs, the ladder, this blueprint, the master document, `CLAUDE.md`, the list of libraries, the protected values, the touchstones) have a named owner: you. From B05, a pull request that touches one can't merge without your review.
+- **Between gates, document changes you approve** (a new decision, research notes) go to `main` as they do today. The next gate's write-up merges `main` into the working line, so the two never drift apart. If a decision made mid-phase changes what a build should do, the build's spec is corrected (a small pull request you approve); builds follow their specs.
+- **None of this is a wall until build B05.** Until then every Claude session acts on GitHub as you, so GitHub can't tell your approval from the agent's. In B05 the automation gets its own account, GitHub's rules are switched on, and then **the automation attacks them**: eleven named attempts (merge into `main` on its own approval; approve a pull request you opened; add a commit after you approved; fake a passed check; change a workflow, a protected value or a rule; close your emergency stop). Each must be refused on GitHub. A protection whose attack isn't refused is written down as a guard rail, and you decide what to do about it.
 
 ### 2.5 The five layers of checking
 
 | # | Layer | When | What it catches |
 |---|---|---|---|
-| 0 | **Spec** | Before any code | The pass/fail checks and the known answers are written first, by a session that isn't doing the build. The builder can't move the goalposts: the checks read each spec from the base branch, so editing your own spec on your own branch changes nothing |
-| 1 | **Automatic checks on every pull request** | Every build | Wrong numbers (known-answer tests). Edits to v1 (compared against `v1-final`: must be empty). Edits outside the files the spec lists. An earlier test deleted, skipped or switched off. A role writing what it may not. A protected value changed. Timezone not UTC. **The checking code runs from the base branch, never from the pull request**, so a build can't loosen the checks that judge it |
-| 2 | **Independent reviewer** | Every build | Code that passes tests but doesn't do what the spec says. Tests that can't fail. Hard-rule violations (CLAUDE.md 1–10). It must run the checks itself and break one thing on purpose to see a test go red |
-| 3 | **Gate audit** | End of each phase | The tests as they stood at the previous gate, taken from `main`, re-run unmodified against today's code. Blind re-derivation of key numbers. **Sabotage run** (the tool is build B22): the code is changed on purpose, automatically, many times; every change the tests don't notice is listed and must be answered with a test or explained. End-to-end run. Docs match reality. Estimates vs actuals |
+| 0 | **Spec** | Before any code | The pass/fail checks and the known answers are written first, by a session that isn't doing the build. The checks read each spec from the base branch, so editing your own spec on your own branch changes nothing |
+| 1 | **Automatic checks on every pull request** | Every build | Wrong numbers (known-answer tests). Edits to v1 (compared against `v1-final`: must be empty). Edits outside the files the spec lists. An existing test file changed, deleted or renamed. The earlier builds' tests, **run again from the base branch's copy** so nothing this build put in the tests folder can affect them. A role writing what it may not. A protected value changed. An instruction file planted in a source folder. A library added that the spec doesn't name. Timezone not UTC |
+| 2 | **Independent reviewer** | Every build | Code that passes tests but doesn't do what the spec says. Tests that can't fail. Anything that changes how tests run. Hard-rule violations (CLAUDE.md 1–10). It must run the checks itself and break one thing on purpose to see a test go red |
+| 3 | **Gate audit** | End of each phase | The tests as they stood at the previous gate, taken from `main`, re-run unmodified against today's code. Every build's review checked: it exists, names the real commit, and was made by a different session from the build. Every rule file that changed during the phase, listed for you with its diff. Blind re-derivation of key numbers. **Sabotage run** (the tool is build B22): the code is changed on purpose, automatically, many times; every change the tests don't notice is listed and must be answered. End-to-end run. Docs match reality. Estimates vs actuals |
 | 4 | **Founder** | Gates only | Whether the direction is still right. Each gate report has "three things you can check yourself" in plain language |
 
 Two rules sit across all layers:
@@ -358,21 +359,30 @@ Two rules sit across all layers:
 - **Known answers come from outside the builder's head.** From the papers, from v1's own passing tests, or from a second library (`arch`, `quantstats`, `ml4t-diagnostic`). "The model remembers the formula" is not a source (hard rule 5).
 - **Every check must be able to fail.** A check that has never been seen red proves nothing. Layers 2 and 3 both exist to see it red.
 
-**Walls and guard rails.** A wall is enforced by code, GitHub or the database whatever an agent intends. A guard rail depends on a session following its instructions. The red team's main complaint about the first draft was that it called guard rails walls. This is the honest list after the redesign:
+**What kind of protection each thing is.** Three words, used the same way everywhere in this pack:
 
-| Protection | Wall from | Still a guard rail |
+- a **wall** is enforced by GitHub or the database whatever an agent intends, *and has been attacked and held* (B05 for GitHub, B09 for the database);
+- a **tripwire** is an automatic check that catches mistakes and shortcuts, and that a session determined to cheat could get around;
+- a **guard rail** depends on sessions following their instructions.
+
+The first draft of this table called tripwires and guard rails walls; both red-team passes said so. This version claims a wall only where an attack test exists, and the "from" column is conditional on that test passing.
+
+| Protection | What it is | Becomes a wall |
 |---|---|---|
-| v1 can't be edited | B02 (check from the base branch) | — |
-| A build can't touch files outside its spec, or widen its own spec | B02 | — |
-| A build can't change the checks, the workflows or the rules | B02 as a check; **B05** as a GitHub rule needing your review | Before B05: a session acting as you could approve itself |
-| Earlier tests can't be changed, deleted, skipped or switched off | B02: existing test files are frozen (a file comparison done from the base branch), and pytest hooks are banned by a text scan | A *new* test that checks less than its spec says is caught only by the reviewer and the sabotage run. A session determined to fake a test run from inside new code could still try; the gate audit re-runs the previous gate's tests, unmodified, against the current code |
-| The builder can't mark its own work passed | B02 (role labels) | That the reviewer is a truly separate session. It is, by construction of the loop; nothing proves it. A reviewer with its own identity or from another AI family (V2-D51) would |
-| `main` moves only with your approval | **B05** | Before B05: instructions only |
-| Protected values (seal dates, stress settings) change only with your approval | **B05** | Before B05: the check flags it, but can't tell who approved |
-| Known answers are right | Tests assert the numbers in the spec; v1's numbers are regenerated from v1 itself in CI | The spec's own numbers: checked by the red team (it found four wrong ones, now fixed) and at each gate |
-| Trial records can't be changed or deleted | B09 (database permissions and triggers, attacked in tests) | A database superuser can disable triggers; the audit detects it afterwards |
-| Research can't read sealed data | B14 (the door refuses) + B11 (an audit over every stored footprint) | Code that reads the files directly, around the door, is caught by a test, not by the operating system |
-| The loop can't spend money | It never runs a model billed per use; your usage-credit limit | You must actually set the limit (HANDBOOK §6) |
+| `main` moves only with your approval of exactly what is merged | Guard rail until B05 | **B05**, if attacks A1–A5 and A9 are refused |
+| The rules can't change without you (checks, workflows, specs, ladder, master doc, `CLAUDE.md`, libraries, protected values) | Tripwire from B02 (the `protected` check); guard rail before | **B05**, if attacks A6–A8 and A10 are refused |
+| Your emergency stop can't be undone by the automation | Guard rail until B03 | **B03/B05**: the loop ignores a stop closed by any account but yours (attack A11) |
+| v1 can't be edited | Tripwire from B02 | At each gate: the gate move can't merge with a v1 change, because the check is required on `main` (B05) |
+| A build stays inside the files its spec lists, and can't widen its own spec | Tripwire from B02 | No. A phase's worth of out-of-scope changes is shown to you at the gate |
+| Earlier tests can't be changed, deleted or switched off | Tripwire from B02: existing test files are frozen, and the earlier tests are re-run from the base branch's copy | No. A session could still defeat a test from inside new *source* code. The reviewer, the gate's re-run of the last gate's tests, and the sabotage run are what catch that |
+| The builder can't approve its own work | Tripwire from B02 (role labels) + guard rail (fresh sessions) | Only with a reviewer that has its own identity: your decision at G1 |
+| A new test checks as much as its spec says | Guard rail (the reviewer) + the sabotage run at gates | No |
+| Known answers are right | Tests assert the numbers in the spec; v1's numbers are regenerated from v1 itself in CI, and an existing oracle script can't be edited | The spec's own numbers were re-run by two red-team passes (the first found four wrong, the second re-ran six and all matched) and are re-derived blind at gates |
+| Trial records can't be changed or deleted | — | **B09**: database permissions and triggers, attacked in tests. A database superuser can still disable triggers; the audit detects it afterwards |
+| Research can't read sealed data | Tripwire: a test that nothing reads the files around the door | **B14** for reads through the door (it refuses) + **B11** (an audit over every stored footprint) |
+| The loop can't spend money | It never runs a model billed per use | Your usage-credit limit, once you set it (HANDBOOK §6) |
+
+**The honest summary.** Between gates, on the working line, the automatic checks are good at catching mistakes and bad at stopping deliberate deception, and nothing on GitHub can fully fix that while builder and reviewer share one account. What the design guarantees instead: nothing reaches `main` without you; at every gate the phase is re-checked from clean, by a session that built none of it; and the worst case of a bad or dishonest build is redoing part of one phase, not building months of work on it. If you want more than that between gates, the two real options are a reviewer with its own identity or merging each build yourself (B05 "Halt if" lists both); that is a G1 decision, with B05's measurements in hand.
 
 ### 2.6 Brakes: when the loop stops itself
 
@@ -389,7 +399,7 @@ A build is **halted** (status `halted`, with the reason and the options written 
 
 A halt is cleared by the founder, usually with one sentence in a session ("split it as proposed", "take option b"). Nothing proceeds around a halt.
 
-**The big red button.** Saying "halt the loop" to Claude, or opening a GitHub issue with the label `chronos-halt` from your phone, stops every action until the issue is closed. It needs no pull request and can't be blocked by a check.
+**The big red button.** Saying "halt the loop" to Claude, or opening a GitHub issue with the label `chronos-halt` from your phone, stops every action until **you** close the issue. It needs no pull request and can't be blocked by a check; and if any account other than yours closes it, the loop treats it as still open.
 
 **When a spec is wrong.** The build halts. The correction is made on its own small branch (`spec/…`), which needs your approval because specs are yours; then the build resumes. A builder never fixes its own instructions.
 
@@ -439,7 +449,7 @@ The founder's figure for month one was US$100 for everything, with this instruct
 |---|---|---|---|---|
 | 1 | **Claude Max instead of Pro, for the build months** | $100/month (+$80) | About five times the allowance, per five hours and per week [Likely]. Fable for planning inside the plan (up to half the weekly allowance) instead of pay-per-use [Certain — Anthropic help page, read 16 Nov]. On Pro, one planning session plus one review used a whole five-hour window on 16 Nov [Certain — it happened: the red team was cut off]. The loop needs a builder and a reviewer per build, 54 times | Nobody has measured a build tick yet. B05 does. If B05 shows Pro would have been enough, drop back; the plan can change monthly |
 | 2 | **A few hours of an independent human reviewer** (someone who reads Python and statistics) at G5, and again before real money | a few hundred dollars, twice [Guessing — no quote taken] | The one thing this design lacks: every builder, reviewer and auditor is an AI, mostly from one family. G5 is where the validation thresholds are set; a human who has seen none of it re-deriving two or three numbers is a different kind of check | Finding the right person. A weak reviewer adds false comfort. Not needed before G5 |
-| 3 | **A reviewer from a different AI family** (V2-D51) | $20/month from G1 | A partial answer to the same weakness, on every build instead of twice. Judged at G2 by what it caught that Claude's reviewer missed; dropped if nothing | It may catch nothing. You don't have the subscription today |
+| 3 | **A reviewer from a different AI family** (P-20) | $20/month from G1 | A partial answer to the same weakness, on every build instead of twice. Judged at G2 by what it caught that Claude's reviewer missed; dropped if nothing | It may catch nothing. You don't have the subscription today |
 | 4 | **Rent the server at G2 instead of after the spike** (proposal P-21) | about $10–30/month [Guessing — no quote taken] | Headlines as published can't be collected afterwards. Starting at G2 gains roughly the length of the spike: a few weeks of headline history | A small gain, and you weighed this on 3 Nov when you locked V2-D30. What is new is only that the cap is soft and that the spike waits on your calendar. Spread snapshots and paid sources can't start early anyway (they need the spike and the budget guard). I'd take it only if the spike slips |
 | 5 | **Storage** | $0 if the external SSD the master doc mentions has 500 GB free; otherwise about $80–120 once for 1 TB [Guessing] | Your Mac has 256 GB. Multi-year one-minute data, trade files and the spike's working files will not fit comfortably beside everything else | None; it is also the backup drive |
 | 6 | **Rented compute by the hour for the big calibration run** (B53) | tens of dollars, once [Guessing] | Thousands of simulated worlds in hours instead of days on a 16 GB laptop | Not needed until phase 4; decide then with a measured run time |
@@ -447,7 +457,7 @@ The founder's figure for month one was US$100 for everything, with this instruct
 
 **Where more money buys little** [Likely]: hardware to run AI models locally (a 16 GB Mac can't run a model good enough to write this code, and a machine that can costs more than years of Max); a new Mac; pay-per-use credits as the main way to run the loop (unbounded, unattended); the top plan before the middle one has been measured.
 
-**Free, and worth more than several of the above:** the automation's own GitHub account (B05). It turns the most important guard rails into walls.
+**Free, and worth more than several of the above:** the automation's own GitHub account (B05). Without it GitHub can't refuse the automation anything, because it can't tell it from you.
 
 **What stays true whatever is spent:** the loop never runs a model that bills per use; your usage-credit limit is set before the loop is switched on (HANDBOOK §6).
 
@@ -455,7 +465,7 @@ The founder's figure for month one was US$100 for everything, with this instruct
 |---|---|---|
 | Claude Pro | $20 | Have it |
 | Claude Max | $100 | **Recommended from the start of B01**, reviewed at G1 from B05's measurements |
-| Second-family reviewer | $20 | From G1 (V2-D51), reviewed at G2 |
+| Second-family reviewer | $20 | From G1 (P-20), reviewed at G2 |
 | Server | $10–30 [Guessing] | After the spike (V2-D30), or from G2 if you accept P-21 |
 | Human review | one-off, a few hundred dollars [Guessing] | At G5; your call then |
 | Paid APIs (Grok, Claude API for collectors) | budgeted in V2-D41 | Phase 3, behind the budget guard |
@@ -527,10 +537,10 @@ Nothing third-party enters the code base until the build named here, and never w
 |---|---|---|---|---|---|
 | **G0** | **This blueprint approved** | — | — | gate | — |
 | B01 | v2 project scaffold, core helpers, automatic tests | M | Opus | you+ (by hand: no loop yet) | G0 |
-| B02 | The guards: checks that run from the base branch, protected values, code owners | M | Opus | you+ (by hand) | B01 |
+| B02 | The guards: tripwire checks on every pull request, protected values, code owners | M | Opus | you+ (by hand) | B01 |
 | B03 | The loop's decision core: ladder reader, next action, locks | M | Opus | you+ (by hand) | B02 |
 | B04 | The loop's hands: agent definitions, commands, templates | M | Opus | you+ (by hand) | B03 |
-| B05 | The automation's own GitHub identity, GitHub rules, first unattended run | S | Opus | you+ (about 30 minutes of you) | B04 |
+| B05 | The automation's own GitHub identity, GitHub rules, attack tests, first unattended run | M | Opus | you+ (about 45 minutes of you) | B04 |
 | **G1** | **The loop is proven.** GitHub refuses what it should. Estimates re-sized from B01–B05. Plan and second-reviewer choice reviewed | — | Opus | gate | B05 |
 
 B01–B05 are run by hand, with you present, because the loop and its walls don't exist until B05 has proved them.
@@ -541,8 +551,8 @@ B01–B05 are run by hand, with you present, because the loop and its walls don'
 |---|---|---|---|---|---|
 | B06 | Statistics I: the ported core, its known-answer tests, the v1 oracle | M | Opus | loop | G1 |
 | B07 | Statistics II: the 28-check probe as tests, mid-rank counters, the floating-point tie case | M | Opus | loop | B06 |
-| B08 | Statistics III: cross-checks against three outside libraries | S | Opus | loop | B07 |
-| B09 | Trial store I: Postgres harness, migrations, append-only, audit | M | Opus | loop | G1 |
+| B08 | Statistics III: cross-checks against three outside libraries | S | Opus | loop (you approve its pull request: it adds libraries) | B07 |
+| B09 | Trial store I: Postgres harness, migrations, append-only, audit | M | Opus | loop (you approve its pull request: it adds a library) | G1 |
 | B10 | Trial store II: ids, code coordinate, hypotheses, SEARCH/VERIFICATION, honest N | M | Opus | loop | B09 |
 | B11 | Trial store III: returns, trades, data footprint, compare guard, seal audit | M | Opus | loop | B10 |
 | B12 | Data I: bar schema, Parquet store, snapshot hash | M | Opus | loop | G1 |
@@ -654,14 +664,14 @@ Every gate produces one file, `gates/Gn-report.md`, written by the auditor, with
 
 1. **Verdict** in one line: ready to approve, or not and why.
 2. **What was built** since the last gate, in plain words, one line per build.
-3. **What the audit tried to break, and what broke.** Sabotage survivors listed one by one. Which protections are walls today and which are still guard rails.
+3. **What the audit tried to break, and what broke.** Sabotage survivors listed one by one. The previous gate's tests re-run unmodified. Every rule file changed in the phase, with its diff. Which protections are walls today and which aren't.
 4. **Numbers re-derived blind**, side by side with the build's own.
 5. **Plan vs reality:** ticks, lines, review rounds, halts; the re-sized ladder if estimates were off.
 6. **Three things you can check yourself** without reading code and without a terminal: each is "open this page or file, find this line, it should say X". (If a check needs a command, the report gives the sentence to say to Claude and the answer to expect.)
 7. **Decisions waiting for you**, each with options and a recommendation.
 8. **Master-doc changes** this gate will make to §2 and §10 when approved.
 
-Approving a gate is two clicks on GitHub, on two pull requests the loop opens for you: approve and merge **the write-up** (this report plus the master-doc updates; read this one), then approve and merge **the move of `main`**. Telling Claude "approve G2" in a chat is not enough once B05 is done: the approval has to come from your own GitHub account, which is the point. When the report is on `main`, the next tick of the loop carries on.
+Approving a gate is two clicks on GitHub, on two pull requests the loop opens for you: approve and merge **the write-up** (this report plus the master-doc updates; read this one), then approve and merge **the move of `main`**. Telling Claude "approve G2" in a chat is not enough once B05 is done: the approval has to come from your own GitHub account, which is the point. If anything is pushed to a pull request after you approved it, GitHub throws your approval away and asks again; that is deliberate. When the report is on `main`, the next tick of the loop carries on.
 
 ---
 
@@ -681,7 +691,7 @@ Approving a gate is two clicks on GitHub, on two pull requests the loop opens fo
 
 ## Part 8 — Decisions and proposals this blueprint raised
 
-**Accepted by the founder on 16 Nov** ("it's a go"), recorded in the master doc §10:
+**Accepted by the founder on 16 Nov** ("it's a go"), recorded in the master doc §10 (P-16 to P-19 as decisions; P-20 as an instruction):
 
 | Was | Now | Decision |
 |---|---|---|
@@ -689,7 +699,7 @@ Approving a gate is two clicks on GitHub, on two pull requests the loop opens fo
 | P-17 | **V2-D48** | The edge check takes its input in one standard form (returns, trade list, cost components per trade) from any engine. The acceptance test runs on the screening wrapper for speed; a sample is re-run on the real engine to show both give the same answer |
 | P-18 | **V2-D49** | v2 expectations are pre-registered for T-a1 (written with its reasoning in B20, before anything runs) and T-c (the deliberate look-ahead must be caught by the look-ahead kit and never reach the edge check) |
 | P-19 | **V2-D50** | Engine-independent parts of step 5 (B42–B50) may be built before the spike finishes. Nothing from them is trusted until G5 |
-| P-20 | **V2-D51** | From G1, a second reviewer from a different AI family reads every build's pull request; kept only if the G2 comparison shows it caught something Claude's reviewer missed. (Left to Claude's judgement by the founder; he has no such subscription today, so this costs $20/month from G1) |
+| P-20 | **not locked** | The founder left this to Claude's judgement ("if you feel it's required and it's good, then sure"). Only the founder locks decisions, so it is recorded as an instruction, not a decision. Claude's call: **yes, as a trial from G1, confirmed by the founder at G1 before any money is spent.** The second red-team pass raised its value: a reviewer acting through its own GitHub identity is the one thing that would make "a build can't approve itself" a wall. No build exists for it yet; if confirmed at G1, its setup is specified then |
 
 **New, waiting for the founder:**
 
@@ -713,4 +723,8 @@ Open items carried from elsewhere that bite during phases 0–1:
 2. **A spec can't be changed by the build it governs.** If it is wrong, the build halts and the spec is corrected on its own small branch, which needs the founder's approval.
 3. **Every gate re-reads this file** against what was built and corrects it. The blueprint is versioned at each gate (v0.1 now, v1.0 at G0).
 4. **Master-doc rules still apply** (its §14): decisions are logged there, traps go to `BUILD_NOTES.md`, libraries to `COMPONENTS.md`, work to `CHANGELOG.md`. One change for loop builds: a build writes its report and its changelog entry, and the master document is updated **at the gate**, from those reports, in the write-up you approve. A build never edits the master document.
-5. **This blueprint was attacked before adoption** by a separate agent that had not seen it being written. Its verdict on the first draft was **do not adopt**: 3 blockers, 16 major findings, 6 minor. Every finding and what was done about it is in `gates/G0-redteam.md`. The fixes have **not** been re-attacked by a second independent pass; G1 is where the redesigned loop is tested for real, on GitHub, before any real build runs.
+5. **This blueprint was attacked before adoption, twice,** by separate agents that had not seen it being written.
+   - First pass, on v0.1: **do not adopt** (3 blockers, 16 major, 6 minor). All answered in v0.2.
+   - Second pass, on v0.2: **do not adopt** again, for the loop's enforcement only. It re-ran the statistics, cost, slippage and sabotage answers and all matched; it found that the check design rested on a GitHub feature that no longer works that way, and that the plan still called tripwires walls. Answered in v0.3 (this version): builds B02–B05 redesigned, and the walls table made conditional on attack tests.
+   - Every finding from both passes and what was done is in `gates/G0-redteam.md`, together with the result of the third, narrow pass on B02–B05.
+   - The loop has still never run. B05 is where its walls are attacked on GitHub for real, before any real build.

@@ -43,7 +43,7 @@ Either way the data goes through the door, so nothing from 1 Apr 2026 onward can
 1. `PREREGISTERED.md` + tests (red). 2. The calculation. 3. Run on real data through the door. 4. `RESULTS.md`. 5. Report.
 
 ## Known answers and checks
-- **Synthetic check:** on a generated random walk with hourly sd 0.5% and no drift (seed 5), the mean absolute 1-hour log move is `0.5% × sqrt(2/π) = 0.3989%` (± 0.01%), and the 4-hour figure is twice that (± 0.02%).
+- **Synthetic check:** 43,800 hourly log returns (five years) drawn as `numpy.random.default_rng(5).normal(0, 0.005, 43800)`. The mean absolute 1-hour move is `0.5% × sqrt(2/π) = 0.3989%` (± 0.01%), and over non-overlapping 4-hour windows `0.7979%` (± 0.03%). The length and the tolerances are fixed here: the tolerances are about 7 and 5 standard errors at this length (a shorter sample would fail a correct build by chance). [Certain — run 16 Nov with exactly this call: 0.39897% and 0.80745%.]
 - **Cost columns:** the fees-only column equals B16's `fees_in_bps` at the same price (exact); the full column equals fees plus the assumed figure; the 2× column is exactly twice the 1× column (no funding or basis here, so everything doubles).
 - **Break-even formulas, by hand:** mean move 37.0 bps, cost 9.7 bps → symmetric `p = 0.5 + 9.7 / (2 × 37.0) = 63.1%`; 3:1 with the stop at 37.0 bps → `25% + 9.7 / (4 × 37.0) = 31.6%`. With 5 bps added and everything doubled (cost 29.4 bps): symmetric `0.5 + 29.4 / 74.0 = 89.7%`.
 - **Seal:** asking the script for a year that reaches past 31 Mar 2026 fails at the door, not in the script.

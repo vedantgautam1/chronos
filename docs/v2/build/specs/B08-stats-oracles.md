@@ -14,6 +14,7 @@ touches:
   - docs/v2/COMPONENTS.md
   - docs/v2/BUILD_NOTES.md
 may_modify_tests: []
+adds_dependencies: [arch, quantstats, ml4t-diagnostic]   # v2/pyproject.toml is founder-owned: this build's pull request needs the founder's review
 ```
 
 # B08 — Statistics III

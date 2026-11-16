@@ -24,7 +24,7 @@ may_modify_tests: []
 - Python's `ast` module docs (the tool rewrites syntax trees; it uses no third-party mutation library, so nothing new is trusted).
 
 ## The rules (fixed here)
-- **Mutations** (each applied alone, one at a time): comparison flips (`<`↔`<=`, `>`↔`>=`, `==`↔`!=`); arithmetic swaps (`+`↔`-`, `*`↔`/`); a numeric constant `c` → `c + 1` and, if `c != 0`, → `-c`; `and`↔`or`; `return x` → `return None`; removing a `raise`.
+- **Mutations** (each applied alone, one at a time): comparison flips (`<`↔`<=`, `>`↔`>=`, `==`↔`!=`); arithmetic swaps (`+`↔`-`, `*`↔`/`); a numeric constant `c` (an `int` or `float` literal; `True` and `False` are not numeric constants here) → `c + 1` and, if `c != 0`, → `-c`; `and`↔`or`; `return x` → `return None`; removing a `raise`.
 - The tool works on a **temporary copy** of `v2/`; the real tree is never modified. For each mutation it runs only the tests under the matching `v2/tests/<module>/` folder, with a time limit of 3× that folder's normal run time; a timeout counts as caught.
 - **Sampling is fixed in advance:** when a module has more candidate mutations than the budget, the sample is drawn with a seed given on the command line and written into the output. A gate uses seed = the gate number.
 - Output: `survivors.json` (file, line, the mutation, the code before and after) and a one-page summary: tried, caught, survived, score.
@@ -66,7 +66,7 @@ Expected, exactly [Certain — the 11 mutations were applied by hand and run, 16
   - `x < lo` → `x <= lo`, and `x > hi` → `x >= hi`: **equivalent**: at the boundary the function returns the same value either way, so no test could ever catch them. The tool can't tell these apart from real holes; a person or a reviewer has to. This is why a survivor is a finding to answer, not a failure.
 - `18` → `-18` is caught (the test at age 5 fails).
 - Adding the test `is_adult(18) is True` and re-running: **9 caught, 2 survive** (the two equivalent ones).
-- Two runs with the same seed list the same mutations in the same order; with a budget of 5 and two different seeds, the samples differ.
+- Two runs with the same seed list the same mutations in the same order; with a budget of 5, seeds 1 and 2 give different samples (if they happen to coincide, that is reported and the test uses seeds 1 and 3; no other seed is tried).
 - After any run, `git status` on the real tree is clean (asserted).
 - A mutation that makes a test hang is reported as caught by timeout, and the run continues (tested with a toy `while` loop added in the test for the tool, not in the toy above).
 
