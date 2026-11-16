@@ -27,7 +27,7 @@ Run 16 Nov 2026 against `PREREGISTERED.md` (commit `f1ae09f`, 00:49 UTC, pushed 
 ## Deviations
 
 1. **Rust toolchain.** The repo pins 1.95.0; rustup couldn't download it (static.rust-lang.org isn't reachable from here). W1–W3 ran on the installed stable 1.97.0.
-2. **W2:** after the ALSA failure, `libasound2-dev` was installed with apt and the build rerun (result at the end).
+2. **W2:** after the ALSA failure, `libasound2-dev` was installed with apt and the build rerun (result in the W2 row).
 3. **H1** used `npm ci --ignore-scripts`, so no install scripts from 2021-era packages ran.
 4. **H4** (exploratory, below) was added after reading the code and is labelled in the script and JSON.
 5. **O2/O3** served the CDN file locally. `lightweight-charts@5.0.9`, the exact pinned version, was fetched from npm. The page logged "Value is null" twice during O2/O3 (chart updates while paused); results were read from its own variables, not the drawing.
