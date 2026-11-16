@@ -4,6 +4,23 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 16 Nov 2026 — order-flow dossier; pre-build sweep
+
+- Founder (15 Nov): keep order flow on the side for now, wanted later; record everything found. New `specs/orderflow-parked.md` gathers it:
+  - the data being collected and not collected;
+  - the three theses with priors and falsifiers;
+  - every tested data rule and trap;
+  - the tools (kept and rejected);
+  - open checks before unparking;
+  - where the evidence lives.
+  
+  Linked from the master doc (S-ORDERFLOW row, §13), BUILD_NOTES §8 and CODEBASE.
+- Pre-build sweep of the S23–S35 findings against the docs:
+  - `COMPONENTS.md` gains **quantstats** (adopted in Part 1 but never added there: my omission), and **ml4t-backtest** and **ml4t-diagnostic** as test oracles only.
+  - **P-11** proposed (master doc §12): (a) the spike's fill tests also run on ml4t-backtest; (b) a startup position mismatch with the broker halts trading. Not locked; the founder decides.
+
+---
+
 ## 16 Nov 2026 — last repo batch S23–S35, Part 4 (order-flow tools) and synthesis
 
 - Pre-registered in `f1ae09f`; results in `research/s23-s35/part4/RESULTS.md`; batch synthesis in `research/s23-s35/SYNTHESIS.md`. **No switch, no proposal, no lock.**

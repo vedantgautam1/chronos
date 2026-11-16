@@ -209,6 +209,8 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
 
 ## 8. Order-flow, Hawkes and market-profile ideas (parked, data collected now)
 
+The whole parked thesis (data, theses, tools, open checks, sources) is in `specs/orderflow-parked.md`.
+
 - **Candle-shape "order flow" is not order flow.** Close-location delta (V·(2g − 1)) turns "absorption" and "delta divergence" into pure functions of OHLC [Certain — algebra, S9]. Only trust delta built from aggressor-side trades.
 - **Order-flow imbalance mostly moves price at the same time, not later** (Cont, Kukanov & Stoikov 2014) [Likely]. Expect little predictive value even at minutes-to-hours horizons.
 - **Cross-venue caveat:** flow is measured on Kraken spot but we trade Coinbase/CME futures, and Kraken is a minority of BTC volume [Likely].

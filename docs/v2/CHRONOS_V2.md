@@ -147,7 +147,7 @@ Built on **NautilusTrader** (event-driven; the same strategy code runs in backte
 | Kronos roles | Direction / filter / volatility for sizing | BTC | Backtest only on data **after the checkpoint's training cutoff** (June 2024 per one review [Likely]; confirm from the repo) | Active after a baseline exists. Spec's 1h/4h bars to be re-checked against the intraday horizon |
 | S-MACRO | Trade economic-release surprises (actual vs consensus) | FX, crypto | Backtestable once a consensus source is licensed | Collection only (official actuals with release timestamps) |
 | S-NEWS | Frequency × intensity of independent news per clustered event (Grok/X, headlines, GDELT, live press conferences via Whisper) | Crypto first, then FX | **Forward-only**; GDELT history as a crude proxy | Collection only. Spec `specs/sentiment-strategy.md` |
-| S-ORDERFLOW (thesis) | Aggressor-side delta, Hawkes trade clustering, market-profile value areas as S-INTRADAY inputs | Crypto | Needs recorded trades (V2-D26) | Parked; data collected from now. Traps in `BUILD_NOTES.md` §8 |
+| S-ORDERFLOW (thesis) | Aggressor-side delta, Hawkes trade clustering, market-profile value areas as S-INTRADAY inputs | Crypto | Needs recorded trades (V2-D26) | Parked (founder, 15 Nov: wanted later); data collected from now. Everything found so far: `specs/orderflow-parked.md`; traps in `BUILD_NOTES.md` §8 |
 | S-INSIDER | Corporate insider buying (SEC Form 4); `available_at` = filing acceptance time | US equities | Backtestable from EDGAR (free) | Parked until crypto reaches L3 |
 | S-QUALITY | Quality/value screens; point-in-time fundamentals from SEC XBRL company facts (free) | US equities | Backtestable | Parked until crypto reaches L3 |
 
@@ -347,7 +347,7 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | — | 5 Nov | Content analysis **resumes alongside building** (repos first). New items are judged by whether they replace something we would otherwise build in §9 steps 2–5; new design proposals face a higher bar until the spike passes | Founder instruction 5 Nov |
 | — | 5 Nov | Step 4 also loads **Kraken's quarterly bulk trade files** (BTC/ETH) for history, after one real file's columns and timestamp resolution are checked; no upstream bug report to freqtrade (S20) | Founder instruction 5 Nov |
 
-**Next decision ID: V2-D43.** Next proposal ID: P-11.
+**Next decision ID: V2-D43.** Next proposal ID: P-12.
 
 ---
 
@@ -411,6 +411,7 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | ~~P-8~~ | Edge-decay alarm in Argus | **Resolved 5 Nov → V2-D37** | — |
 | ~~P-9~~ | Budget guard for paid APIs | **Resolved 5 Nov → V2-D41** | — |
 | ~~P-10~~ | Trial records carry their data footprint | **Resolved 5 Nov → V2-D42** | — |
+| P-11 | From the S23–S35 batch (16 Nov), two additions for the founder:<br>**(a)** Spike criteria (a)/(b): run the five known-answer fill tests (BUILD_NOTES §5) on ml4t-backtest as well as Nautilus, and explain every difference. ml4t-backtest passed all of them in S33, including funding, the 0.01 multiplier and gap-through stops.<br>**(b)** Nemesis/Aletheia check list: a mismatch between saved positions and the broker's at startup **halts** trading until the founder clears it (S33: ml4t-live logs and continues by default). | Proposed (S33) | (a) step 3; (b) before L3 paper |
 | P-2 | Add a HAR realised-variance baseline (5-min returns) to Kronos role C when the spec is re-checked for intraday bars | Proposed (S10) | Before Kronos work |
 | O-3 | Exact neighbourhood rule (size, allowed degradation) | Open → acceptance test | Step 5 |
 | O-4 | IBKR futures cost model: exchange/regulatory fees for Coinbase nano and CME contracts; perpetual-style funding mechanics; IBKR market-data cost | Open → spike | Step 3 |
@@ -432,7 +433,7 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | **This master doc** | `docs/v2/CHRONOS_V2.md` (repo) | Canonical |
 | Build traps per component | `docs/v2/BUILD_NOTES.md` | Read before building that component |
 | Third-party code + v1 code to reuse | `docs/v2/COMPONENTS.md` | Source, licence, version, test status |
-| Detailed specs | `docs/v2/specs/` | Kronos shadow; sentiment strategy (each with a staleness note at the top) |
+| Detailed specs | `docs/v2/specs/` | Kronos shadow; sentiment strategy (each with a staleness note at the top); parked order-flow dossier (`orderflow-parked.md`) |
 | Content-analysis results (reasoning per source S1–S22) | claude.ai Project: `claude/item-analyses.md`, `claude/item-analyses-2.md`, `claude/item-analyses-3.md` | Background; this doc wins |
 | Every option considered | Project: `claude/comparison-matrix.md` | Record of options |
 | Kept-for-later library (repos, data sources, findings, rejected) | Project: `claude/reference-library.md` | Check before re-researching anything |
