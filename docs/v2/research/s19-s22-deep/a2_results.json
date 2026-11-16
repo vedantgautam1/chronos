@@ -1,0 +1,40 @@
+{
+  "default (no vintage asked)": {
+    "values": {
+      "2020-01-01": 105.0,
+      "2020-04-01": 110.0
+    },
+    "request": [
+      "series_id=FAKE&limit=100000&aggregation_method=eop&api_key=\u2026&file_type=json"
+    ]
+  },
+  "documented fields only, as of 2020-02-15": {
+    "values": {
+      "2020-01-01": 105.0,
+      "2020-04-01": 110.0
+    },
+    "request": [
+      "series_id=FAKE&observation_start=2020-01-01&observation_end=2020-12-31&limit=100000&aggregation_method=eop&api_key=\u2026&file_type=json"
+    ]
+  },
+  "undocumented extra params realtime_start=realtime_end=2020-02-15": {
+    "values": {
+      "2020-01-01": 100.0
+    },
+    "request": [
+      "series_id=FAKE&limit=100000&aggregation_method=eop&realtime_start=2020-02-15&realtime_end=2020-02-15&api_key=\u2026&file_type=json"
+    ]
+  },
+  "undocumented extra params, a range 2020-02-01..2020-03-31": {
+    "values": {
+      "2020-01-01": 105.0
+    },
+    "request": [
+      "series_id=FAKE&limit=100000&aggregation_method=eop&realtime_start=2020-02-01&realtime_end=2020-03-31&api_key=\u2026&file_type=json"
+    ]
+  },
+  "verdict": {
+    "documented_route_returns_vintage": false,
+    "undocumented_extra_params_return_vintage": true
+  }
+}

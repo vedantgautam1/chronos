@@ -1,0 +1,123 @@
+{
+  "a_default": {
+    "label": "default settings",
+    "tools_listed": [
+      "admin_delete_trial",
+      "admin_set_trial_count",
+      "get_prompt",
+      "install_skill",
+      "list_prompts",
+      "list_resources",
+      "openbb_batch_dispatch",
+      "openbb_describe_command",
+      "openbb_dispatch",
+      "openbb_list_commands",
+      "read_resource",
+      "research_backtest",
+      "research_prices",
+      "run_pipeline"
+    ],
+    "run_pipeline_schema_keys": [
+      "steps",
+      "outputs"
+    ],
+    "attempts": {
+      "direct:admin_set_trial_count": "called",
+      "direct:admin_delete_trial": "called",
+      "via run_pipeline": "called"
+    },
+    "admin_hits": 3
+  },
+  "b_allowed_research_only": {
+    "label": "allowed_tool_categories=[research]",
+    "tools_listed": [
+      "get_prompt",
+      "install_skill",
+      "list_prompts",
+      "list_resources",
+      "openbb_batch_dispatch",
+      "openbb_describe_command",
+      "openbb_dispatch",
+      "openbb_list_commands",
+      "read_resource",
+      "research_backtest",
+      "research_prices",
+      "run_pipeline"
+    ],
+    "run_pipeline_schema_keys": [
+      "steps",
+      "outputs"
+    ],
+    "attempts": {
+      "direct:admin_set_trial_count": "refused: ToolError: Unknown tool: 'admin_set_trial_count'",
+      "direct:admin_delete_trial": "refused: ToolError: Unknown tool: 'admin_delete_trial'",
+      "via run_pipeline": "refused: ToolError: Step '0' (admin_set_trial_count) failed: Unknown tool: 'admin_set_trial_count'"
+    },
+    "admin_hits": 0
+  },
+  "b2_allowed_research_with_discovery": {
+    "label": "allowed=[research] + tool discovery",
+    "tools_listed": [
+      "available_categories",
+      "available_tools",
+      "call_tool",
+      "get_prompt",
+      "install_skill",
+      "list_prompts",
+      "list_resources",
+      "openbb_batch_dispatch",
+      "openbb_describe_command",
+      "openbb_dispatch",
+      "openbb_list_commands",
+      "read_resource",
+      "run_pipeline",
+      "search_tools"
+    ],
+    "run_pipeline_schema_keys": [
+      "steps",
+      "outputs"
+    ],
+    "attempts": {
+      "direct:admin_set_trial_count": "refused: ToolError: Unknown tool: 'admin_set_trial_count'",
+      "direct:admin_delete_trial": "refused: ToolError: Unknown tool: 'admin_delete_trial'",
+      "via call_tool": "refused: ToolError: 3 validation errors for call[call_tool]\nname\n  Missing required argument [type=missing_argument, input_value={'tool_name",
+      "via run_pipeline": "refused: ToolError: Step '0' (admin_set_trial_count) failed: Unknown tool: 'admin_set_trial_count'"
+    },
+    "admin_hits": 0
+  },
+  "b3_default_categories_research_only": {
+    "label": "default_tool_categories=[research] (not allowed_)",
+    "tools_listed": [
+      "get_prompt",
+      "install_skill",
+      "list_prompts",
+      "list_resources",
+      "openbb_batch_dispatch",
+      "openbb_describe_command",
+      "openbb_dispatch",
+      "openbb_list_commands",
+      "read_resource",
+      "research_backtest",
+      "research_prices",
+      "run_pipeline"
+    ],
+    "run_pipeline_schema_keys": [
+      "steps",
+      "outputs"
+    ],
+    "attempts": {
+      "direct:admin_set_trial_count": "refused: ToolError: Unknown tool: 'admin_set_trial_count'",
+      "direct:admin_delete_trial": "refused: ToolError: Unknown tool: 'admin_delete_trial'",
+      "via run_pipeline": "refused: ToolError: Step '0' (admin_set_trial_count) failed: Unknown tool: 'admin_set_trial_count'"
+    },
+    "admin_hits": 0
+  },
+  "c_http_auth": {
+    "no_token": "refused: MCPError: Server returned an error response"
+  },
+  "verdict": {
+    "a_admin_reachable_by_default": true,
+    "b_admin_unreachable_with_allow_list": true,
+    "c_no_token_refused": true
+  }
+}

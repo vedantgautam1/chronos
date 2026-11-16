@@ -4,6 +4,159 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 16 Nov 2026 — V2-D43 and V2-D44 locked; four open questions looked up
+
+- Founder said "yes both" to P-11:
+  - **V2-D43:** the spike's five fill tests also run on ml4t-backtest, and every difference is explained (spike criterion (a) amended);
+  - **V2-D44:** a startup or reconciliation position mismatch halts trading until the founder clears it (Nemesis and Aletheia rows).
+- Looked up instead of deferring (sources in the session; facts tagged in the docs):
+  1. **IBKR costs for Coinbase nano:** USD 0.20 commission + 0.10 exchange + 0.01 NFA ≈ 0.31 per contract per side on tiered pricing. O-4 is partly answered; CME's own fees and IBKR's market-data cost are still open.
+  2. **Kraken's bulk trade files carry a buy/sell field** (7 columns incl. `type` b/s and `trade_id`). This corrects the 5 Nov "apparently no side". Updated: master doc §2, BUILD_NOTES §4, COMPONENTS, order-flow dossier.
+  3. **Kraken Derivatives isn't available in Canada** (Kraken support). This closes the founder's open check: Kraken stays data-only.
+  4. **Nautilus's IBKR adapter** parses futures generically but its venue list has no Coinbase Derivatives entry, and its docs never mention Coinbase. Spike criterion (e) remains a live test (BUILD_NOTES §5).
+- Sweep: master doc (§2 rows, §9 step 3, Nemesis, Aletheia, decisions log, §12, IDs); BUILD_NOTES §4, §5, §11; COMPONENTS (IBKR, Kraken, ml4t-backtest); `specs/orderflow-parked.md`; Project handoff and library.
+
+---
+
+## 16 Nov 2026 — order-flow dossier; pre-build sweep
+
+- Founder (15 Nov): keep order flow on the side for now, wanted later; record everything found. New `specs/orderflow-parked.md` gathers it:
+  - the data being collected and not collected;
+  - the three theses with priors and falsifiers;
+  - every tested data rule and trap;
+  - the tools (kept and rejected);
+  - open checks before unparking;
+  - where the evidence lives.
+  
+  Linked from the master doc (S-ORDERFLOW row, §13), BUILD_NOTES §8 and CODEBASE.
+- Pre-build sweep of the S23–S35 findings against the docs:
+  - `COMPONENTS.md` gains **quantstats** (adopted in Part 1 but never added there: my omission), and **ml4t-backtest** and **ml4t-diagnostic** as test oracles only.
+  - **P-11** proposed (master doc §12): (a) the spike's fill tests also run on ml4t-backtest; (b) a startup position mismatch with the broker halts trading. Not locked; the founder decides.
+
+---
+
+## 16 Nov 2026 — last repo batch S23–S35, Part 4 (order-flow tools) and synthesis
+
+- Pre-registered in `f1ae09f`; results in `research/s23-s35/part4/RESULTS.md`; batch synthesis in `research/s23-s35/SYNTHESIS.md`. **No switch, no proposal, no lock.**
+  - **OrderflowChart (S26)** kept as a future viewer: footprint, delta and imbalance from a trade tape with aggressor side are exact, and fast.
+  - **flowsurface (S23)**: reference only. Its footprints are exact, but it's GPL, has none of our venues, and its app build needs ALSA.
+  - **Rejected:**
+    - order-book-heatmap (S24): applies a book with missing updates silently; rounds sizes to the price tick; 13 npm vulnerabilities;
+    - NT8 OrderFlowKit (S25): NinjaTrader only, no licence, its quote rule drops inside-spread trades;
+    - OrderFlowMap (S27): live side guessed by the tick rule, 78.7% right per trade and 52.6% at 5-trade snapshots; needs a CDN.
+- Deviations: Rust 1.97 instead of the pinned 1.95 (not downloadable); ALSA installed for the app build; npm installed with `--ignore-scripts`.
+- `BUILD_NOTES.md`:
+  - §4: recorders detect gaps; sizes stored at their own precision;
+  - §8: write and test the price-bin tie rule; inferred side is not aggressor data; OrderflowChart as the viewer.
+- `CHRONOS_V2.md` §1: content analysis 35 items done, batch finished.
+
+---
+
+## 16 Nov 2026 — last repo batch S23–S35, Part 3: ML for Trading (S33), FinRL (S34), gs-quant (S35)
+
+- Pre-registered in `cb70a0a`; results in `research/s23-s35/part3/RESULTS.md`. **No engine or venue switch; no proposal, no lock.**
+- **ML for Trading (3rd ed.) and its libraries:**
+  - **ml4t-backtest 0.2.0:** 3,162 tests pass. Every fill check passed (next-bar open, fees, gap-through stop at the open, funding to the cent, 0.01 multiplier, 24/7 year, blocking controls). It's the best third opinion for the spike's fill tests.
+  - **ml4t-live 0.1.3:** builds only US-stock contracts through IBKR; by default it keeps trading through a startup reconciliation mismatch.
+  - **ml4t-diagnostic 0.2.1:** 9,047 tests pass.
+    - Its DSR is the 2025 form: it ignores skew/kurtosis against 0, and its rescaling table stops at N = 100. Within size under the null: 2.6% vs v1's 0.0%.
+    - RAS used as documented: 100% false finds on noise; 0% standardised.
+    - White's Reality Check and purged walk-forward pass.
+  - **The book's own crypto case study:** best of 2,807 candidates, validation Sharpe 1.67, deflated Sharpe negative, holdout −44.8% a year.
+- **FinRL:**
+  - the stock env fills at the observed close;
+  - cleaning drops a ticker from all history for a gap at the end;
+  - a frame-wide `bfill` copies one ticker's warm-up values to the others;
+  - the crypto env is long-only, whole units, no funding;
+  - PPO on noise (5 seeds) lost in- and out-of-sample.
+- **gs-quant:**
+  - the offline backtest's clock guard returns today's date-keyed close at 10:00;
+  - the offline engine ignores per-unit transaction cost;
+  - TWAP uses (start, end];
+  - daily vol is annualised with 252;
+  - its MCP server is read-only and needs GS credentials;
+  - 2 tests fail only under a New York/Toronto time zone.
+- Deviations recorded in RESULTS (timestamp, two harness fixes, test-only installs).
+- `BUILD_NOTES.md`:
+  - §1: `TZ=UTC` everywhere;
+  - §2: DSR variants, RAS units, outside p-value tie rules;
+  - §4: no fills across a stacked frame, point-in-time universes, timestamp-level availability guards;
+  - §5: ml4t-backtest as third opinion;
+  - §11: a reconciliation mismatch must halt.
+- `CHRONOS_V2.md` §1 count (30 items) and "Last updated".
+
+---
+
+## 6 Nov 2026 — last repo batch S23–S35, Part 2: pysystemtrade (S30), Zipline (S28), RQAlpha (S29)
+
+- Pre-registered in `bc851d8`; results in `research/s23-s35/part2/RESULTS.md`. **No engine switch; none is a Nautilus fallback; no proposal, no lock.**
+  - **pysystemtrade** (GPL-3.0): 103 tests pass + 17 slow examples. Its sizing formula, per-trade cost formula and BTC back-adjustment (74 rolls) reproduce exactly. But:
+    - it is daily-only (24/7 data folded into Friday);
+    - it has no funding concept and no Coinbase contract;
+    - its default cost accounting is smoothed (+6.1% on a BTC run; exact with two defaults off);
+    - its trade and position limits clip.
+    
+    A reference for Themis and roll arithmetic only.
+  - **Zipline:** the original no longer installs. zipline-reloaded passes 3,313 tests and every fill, cost, volume-cap, short and no-peeking check. Its 24/7 BTC run crashed at the year end and needed three workarounds. It is equity-first, with no IBKR futures path.
+  - **RQAlpha:**
+    - non-commercial licence;
+    - every test failure traces to its data bundle, which downloads over plain HTTP with no checksum and is unpacked without a filter;
+    - its validators reject by default, but a backtest-only option fills part of an order instead.
+- Deviations recorded:
+  - pre-registration header time (05:45 written, 05:35 committed);
+  - Z0 on Python 3.8;
+  - two Z6 harness fixes;
+  - RQAlpha test dependencies added.
+- `BUILD_NOTES.md`:
+  - §1: HTTPS or checksum for downloads; unpack archives with a filter;
+  - §3: Carver's sizing as a Themis known-answer test, and the /16 annualisation trap;
+  - §4: business-day resampling stamps weekend prices with Friday's date;
+  - §5: pysystemtrade's cost defaults; 24/7 edge-of-run tests for the spike;
+  - §11: two systems that clip.
+- `CHRONOS_V2.md` §1 content-analysis count (27 items) and "Last updated". `COMPONENTS.md` unchanged (nothing adopted).
+
+## 5 Nov 2026 — decisions V2-D41 and V2-D42 locked
+
+- **Locked by the founder ("lock p9 and p10"):**
+  - **V2-D41** (was P-9, from S18): budget guard for paid APIs. Plan → reserve → settle against our own spend ledger; caps $0.50/run, $3/day, $25/month for AI APIs to start; no paid retries; one fixed host; redirects refused; size cap; keys in Keychain or an owner-only file; alerts 50/80/100%, paid collectors stop at 100%. Built in step 4 before any paid collector.
+  - **V2-D42** (was P-10, from S18): every trial record stores its data footprint from step 2 (latest timestamp read, data hash, code coordinate, `partial` flag); research MCP answers carry it plus the trial count.
+- **Founder instructions:** step 4 loads Kraken's quarterly bulk trade files for BTC/ETH (after checking one real file); no upstream bug report to freqtrade.
+- **§11b:** two Skylit rows added (no crypto coverage; vendor MCP servers for research in chat).
+- **Updated:** `CHRONOS_V2.md` §1, §2, §4, §8, §9 (steps 2, 4, 8), §10, §11b, §12; `BUILD_NOTES.md` §4, §6, §7; Project docs (handoff, library, read-first). `COMPONENTS.md` and `specs/` checked: no references to change.
+
+## 5–6 Nov 2026 — last repo batch S23–S35, Part 1: vectorbt (S32) and quantstats (S31)
+
+- Founder's last batch before building: 13 repos in four parts (Alpaca, Qlib and OpenAlice dropped). Part 1 pre-registered in `acde253`; results in `research/s23-s35/part1/RESULTS.md`.
+- **vectorbt:** maths exact; fast enough for counted sweeps (1,000 variants on 2 years of hourly BTC in ~3–11 s). Five optimistic defaults (same-bar fills, close-only stops, stop exits without slippage, no funding, silent missing Sharpe without `freq`) → a screening wrapper (BUILD_NOTES §2). Stays Leaning; COMPONENTS row updated.
+- **quantstats:** formulas exact, offline HTML report works; 252-day default is a trap for crypto (BUILD_NOTES §2). Candidate for Argus reports and for known-answer cross-checks.
+- Two harness errors of mine (an expected value, a unit mismatch) were found after the first run, corrected and recorded; no library result changed.
+
+## 5 Nov 2026 — S19–S22 deep pass (everything tested)
+
+- Founder asked for every repo in S19–S22 to be tested and thought through. Pre-registered in `057184b`; results in `research/s19-s22-deep/RESULTS.md`. **No switch from any locked choice** (NautilusTrader V2-D04, IBKR futures V2-D27, Mnemosyne V2-D33/D42, research MCP server V2-D19); no new proposal.
+  - **OpenBB:** the parts we might use pass their tests (FRED, MCP server); some providers fail at the repo head. FRED vintages work only through an undocumented single-date pass-through. The MCP allow-list holds for our routes, but extra tools outside it can write files on the server and fetch client-chosen URLs unless switched off.
+  - **freqtrade:** 4,710 tests pass (7 fail, 6 of them environment). Fill rules exact except one: a bar that opens through the stop and recovers fills at the stop, not the open. Hyperopt on pure noise: best of 200 looks good in-sample, loses out of sample, no adjustment shown. Its leak tools caught one-bar and whole-series leaks. No venue it supports is usable from Ontario with shorting at a cost near IBKR's.
+  - **Qlib:** LightGBM benchmark reproduced; Linear's return didn't. BTC 24/7 hourly data loads fully, but it can't short; date-only range ends drop a day; no guard against future-data features; recorder runs can be edited and deleted.
+  - **RD-Agent:** 131 offline tests pass (1 fails). Its keep-if-test-improves rule, fed 10 no-information factors per run: claimed +4.6 points of annual excess return on the test period, +0.4 held out (5 runs).
+- `BUILD_NOTES.md`: full timestamps as range ends (§1); optimisers log every try (§2); deep-pass results on the leak tools and a no-future-features rule (§2); freqtrade's own Kraken sample shows the timestamp loss, FRED pass-through detail (§4); five known-answer fill tests for the spike (§5); MLflow is not a trial store (§6); OpenBB MCP lockdown, RD-Agent replay numbers (§7).
+
+## 5 Nov 2026 — content items S19–S22 (OpenBB, freqtrade, Qlib, RD-Agent)
+
+- **None replaces anything in build steps 2–5; no proposal, no lock.** Analysis in the Project (`claude/item-analyses-3.md`), library entries in `claude/reference-library.md`.
+  - **S19 OpenBB** (now `openbq-org/OpenBB`, Apache-2.0; the move looks legitimate: the long-time maintainer still commits). A free-data platform plus an MCP server that turns any FastAPI app into MCP tools (a candidate for the step-8 research server). No Kraken, no IBKR. Its FRED fetcher strips vintages.
+  - **S20 freqtrade** (GPL-3.0). A crypto bot with no IBKR, so it can't be our engine. Its Kraken trade-CSV importer loses every trade that shares a timestamp (F1 FAIL, run). Its look-ahead "slice" and warm-up tests are worth copying as methods (F2 PASS, 27/27).
+  - **S21 Qlib** (MIT). An equities ML research platform; its MLflow recorder is weaker than Mnemosyne's design.
+  - **S22 RD-Agent** (MIT). An LLM decides "replace best result" from test-segment backtests every loop: an LLM verdict, an uncounted search and a reused test block.
+- **Correction:** Kraken does publish bulk trade history (quarterly files), apparently without the aggressor side. Master doc §2 (Kraken recorder row) and BUILD_NOTES §4 said "no bulk dump"; both fixed. V2-D26 is unaffected (the side still needs the API).
+- `BUILD_NOTES.md` §2: two look-ahead tests for the strategy kit. §4: the bulk-files correction, never deduplicate trades on timestamp, FRED-via-OpenBB has no vintages. §7: an LLM must not pick winners from backtests.
+- `research/s19-s22/`: pre-registered in `4ea202b`; script, raw results, `RESULTS.md`. `research/README.md` row added. Master doc counts updated to S1–S22.
+
+## 5 Nov 2026 — content item S18 (Skylit)
+
+- **S18: SkylitAI's three public repos** (`skylit-mcp`, `skylit-agent-kit`, `skylit-agent-lab`), analysed as one item. Skylit sells US equity and index options data: options flow, dealer positioning, volatility, dark-pool prints. No crypto, no futures. The repos are client code, setup guides and examples; the data service itself is closed and paid. **Verdict:** nothing to adopt for the crypto track; changes no decision; no proposal. One build pattern kept (budget reservation for paid-API clients, BUILD_NOTES §7). Library entries in the Project.
+- Checks in `research/s18-skylit/` (pre-registered in `3e7209a`): offline modes made 0 network calls over 12 commands; live mode without a key made 0. Test suites 167 + 345 OK when run as documented; the pre-registered `-I` command could not import the repos' own packages (trap added to BUILD_NOTES §1).
+- `research/README.md`: S18 row; fixed its pointer to the Project notes (S13 onward are in `item-analyses-3.md`).
+
 ## 5 Nov 2026 — decisions V2-D38–D40 locked; content analysis resumed
 
 - **Locked by the founder (5 Nov, "lock new decisions"):**

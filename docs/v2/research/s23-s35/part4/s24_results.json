@@ -1,0 +1,30 @@
+{
+  "H2_tick_0.01": {
+    "n": 10000,
+    "mismatches": 0,
+    "examples": [],
+    "pass": true
+  },
+  "H2_tick_0.00001": {
+    "n": 10000,
+    "mismatches": 0,
+    "examples": [],
+    "pass": true
+  },
+  "H3_gap": {
+    "gap_update_applied": true,
+    "errors": 0,
+    "log": 0,
+    "isSnapshotParsed": true,
+    "pass": false
+  },
+  "H4_exploratory": {
+    "trade_size_input": "0.004",
+    "trade_size_stored": 0,
+    "depth_qty_input": "0.003",
+    "depth_qty_stored": 0,
+    "aggregate_10_parseStep_100_27": 100.27,
+    "expected_step_0_1": 100.3,
+    "getAggregate_returns": 0.01
+  }
+}

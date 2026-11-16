@@ -1,0 +1,10 @@
+# Copy this folder somewhere, rename to Cargo.toml, and set FLOWSURFACE to the clone of
+# flowsurface-rs/flowsurface at 9a7497d. GPL-3.0 code is used as a dependency only; nothing is copied.
+[package]
+name = "s23-footprint-check"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+data = { path = "FLOWSURFACE/data", package = "flowsurface-data" }
+exchange = { path = "FLOWSURFACE/exchange", package = "flowsurface-exchange" }

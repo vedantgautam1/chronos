@@ -1,0 +1,51 @@
+{
+  "fred": {
+    "tests": "1316",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "65"
+  },
+  "federal_reserve": {
+    "tests": "2347",
+    "failures": "13",
+    "errors": "0",
+    "skipped": "0"
+  },
+  "deribit2": {
+    "tests": "766",
+    "failures": "1",
+    "errors": "1",
+    "skipped": "0"
+  },
+  "sec2": {
+    "tests": "2587",
+    "failures": "9",
+    "errors": "15",
+    "skipped": "0"
+  },
+  "cftc": {
+    "tests": "1225",
+    "failures": "4",
+    "errors": "0",
+    "skipped": "0"
+  },
+  "mcp_server": {
+    "tests": "593",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  "core": {
+    "tests": "2707",
+    "failures": "2",
+    "errors": "0",
+    "skipped": "0"
+  },
+  "rdagent_offline": {
+    "tests": "435",
+    "failures": "1",
+    "errors": "0",
+    "skipped": "0"
+  },
+  "freqtrade_full": "7 failed, 4710 passed, 20 skipped (FreqAI tests excluded: extras not installed)"
+}

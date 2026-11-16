@@ -1,0 +1,883 @@
+{
+  "runs": {
+    "run0": {
+      "loops": [
+        {
+          "loop": 0,
+          "expr": "Sum(If($high>Ref($high, 1), $volume, 0), 30)/(Sum($volume, 30)+1e-12)",
+          "test": {
+            "IC": 0.029331377229070556,
+            "ICIR": 0.24312005104993428,
+            "Rank IC": 0.03182763853130716,
+            "1day.excess_return_with_cost.annualized_return": 0.06464151724080645,
+            "1day.excess_return_with_cost.max_drawdown": -0.14959870857517701,
+            "1day.excess_return_with_cost.information_ratio": 0.7379942944780629,
+            "seconds": 83.1
+          },
+          "replace_best": true,
+          "best_before": 0.04445209525032685
+        },
+        {
+          "loop": 1,
+          "expr": "Corr($high, Log($volume+1), 60)",
+          "test": {
+            "IC": 0.0304712603209422,
+            "ICIR": 0.253264328920402,
+            "Rank IC": 0.03187986074299771,
+            "1day.excess_return_with_cost.annualized_return": 0.060886226090649365,
+            "1day.excess_return_with_cost.max_drawdown": -0.14554775126241445,
+            "1day.excess_return_with_cost.information_ratio": 0.6672730107681283,
+            "seconds": 80.5
+          },
+          "replace_best": false,
+          "best_before": 0.06464151724080645
+        },
+        {
+          "loop": 2,
+          "expr": "Mean($volume, 5)/(Ref($volume, 1)+1e-12)",
+          "test": {
+            "IC": 0.03202298226979401,
+            "ICIR": 0.26317137934250245,
+            "Rank IC": 0.03338468526927035,
+            "1day.excess_return_with_cost.annualized_return": 0.09188525002337797,
+            "1day.excess_return_with_cost.max_drawdown": -0.1228554168461129,
+            "1day.excess_return_with_cost.information_ratio": 1.019676150141408,
+            "seconds": 81.9
+          },
+          "replace_best": true,
+          "best_before": 0.06464151724080645
+        },
+        {
+          "loop": 3,
+          "expr": "Resi($high, 30)/$open",
+          "test": {
+            "IC": 0.03179687706041578,
+            "ICIR": 0.2669293661091388,
+            "Rank IC": 0.03365740691138947,
+            "1day.excess_return_with_cost.annualized_return": 0.06209871767581803,
+            "1day.excess_return_with_cost.max_drawdown": -0.1507342997971756,
+            "1day.excess_return_with_cost.information_ratio": 0.6874001828332351,
+            "seconds": 83.0
+          },
+          "replace_best": false,
+          "best_before": 0.09188525002337797
+        },
+        {
+          "loop": 4,
+          "expr": "(Max($high, 20) - $open)/($open+1e-12)",
+          "test": {
+            "IC": 0.033047345815630895,
+            "ICIR": 0.28286193785470887,
+            "Rank IC": 0.03524722828535156,
+            "1day.excess_return_with_cost.annualized_return": 0.07453366897209268,
+            "1day.excess_return_with_cost.max_drawdown": -0.09690915485476032,
+            "1day.excess_return_with_cost.information_ratio": 0.8315316286125172,
+            "seconds": 82.8
+          },
+          "replace_best": false,
+          "best_before": 0.09188525002337797
+        },
+        {
+          "loop": 5,
+          "expr": "Ref($vwap, 3)/$open - 1",
+          "test": {
+            "IC": 0.0323866410068296,
+            "ICIR": 0.2685049649953243,
+            "Rank IC": 0.03418393073965834,
+            "1day.excess_return_with_cost.annualized_return": 0.05479703214229547,
+            "1day.excess_return_with_cost.max_drawdown": -0.10471403062114153,
+            "1day.excess_return_with_cost.information_ratio": 0.6141770283286151,
+            "seconds": 84.5
+          },
+          "replace_best": false,
+          "best_before": 0.09188525002337797
+        },
+        {
+          "loop": 6,
+          "expr": "Resi($vwap, 30)/$high",
+          "test": {
+            "IC": 0.03116141484348074,
+            "ICIR": 0.25344883016803293,
+            "Rank IC": 0.032830291551118065,
+            "1day.excess_return_with_cost.annualized_return": 0.038479812820783756,
+            "1day.excess_return_with_cost.max_drawdown": -0.17367967571670445,
+            "1day.excess_return_with_cost.information_ratio": 0.424148143509032,
+            "seconds": 82.3
+          },
+          "replace_best": false,
+          "best_before": 0.09188525002337797
+        },
+        {
+          "loop": 7,
+          "expr": "(Min($close, 30) - $open)/($open+1e-12)",
+          "test": {
+            "IC": 0.03586392826456323,
+            "ICIR": 0.2983740621318973,
+            "Rank IC": 0.03576120849541618,
+            "1day.excess_return_with_cost.annualized_return": 0.10046480210750071,
+            "1day.excess_return_with_cost.max_drawdown": -0.13940908137741942,
+            "1day.excess_return_with_cost.information_ratio": 1.1658299018815215,
+            "seconds": 83.2
+          },
+          "replace_best": true,
+          "best_before": 0.09188525002337797
+        },
+        {
+          "loop": 8,
+          "expr": "Resi($close, 20)/$open",
+          "test": {
+            "IC": 0.03735836283357177,
+            "ICIR": 0.3151407751986846,
+            "Rank IC": 0.037039340311546536,
+            "1day.excess_return_with_cost.annualized_return": 0.05376081194444982,
+            "1day.excess_return_with_cost.max_drawdown": -0.12176660797697471,
+            "1day.excess_return_with_cost.information_ratio": 0.6250913973898669,
+            "seconds": 82.3
+          },
+          "replace_best": false,
+          "best_before": 0.10046480210750071
+        },
+        {
+          "loop": 9,
+          "expr": "Ref($high, 1)/$open - 1",
+          "test": {
+            "IC": 0.03496465789637113,
+            "ICIR": 0.2886733749044454,
+            "Rank IC": 0.034582043501709334,
+            "1day.excess_return_with_cost.annualized_return": 0.09029160844721744,
+            "1day.excess_return_with_cost.max_drawdown": -0.10363619981102301,
+            "1day.excess_return_with_cost.information_ratio": 1.0189122760496196,
+            "seconds": 80.8
+          },
+          "replace_best": false,
+          "best_before": 0.10046480210750071
+        }
+      ],
+      "kept": [
+        "Sum(If($high>Ref($high, 1), $volume, 0), 30)/(Sum($volume, 30)+1e-12)",
+        "Mean($volume, 5)/(Ref($volume, 1)+1e-12)",
+        "(Min($close, 30) - $open)/($open+1e-12)"
+      ],
+      "claimed_test_arr": 0.10046480210750071,
+      "claimed_gain": 0.05601270685717386,
+      "heldout": {
+        "IC": 0.010247390401178613,
+        "ICIR": 0.07915058069289364,
+        "Rank IC": 0.002609539678426916,
+        "1day.excess_return_with_cost.annualized_return": 0.02365988551596315,
+        "1day.excess_return_with_cost.max_drawdown": -0.1526950874142232,
+        "1day.excess_return_with_cost.information_ratio": 0.2577142923729887,
+        "seconds": 123.8
+      },
+      "heldout_gain": -0.006122205470384397,
+      "done": true
+    },
+    "run1": {
+      "loops": [
+        {
+          "loop": 0,
+          "expr": "Corr($low, Log($volume+1), 5)",
+          "test": {
+            "IC": 0.03032072656695569,
+            "ICIR": 0.24984512632585176,
+            "Rank IC": 0.030686095630115946,
+            "1day.excess_return_with_cost.annualized_return": 0.052856668441235176,
+            "1day.excess_return_with_cost.max_drawdown": -0.10951424256249878,
+            "1day.excess_return_with_cost.information_ratio": 0.5735566307459651,
+            "seconds": 81.6
+          },
+          "replace_best": true,
+          "best_before": 0.04445209525032685
+        },
+        {
+          "loop": 1,
+          "expr": "Slope($vwap, 60)/$low",
+          "test": {
+            "IC": 0.030539163269936952,
+            "ICIR": 0.2511274080182702,
+            "Rank IC": 0.03237243612604428,
+            "1day.excess_return_with_cost.annualized_return": 0.05887698021478841,
+            "1day.excess_return_with_cost.max_drawdown": -0.11991596385749202,
+            "1day.excess_return_with_cost.information_ratio": 0.6449152726799007,
+            "seconds": 84.9
+          },
+          "replace_best": true,
+          "best_before": 0.052856668441235176
+        },
+        {
+          "loop": 2,
+          "expr": "Rsquare($low/$open, 30)",
+          "test": {
+            "IC": 0.030344190469819645,
+            "ICIR": 0.24923637850209923,
+            "Rank IC": 0.032264385041767145,
+            "1day.excess_return_with_cost.annualized_return": 0.03526069069053272,
+            "1day.excess_return_with_cost.max_drawdown": -0.11253080586009875,
+            "1day.excess_return_with_cost.information_ratio": 0.3872173396051884,
+            "seconds": 85.2
+          },
+          "replace_best": false,
+          "best_before": 0.05887698021478841
+        },
+        {
+          "loop": 3,
+          "expr": "(Max($low, 5) - $high)/($high+1e-12)",
+          "test": {
+            "IC": 0.03233330029683434,
+            "ICIR": 0.2684219213208161,
+            "Rank IC": 0.03642005159719578,
+            "1day.excess_return_with_cost.annualized_return": 0.0490042363789518,
+            "1day.excess_return_with_cost.max_drawdown": -0.14477306939984186,
+            "1day.excess_return_with_cost.information_ratio": 0.5462550217731349,
+            "seconds": 85.2
+          },
+          "replace_best": false,
+          "best_before": 0.05887698021478841
+        },
+        {
+          "loop": 4,
+          "expr": "Corr($high/Ref($high, 1), $vwap/Ref($vwap, 1), 30)",
+          "test": {
+            "IC": 0.032568716255547046,
+            "ICIR": 0.2677064723296527,
+            "Rank IC": 0.032775655274479974,
+            "1day.excess_return_with_cost.annualized_return": 0.0779183320451496,
+            "1day.excess_return_with_cost.max_drawdown": -0.09804559610580041,
+            "1day.excess_return_with_cost.information_ratio": 0.8458180828756469,
+            "seconds": 87.9
+          },
+          "replace_best": true,
+          "best_before": 0.05887698021478841
+        },
+        {
+          "loop": 5,
+          "expr": "Slope($open, 60)/$close",
+          "skipped": "dedup>0.99"
+        },
+        {
+          "loop": 6,
+          "expr": "Resi($open, 3)/$low",
+          "test": {
+            "IC": 0.03172970858209414,
+            "ICIR": 0.2648710395271878,
+            "Rank IC": 0.034704611732272295,
+            "1day.excess_return_with_cost.annualized_return": 0.06810315299998673,
+            "1day.excess_return_with_cost.max_drawdown": -0.09016421297880887,
+            "1day.excess_return_with_cost.information_ratio": 0.742475673875379,
+            "seconds": 84.4
+          },
+          "replace_best": false,
+          "best_before": 0.0779183320451496
+        },
+        {
+          "loop": 7,
+          "expr": "Corr($vwap/Ref($vwap, 1), $open/Ref($open, 20), 30)",
+          "test": {
+            "IC": 0.031733211273934935,
+            "ICIR": 0.2642380838901052,
+            "Rank IC": 0.03390326949858004,
+            "1day.excess_return_with_cost.annualized_return": 0.04357016310623873,
+            "1day.excess_return_with_cost.max_drawdown": -0.0822964977641256,
+            "1day.excess_return_with_cost.information_ratio": 0.49114580642070965,
+            "seconds": 88.4
+          },
+          "replace_best": false,
+          "best_before": 0.0779183320451496
+        },
+        {
+          "loop": 8,
+          "expr": "Std($close/Ref($close, 2) - 1, 10)",
+          "test": {
+            "IC": 0.029640868689539093,
+            "ICIR": 0.24379408790046528,
+            "Rank IC": 0.032967610459703686,
+            "1day.excess_return_with_cost.annualized_return": 0.06262991554633725,
+            "1day.excess_return_with_cost.max_drawdown": -0.09123265861829868,
+            "1day.excess_return_with_cost.information_ratio": 0.6948452609822924,
+            "seconds": 91.1
+          },
+          "replace_best": false,
+          "best_before": 0.0779183320451496
+        },
+        {
+          "loop": 9,
+          "expr": "Mean($volume, 5)/(Ref($volume, 3)+1e-12)",
+          "test": {
+            "IC": 0.03469375584360627,
+            "ICIR": 0.2877103700442916,
+            "Rank IC": 0.03773663889685964,
+            "1day.excess_return_with_cost.annualized_return": 0.08403040144699374,
+            "1day.excess_return_with_cost.max_drawdown": -0.13188623310726158,
+            "1day.excess_return_with_cost.information_ratio": 0.9694356517750209,
+            "seconds": 85.8
+          },
+          "replace_best": true,
+          "best_before": 0.0779183320451496
+        }
+      ],
+      "kept": [
+        "Corr($low, Log($volume+1), 5)",
+        "Slope($vwap, 60)/$low",
+        "Corr($high/Ref($high, 1), $vwap/Ref($vwap, 1), 30)",
+        "Mean($volume, 5)/(Ref($volume, 3)+1e-12)"
+      ],
+      "claimed_test_arr": 0.08403040144699374,
+      "claimed_gain": 0.03957830619666689,
+      "heldout": {
+        "IC": 0.013622720722929527,
+        "ICIR": 0.10439475550511179,
+        "Rank IC": 0.0072337278185087275,
+        "1day.excess_return_with_cost.annualized_return": 0.05182121121172658,
+        "1day.excess_return_with_cost.max_drawdown": -0.19707749093416224,
+        "1day.excess_return_with_cost.information_ratio": 0.5801637255336538,
+        "seconds": 125.6
+      },
+      "heldout_gain": 0.022039120225379034,
+      "done": true
+    },
+    "run2": {
+      "loops": [
+        {
+          "loop": 0,
+          "expr": "Std($low/Ref($low, 10) - 1, 3)",
+          "test": {
+            "IC": 0.02926072589690777,
+            "ICIR": 0.2396693847892014,
+            "Rank IC": 0.03141603623343176,
+            "1day.excess_return_with_cost.annualized_return": 0.018663063780760755,
+            "1day.excess_return_with_cost.max_drawdown": -0.17057813442132908,
+            "1day.excess_return_with_cost.information_ratio": 0.20356257483472248,
+            "seconds": 83.1
+          },
+          "replace_best": false,
+          "best_before": 0.04445209525032685
+        },
+        {
+          "loop": 1,
+          "expr": "Mean($high, 5)/$close",
+          "test": {
+            "IC": 0.030440299130839985,
+            "ICIR": 0.23537232935135183,
+            "Rank IC": 0.03347396220736205,
+            "1day.excess_return_with_cost.annualized_return": 0.06195451950948779,
+            "1day.excess_return_with_cost.max_drawdown": -0.12962107708549206,
+            "1day.excess_return_with_cost.information_ratio": 0.6529373705829372,
+            "seconds": 83.8
+          },
+          "replace_best": true,
+          "best_before": 0.04445209525032685
+        },
+        {
+          "loop": 2,
+          "expr": "Mean($open, 30)/$vwap",
+          "test": {
+            "IC": 0.034644457437731965,
+            "ICIR": 0.27706832255944447,
+            "Rank IC": 0.03637894685965759,
+            "1day.excess_return_with_cost.annualized_return": 0.0827027251489865,
+            "1day.excess_return_with_cost.max_drawdown": -0.09501591846578962,
+            "1day.excess_return_with_cost.information_ratio": 0.9040867324140122,
+            "seconds": 88.0
+          },
+          "replace_best": true,
+          "best_before": 0.06195451950948779
+        },
+        {
+          "loop": 3,
+          "expr": "Resi($vwap, 20)/$high",
+          "test": {
+            "IC": 0.035923999402439795,
+            "ICIR": 0.3030513139692075,
+            "Rank IC": 0.03787297643860029,
+            "1day.excess_return_with_cost.annualized_return": 0.07020525993692667,
+            "1day.excess_return_with_cost.max_drawdown": -0.11582508198359681,
+            "1day.excess_return_with_cost.information_ratio": 0.7876552331082055,
+            "seconds": 82.9
+          },
+          "replace_best": false,
+          "best_before": 0.0827027251489865
+        },
+        {
+          "loop": 4,
+          "expr": "Std($low/Ref($low, 20) - 1, 60)",
+          "test": {
+            "IC": 0.03642755481699921,
+            "ICIR": 0.29699750035791067,
+            "Rank IC": 0.038916130046942485,
+            "1day.excess_return_with_cost.annualized_return": 0.08129515800720995,
+            "1day.excess_return_with_cost.max_drawdown": -0.10029054897176282,
+            "1day.excess_return_with_cost.information_ratio": 0.9198032232647564,
+            "seconds": 84.7
+          },
+          "replace_best": false,
+          "best_before": 0.0827027251489865
+        },
+        {
+          "loop": 5,
+          "expr": "Corr($high, Log($volume+1), 20)",
+          "test": {
+            "IC": 0.033103343450193244,
+            "ICIR": 0.2630591212249731,
+            "Rank IC": 0.03539047351769933,
+            "1day.excess_return_with_cost.annualized_return": 0.08767290883825908,
+            "1day.excess_return_with_cost.max_drawdown": -0.12710356872059167,
+            "1day.excess_return_with_cost.information_ratio": 0.9494878520149849,
+            "seconds": 82.5
+          },
+          "replace_best": true,
+          "best_before": 0.0827027251489865
+        },
+        {
+          "loop": 6,
+          "expr": "Corr($vwap, Log($volume+1), 3)",
+          "test": {
+            "IC": 0.032446299118174725,
+            "ICIR": 0.26250391603278594,
+            "Rank IC": 0.036513690382941354,
+            "1day.excess_return_with_cost.annualized_return": 0.07064382162726206,
+            "1day.excess_return_with_cost.max_drawdown": -0.13858459332346101,
+            "1day.excess_return_with_cost.information_ratio": 0.7832236217355711,
+            "seconds": 82.7
+          },
+          "replace_best": false,
+          "best_before": 0.08767290883825908
+        },
+        {
+          "loop": 7,
+          "expr": "Ref($open, 3)/$close - 1",
+          "test": {
+            "IC": 0.03495272933450321,
+            "ICIR": 0.2780955232861619,
+            "Rank IC": 0.037701570289939285,
+            "1day.excess_return_with_cost.annualized_return": 0.0781987911178816,
+            "1day.excess_return_with_cost.max_drawdown": -0.10242186614305535,
+            "1day.excess_return_with_cost.information_ratio": 0.884446179130799,
+            "seconds": 78.2
+          },
+          "replace_best": false,
+          "best_before": 0.08767290883825908
+        },
+        {
+          "loop": 8,
+          "expr": "Corr($vwap, Log($volume+1), 10)",
+          "test": {
+            "IC": 0.03141192438350539,
+            "ICIR": 0.2501607284728287,
+            "Rank IC": 0.034656815392891865,
+            "1day.excess_return_with_cost.annualized_return": 0.08392951163308772,
+            "1day.excess_return_with_cost.max_drawdown": -0.1104548239414388,
+            "1day.excess_return_with_cost.information_ratio": 0.9105577227498319,
+            "seconds": 79.8
+          },
+          "replace_best": false,
+          "best_before": 0.08767290883825908
+        },
+        {
+          "loop": 9,
+          "expr": "Sum(If($high>Ref($high, 1), $volume, 0), 5)/(Sum($volume, 5)+1e-12)",
+          "test": {
+            "IC": 0.0328301643635618,
+            "ICIR": 0.2672522123424384,
+            "Rank IC": 0.037018293837170514,
+            "1day.excess_return_with_cost.annualized_return": 0.07994462189681581,
+            "1day.excess_return_with_cost.max_drawdown": -0.08802727259657547,
+            "1day.excess_return_with_cost.information_ratio": 0.907002768900479,
+            "seconds": 80.5
+          },
+          "replace_best": false,
+          "best_before": 0.08767290883825908
+        }
+      ],
+      "kept": [
+        "Mean($high, 5)/$close",
+        "Mean($open, 30)/$vwap",
+        "Corr($high, Log($volume+1), 20)"
+      ],
+      "claimed_test_arr": 0.08767290883825908,
+      "claimed_gain": 0.043220813587932234,
+      "heldout": {
+        "IC": 0.013849785843264874,
+        "ICIR": 0.0997718496217468,
+        "Rank IC": 0.00882041503769537,
+        "1day.excess_return_with_cost.annualized_return": 0.021074893753097176,
+        "1day.excess_return_with_cost.max_drawdown": -0.2535940684204416,
+        "1day.excess_return_with_cost.information_ratio": 0.2034787945127388,
+        "seconds": 121.3
+      },
+      "heldout_gain": -0.00870719723325037,
+      "done": true
+    },
+    "run3": {
+      "loops": [
+        {
+          "loop": 0,
+          "expr": "(Min($close, 3) - $open)/($open+1e-12)",
+          "test": {
+            "IC": 0.030974685060683772,
+            "ICIR": 0.2550601569915174,
+            "Rank IC": 0.03256689503732654,
+            "1day.excess_return_with_cost.annualized_return": 0.05973098095184694,
+            "1day.excess_return_with_cost.max_drawdown": -0.09756157603360943,
+            "1day.excess_return_with_cost.information_ratio": 0.6794575120540721,
+            "seconds": 80.2
+          },
+          "replace_best": true,
+          "best_before": 0.04445209525032685
+        },
+        {
+          "loop": 1,
+          "expr": "Corr($close/Ref($close, 1), $vwap/Ref($vwap, 3), 3)",
+          "test": {
+            "IC": 0.03338607081580263,
+            "ICIR": 0.27455122308969965,
+            "Rank IC": 0.03388046748052263,
+            "1day.excess_return_with_cost.annualized_return": 0.05552509401153455,
+            "1day.excess_return_with_cost.max_drawdown": -0.16465486615020158,
+            "1day.excess_return_with_cost.information_ratio": 0.6187445790463573,
+            "seconds": 84.9
+          },
+          "replace_best": false,
+          "best_before": 0.05973098095184694
+        },
+        {
+          "loop": 2,
+          "expr": "Std($high/Ref($high, 1) - 1, 10)",
+          "test": {
+            "IC": 0.03188066061655352,
+            "ICIR": 0.26570649598274404,
+            "Rank IC": 0.03369310649236194,
+            "1day.excess_return_with_cost.annualized_return": 0.0626763722233543,
+            "1day.excess_return_with_cost.max_drawdown": -0.14131546278389967,
+            "1day.excess_return_with_cost.information_ratio": 0.7163584358119252,
+            "seconds": 85.8
+          },
+          "replace_best": true,
+          "best_before": 0.05973098095184694
+        },
+        {
+          "loop": 3,
+          "expr": "Rsquare($vwap/$open, 20)",
+          "test": {
+            "IC": 0.03216181100236939,
+            "ICIR": 0.2670453884302348,
+            "Rank IC": 0.03268066043255788,
+            "1day.excess_return_with_cost.annualized_return": 0.07018662788322211,
+            "1day.excess_return_with_cost.max_drawdown": -0.1184302610716826,
+            "1day.excess_return_with_cost.information_ratio": 0.79368575613079,
+            "seconds": 80.8
+          },
+          "replace_best": true,
+          "best_before": 0.0626763722233543
+        },
+        {
+          "loop": 4,
+          "expr": "Slope($vwap, 20)/$open",
+          "test": {
+            "IC": 0.03363298580867952,
+            "ICIR": 0.2771490054382143,
+            "Rank IC": 0.03476524579701821,
+            "1day.excess_return_with_cost.annualized_return": 0.08345946059295965,
+            "1day.excess_return_with_cost.max_drawdown": -0.13399505067415318,
+            "1day.excess_return_with_cost.information_ratio": 0.9674372815493254,
+            "seconds": 80.1
+          },
+          "replace_best": true,
+          "best_before": 0.07018662788322211
+        },
+        {
+          "loop": 5,
+          "expr": "Mean($volume, 30)/(Ref($volume, 2)+1e-12)",
+          "test": {
+            "IC": 0.03377180720676202,
+            "ICIR": 0.2833411634798692,
+            "Rank IC": 0.03590021007108396,
+            "1day.excess_return_with_cost.annualized_return": 0.06548628682208624,
+            "1day.excess_return_with_cost.max_drawdown": -0.14818524583880702,
+            "1day.excess_return_with_cost.information_ratio": 0.7675856036774314,
+            "seconds": 84.3
+          },
+          "replace_best": false,
+          "best_before": 0.08345946059295965
+        },
+        {
+          "loop": 6,
+          "expr": "Ref($vwap, 20)/$low - 1",
+          "test": {
+            "IC": 0.036202466823260775,
+            "ICIR": 0.3007868668174365,
+            "Rank IC": 0.037170910322707716,
+            "1day.excess_return_with_cost.annualized_return": 0.08473060456237458,
+            "1day.excess_return_with_cost.max_drawdown": -0.10454460595640594,
+            "1day.excess_return_with_cost.information_ratio": 0.990966248061327,
+            "seconds": 78.5
+          },
+          "replace_best": true,
+          "best_before": 0.08345946059295965
+        },
+        {
+          "loop": 7,
+          "expr": "Resi($open, 5)/$low",
+          "test": {
+            "IC": 0.03417142917565318,
+            "ICIR": 0.279318589933328,
+            "Rank IC": 0.03563729036095702,
+            "1day.excess_return_with_cost.annualized_return": 0.06146336848597032,
+            "1day.excess_return_with_cost.max_drawdown": -0.10873009351629842,
+            "1day.excess_return_with_cost.information_ratio": 0.7154332716886403,
+            "seconds": 80.8
+          },
+          "replace_best": false,
+          "best_before": 0.08473060456237458
+        },
+        {
+          "loop": 8,
+          "expr": "Resi($low, 10)/$high",
+          "test": {
+            "IC": 0.03389308144555659,
+            "ICIR": 0.28124097042010643,
+            "Rank IC": 0.03433486594341922,
+            "1day.excess_return_with_cost.annualized_return": 0.08343140855060552,
+            "1day.excess_return_with_cost.max_drawdown": -0.08560110574935453,
+            "1day.excess_return_with_cost.information_ratio": 0.9883970554014804,
+            "seconds": 79.2
+          },
+          "replace_best": false,
+          "best_before": 0.08473060456237458
+        },
+        {
+          "loop": 9,
+          "expr": "Ref($high, 10)/$open - 1",
+          "test": {
+            "IC": 0.03489479703665673,
+            "ICIR": 0.2846943643136537,
+            "Rank IC": 0.03526093344481401,
+            "1day.excess_return_with_cost.annualized_return": 0.0876533922667978,
+            "1day.excess_return_with_cost.max_drawdown": -0.09341790527001488,
+            "1day.excess_return_with_cost.information_ratio": 1.0254334928499527,
+            "seconds": 78.9
+          },
+          "replace_best": true,
+          "best_before": 0.08473060456237458
+        }
+      ],
+      "kept": [
+        "(Min($close, 3) - $open)/($open+1e-12)",
+        "Std($high/Ref($high, 1) - 1, 10)",
+        "Rsquare($vwap/$open, 20)",
+        "Slope($vwap, 20)/$open",
+        "Ref($vwap, 20)/$low - 1",
+        "Ref($high, 10)/$open - 1"
+      ],
+      "claimed_test_arr": 0.0876533922667978,
+      "claimed_gain": 0.043201297016470956,
+      "heldout": {
+        "IC": 0.013704051249526337,
+        "ICIR": 0.1047112763598681,
+        "Rank IC": 0.009689963406062386,
+        "1day.excess_return_with_cost.annualized_return": 0.03920094388778741,
+        "1day.excess_return_with_cost.max_drawdown": -0.1457547802834782,
+        "1day.excess_return_with_cost.information_ratio": 0.4189637787699849,
+        "seconds": 121.4
+      },
+      "heldout_gain": 0.009418852901439862,
+      "done": true
+    },
+    "run4": {
+      "loops": [
+        {
+          "loop": 0,
+          "expr": "Sum(If($open>Ref($open, 1), $volume, 0), 30)/(Sum($volume, 30)+1e-12)",
+          "test": {
+            "IC": 0.029737487439094837,
+            "ICIR": 0.24788293501504788,
+            "Rank IC": 0.030897678867348535,
+            "1day.excess_return_with_cost.annualized_return": 0.06534453479470968,
+            "1day.excess_return_with_cost.max_drawdown": -0.11075842029234922,
+            "1day.excess_return_with_cost.information_ratio": 0.7116915638824406,
+            "seconds": 79.4
+          },
+          "replace_best": true,
+          "best_before": 0.04445209525032685
+        },
+        {
+          "loop": 1,
+          "expr": "Corr($low/Ref($low, 1), $high/Ref($high, 3), 10)",
+          "test": {
+            "IC": 0.030583770456699466,
+            "ICIR": 0.2605806719843273,
+            "Rank IC": 0.032363729354129143,
+            "1day.excess_return_with_cost.annualized_return": 0.03188895271570102,
+            "1day.excess_return_with_cost.max_drawdown": -0.15872859708578207,
+            "1day.excess_return_with_cost.information_ratio": 0.37889552176962227,
+            "seconds": 79.7
+          },
+          "replace_best": false,
+          "best_before": 0.06534453479470968
+        },
+        {
+          "loop": 2,
+          "expr": "Ref($low, 20)/$vwap - 1",
+          "test": {
+            "IC": 0.03190318187312639,
+            "ICIR": 0.26163490552808305,
+            "Rank IC": 0.034189416814031884,
+            "1day.excess_return_with_cost.annualized_return": 0.06290863826224415,
+            "1day.excess_return_with_cost.max_drawdown": -0.11463672503242207,
+            "1day.excess_return_with_cost.information_ratio": 0.7478212261706104,
+            "seconds": 79.4
+          },
+          "replace_best": false,
+          "best_before": 0.06534453479470968
+        },
+        {
+          "loop": 3,
+          "expr": "(Min($close, 30) - $vwap)/($vwap+1e-12)",
+          "test": {
+            "IC": 0.035732549825214434,
+            "ICIR": 0.29641774984297004,
+            "Rank IC": 0.03729835865935175,
+            "1day.excess_return_with_cost.annualized_return": 0.08977386318717558,
+            "1day.excess_return_with_cost.max_drawdown": -0.08587099462341219,
+            "1day.excess_return_with_cost.information_ratio": 1.1032686176629902,
+            "seconds": 80.5
+          },
+          "replace_best": true,
+          "best_before": 0.06534453479470968
+        },
+        {
+          "loop": 4,
+          "expr": "Resi($low, 10)/$high",
+          "test": {
+            "IC": 0.03381183800686275,
+            "ICIR": 0.27922548266611835,
+            "Rank IC": 0.03442883804354426,
+            "1day.excess_return_with_cost.annualized_return": 0.0766485979480294,
+            "1day.excess_return_with_cost.max_drawdown": -0.11038929774854339,
+            "1day.excess_return_with_cost.information_ratio": 0.9464137067235433,
+            "seconds": 80.1
+          },
+          "replace_best": false,
+          "best_before": 0.08977386318717558
+        },
+        {
+          "loop": 5,
+          "expr": "Corr($vwap/Ref($vwap, 1), $high/Ref($high, 3), 30)",
+          "test": {
+            "IC": 0.03479874157463687,
+            "ICIR": 0.2898140397125029,
+            "Rank IC": 0.035843679849157976,
+            "1day.excess_return_with_cost.annualized_return": 0.07957041538386532,
+            "1day.excess_return_with_cost.max_drawdown": -0.10159090890843367,
+            "1day.excess_return_with_cost.information_ratio": 0.9914679723350163,
+            "seconds": 80.9
+          },
+          "replace_best": false,
+          "best_before": 0.08977386318717558
+        },
+        {
+          "loop": 6,
+          "expr": "Corr($low, Log($volume+1), 10)",
+          "test": {
+            "IC": 0.03523809655843466,
+            "ICIR": 0.2906502202290044,
+            "Rank IC": 0.035264273896530744,
+            "1day.excess_return_with_cost.annualized_return": 0.07161816452187482,
+            "1day.excess_return_with_cost.max_drawdown": -0.11771792889459311,
+            "1day.excess_return_with_cost.information_ratio": 0.8723978758856923,
+            "seconds": 80.1
+          },
+          "replace_best": false,
+          "best_before": 0.08977386318717558
+        },
+        {
+          "loop": 7,
+          "expr": "Slope($vwap, 20)/$open",
+          "test": {
+            "IC": 0.03653692890625861,
+            "ICIR": 0.30235359782607457,
+            "Rank IC": 0.03610739002054985,
+            "1day.excess_return_with_cost.annualized_return": 0.08060662397795361,
+            "1day.excess_return_with_cost.max_drawdown": -0.10809666322723313,
+            "1day.excess_return_with_cost.information_ratio": 0.9696485087100979,
+            "seconds": 80.6
+          },
+          "replace_best": false,
+          "best_before": 0.08977386318717558
+        },
+        {
+          "loop": 8,
+          "expr": "(Min($open, 3) - $low)/($low+1e-12)",
+          "test": {
+            "IC": 0.03985124817529042,
+            "ICIR": 0.33331858036219675,
+            "Rank IC": 0.041104684126563026,
+            "1day.excess_return_with_cost.annualized_return": 0.09063732688252381,
+            "1day.excess_return_with_cost.max_drawdown": -0.097998204675006,
+            "1day.excess_return_with_cost.information_ratio": 1.1110670852124087,
+            "seconds": 82.4
+          },
+          "replace_best": true,
+          "best_before": 0.08977386318717558
+        },
+        {
+          "loop": 9,
+          "expr": "Mean($volume, 3)/(Ref($volume, 3)+1e-12)",
+          "test": {
+            "IC": 0.04035894111579088,
+            "ICIR": 0.33429943112479943,
+            "Rank IC": 0.03949426040567683,
+            "1day.excess_return_with_cost.annualized_return": 0.07953060752629895,
+            "1day.excess_return_with_cost.max_drawdown": -0.112895210512069,
+            "1day.excess_return_with_cost.information_ratio": 0.9770365419222666,
+            "seconds": 81.8
+          },
+          "replace_best": false,
+          "best_before": 0.09063732688252381
+        }
+      ],
+      "kept": [
+        "Sum(If($open>Ref($open, 1), $volume, 0), 30)/(Sum($volume, 30)+1e-12)",
+        "(Min($close, 30) - $vwap)/($vwap+1e-12)",
+        "(Min($open, 3) - $low)/($low+1e-12)"
+      ],
+      "claimed_test_arr": 0.09063732688252381,
+      "claimed_gain": 0.04618523163219696,
+      "heldout": {
+        "IC": 0.015515738276741228,
+        "ICIR": 0.12547571970078727,
+        "Rank IC": 0.010801736831649731,
+        "1day.excess_return_with_cost.annualized_return": 0.03340238296037139,
+        "1day.excess_return_with_cost.max_drawdown": -0.12964237253866037,
+        "1day.excess_return_with_cost.information_ratio": 0.38876239096440035,
+        "seconds": 125.0
+      },
+      "heldout_gain": 0.003620291974023842,
+      "done": true
+    }
+  },
+  "data_end": "2026-11-04",
+  "baseline_test": {
+    "IC": 0.030640520202709607,
+    "ICIR": 0.2553983623519955,
+    "Rank IC": 0.033574505757520016,
+    "1day.excess_return_with_cost.annualized_return": 0.04445209525032685,
+    "1day.excess_return_with_cost.max_drawdown": -0.16709269424420004,
+    "1day.excess_return_with_cost.information_ratio": 0.49619955679223754,
+    "seconds": 81.2
+  },
+  "baseline_heldout": {
+    "IC": 0.01153296862890016,
+    "ICIR": 0.08632138098546215,
+    "Rank IC": 0.004351000587733372,
+    "1day.excess_return_with_cost.annualized_return": 0.029782090986347546,
+    "1day.excess_return_with_cost.max_drawdown": -0.19694654107713694,
+    "1day.excess_return_with_cost.information_ratio": 0.3000075337873137,
+    "seconds": 122.1
+  },
+  "summary": {
+    "runs_done": 5,
+    "mean_claimed_gain": 0.04563967105808818,
+    "mean_heldout_gain": 0.004049772479441594,
+    "rule_pass_heldout_ge_half_claimed": false
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "Q2_formulas": {
+    "sharpe": {
+      "quantstats": 0.4999280455618934,
+      "hand": 0.4999280455618934,
+      "pass": true
+    },
+    "sortino": {
+      "quantstats": 0.6959935544793158,
+      "hand": 0.6959935544793158,
+      "pass": true
+    },
+    "volatility": {
+      "quantstats": 0.3822906566294108,
+      "hand": 0.3822906566294108,
+      "pass": true
+    },
+    "cagr": {
+      "quantstats": 0.12472158990937254,
+      "hand": 0.12472158990937254,
+      "pass": true
+    },
+    "max_drawdown": {
+      "quantstats": -0.3522695566729741,
+      "hand": -0.3522695566729741,
+      "pass": true
+    },
+    "calmar": {
+      "quantstats": 0.3540515708689428,
+      "hand": 0.3540515708689428,
+      "pass": true
+    },
+    "pass": true,
+    "note_defaults": {
+      "cagr_with_default_periods_252": 0.08453119746724558,
+      "cagr_with_365": 0.12472158990937254,
+      "sharpe_with_default_252": 0.415395071188837
+    }
+  },
+  "Q3_periods_propagation": {
+    "Sharpe": {
+      "report": 0.5,
+      "direct_365": 0.4999,
+      "match": "True"
+    },
+    "Sortino": {
+      "report": 0.7,
+      "direct_365": 0.696,
+      "match": "True"
+    },
+    "Smart Sharpe": {
+      "report": 0.46,
+      "direct_365": 0.4637,
+      "match": "True"
+    },
+    "Smart Sortino": {
+      "report": 0.65,
+      "direct_365": 0.6455,
+      "match": "True"
+    },
+    "Calmar": {
+      "report": 0.35,
+      "direct_365": 0.3541,
+      "match": "True"
+    },
+    "Prob. Sharpe Ratio": {
+      "report": 0.79,
+      "direct_365": 0.7942,
+      "match": "True"
+    },
+    "CAGR\ufe6a": {
+      "report": 0.12,
+      "direct_365": 0.1247,
+      "match": true
+    },
+    "Volatility (ann.)": {
+      "report": 0.38,
+      "direct_365": 0.3823,
+      "match": "True"
+    },
+    "pass": true,
+    "report_rows_annualised_like": [
+      "CAGR\ufe6a",
+      "Sharpe",
+      "Prob. Sharpe Ratio",
+      "Smart Sharpe",
+      "Sortino",
+      "Smart Sortino",
+      "Sortino/\u221a2",
+      "Smart Sortino/\u221a2",
+      "Omega",
+      "Volatility (ann.)",
+      "Calmar"
+    ]
+  },
+  "Q4_psr": {
+    "quantstats": 0.7942303986459398,
+    "formula_same_estimators": 0.7942303986459398,
+    "pass": true,
+    "formula_population_moments": 0.7942332776508332,
+    "abs_diff_vs_population": 2.8790048933746704e-06,
+    "benchmark_sharpe": "0 (tests SR > 0; no deflation for number of trials)"
+  },
+  "Q5_html_offline": {
+    "written": true,
+    "bytes": 590805,
+    "network_attempts": 0,
+    "pass": true
+  },
+  "Q6_hourly": {
+    "report_sharpe": -0.28,
+    "hourly_sqrt8760": -0.2843,
+    "daily_resampled_sqrt365": -0.305,
+    "uses_hourly_returns_as_given": "True",
+    "period_rows": {
+      "Start Period": "2023-01-01",
+      "End Period": "2024-12-30",
+      "Max DD Period Start": "2023-06-29",
+      "Max DD Period End": "2024-12-30"
+    }
+  },
+  "network_attempts_total": 0
+}

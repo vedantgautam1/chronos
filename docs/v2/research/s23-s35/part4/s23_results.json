@@ -1,0 +1,37 @@
+{
+  "W3_footprint": {
+    "bins": [
+      {
+        "bin": 99.5,
+        "buy": 0,
+        "sell": 7,
+        "hand_buy": 0,
+        "hand_sell": 7
+      },
+      {
+        "bin": 100,
+        "buy": 1,
+        "sell": 4,
+        "hand_buy": 1,
+        "hand_sell": 4
+      },
+      {
+        "bin": 100.5,
+        "buy": 11,
+        "sell": 2,
+        "hand_buy": 11,
+        "hand_sell": 2
+      },
+      {
+        "bin": 101,
+        "buy": 3,
+        "sell": 0,
+        "hand_buy": 3,
+        "hand_sell": 0
+      }
+    ],
+    "bins_exact": true,
+    "time_half_open": true,
+    "pass": true
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "P1_pysystemtrade_default": {
+    "tests": "146",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "43",
+    "time": "49.313"
+  },
+  "P1_pysystemtrade_runslow_examples": {
+    "passed": 17,
+    "failed": 0,
+    "seconds": 154
+  },
+  "P1_skip_reasons": {
+    "Windows-only file tests": 30,
+    "need --runslow (run separately: 17 passed)": 10,
+    "file-path implementation tests": 3
+  },
+  "Z1_zipline_reloaded": {
+    "tests": "3336",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "22",
+    "time": "217.253"
+  },
+  "Z0_original_zipline": {
+    "python_3.6_3.7_available": false,
+    "python_3.8_install": "unsatisfiable: needs pandas<=0.22 (unparsable metadata, no wheels)",
+    "binary_only_install": "no distribution found"
+  },
+  "R1_rqalpha_unit": {
+    "tests": "128",
+    "failures": "6",
+    "errors": "18",
+    "skipped": "1",
+    "time": "9.237"
+  },
+  "R1_rqalpha_unit_failure_cause": "all 24 failures/errors: data bundle missing",
+  "R1_rqalpha_integration": {
+    "passed": 9,
+    "failed": 93,
+    "errors": 17,
+    "cause": "data bundle missing"
+  },
+  "R2_bundle_download": "refused here; URL is plain HTTP: http://bundle.assets.ricequant.com/bundles_v4/rqbundle_202611.tar.bz2",
+  "test_only_deps_installed_for_rqalpha": [
+    "mypy",
+    "TA-Lib 0.8.3"
+  ]
+}

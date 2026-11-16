@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "info": 0,
+    "low": 0,
+    "moderate": 3,
+    "high": 9,
+    "critical": 1,
+    "total": 13
+  },
+  "high_or_critical": [
+    "axios:high",
+    "browserslist:high",
+    "cross-spawn:high",
+    "d3-color:high",
+    "d3:high",
+    "follow-redirects:high",
+    "serialize-javascript:high",
+    "terser:high",
+    "webpack:critical",
+    "ws:high"
+  ]
+}

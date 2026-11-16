@@ -1,0 +1,22 @@
+{
+  "V1_vectorbt": {
+    "tests": 1472,
+    "passed": 1269,
+    "failed": 1,
+    "skipped": 202,
+    "failed_tests": [
+      "tests/test_utils.py::TestDatetime::test_to_timezone (DID NOT RAISE on '+05')"
+    ],
+    "skip_reasons": {
+      "vectorbt-rust not installed": 200,
+      "pandas-ta not installed": 2
+    },
+    "seconds": 825.8
+  },
+  "Q1_quantstats": {
+    "tests": 225,
+    "passed": 225,
+    "failed": 0,
+    "seconds": 26.5
+  }
+}

@@ -39,7 +39,7 @@ v1 is frozen on branch `v1-final` (commit `6b2b628`). Never edit v1 code (V2-D29
 | `docs/v2/COMPONENTS.md` | Where every third-party and v1 piece comes from |
 | `docs/v2/CODEBASE.md` | This file |
 | `docs/v2/CHANGELOG.md` | Dated work log |
-| `docs/v2/specs/` | Kronos shadow-signal spec; news/sentiment strategy spec (each with a staleness note) |
+| `docs/v2/specs/` | Kronos shadow-signal spec; news/sentiment strategy spec (each with a staleness note); parked order-flow dossier `orderflow-parked.md` (not a spec yet) |
 | `docs/v2/research/` | Check scripts behind the content-analysis findings (README inside) |
 | `docs/STATE.md` | Pointer: "moved, read the master doc" |
 | `docs/v1-archive/` | Frozen v1 documents: `SPEC_MOIRAI.md`, `SPEC_HEPHAESTUS.md`, `HANDOFF.md` (the v1 decisions log, closed 3 Nov), `SESSION_FINDINGS.md` (measured numbers), build briefs, dated handoffs |

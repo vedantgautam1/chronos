@@ -1,0 +1,42 @@
+{
+  "allow_research": {
+    "label": "allowed=[research], skills dir set (as default)",
+    "tools_listed": [
+      "get_prompt",
+      "install_skill",
+      "list_prompts",
+      "list_resources",
+      "openbb_batch_dispatch",
+      "openbb_describe_command",
+      "openbb_dispatch",
+      "openbb_list_commands",
+      "read_resource",
+      "research_prices",
+      "run_pipeline"
+    ],
+    "install_skill": "called",
+    "planted_file_exists": true,
+    "dispatch_remote": "error: ToolError: Error calling tool 'openbb_dispatch': Client error '404 Not Found' for url 'http://127.0.0.1:43927/'\nFor more information check: https://dev",
+    "requests_to_chosen_url": 2,
+    "paths_requested": [
+      "/openapi.json",
+      "/"
+    ],
+    "openbb_list_commands_chars": 54255,
+    "openbb_list_commands_sample": "{\"id\": null, \"ok\": true, \"result\": [{\"name\": \"bls.cpi.average_prices\", \"description\": \"BLS Consumer Price Index chart \\u2014 Average Price Data, Selected Items\"}, {\"name\": \"bls.cpi.by_category\", \"description\": \"BLS Consumer Price Index chart \\u2014 Consumer Price Index by Category \\u2014 Latest 12-M"
+  },
+  "allow_research_locked_down": {
+    "label": "allowed=[research], default_skills_dir='', enable_cli_tools=False",
+    "tools_listed": [
+      "get_prompt",
+      "install_skill",
+      "list_prompts",
+      "list_resources",
+      "read_resource",
+      "research_prices",
+      "run_pipeline"
+    ],
+    "install_skill": "refused: ToolError: Error calling tool 'install_skill': Target provider 'bundled' not found or not loaded. Available targets: bundled",
+    "planted_file_exists": null
+  }
+}

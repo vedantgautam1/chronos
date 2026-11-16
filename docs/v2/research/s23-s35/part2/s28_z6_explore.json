@@ -1,0 +1,40 @@
+{
+  "2023-12-31": {
+    "ok": false,
+    "trace_tail": [
+      "    b = beta_aligned(returns, factor_returns, risk_free, out=out[..., 1])",
+      "        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "  File \"/home/claude/ext/venv-zr/lib/python3.12/site-packages/empyrical/stats.py\", line 1368, in beta_aligned",
+      "    independent = np.where(",
+      "                  ^^^^^^^^^",
+      "ValueError: operands could not be broadcast together with shapes (363,1) () (362,1) "
+    ]
+  },
+  "2023-12-30": {
+    "ok": false,
+    "trace_tail": [
+      "  File \"/home/claude/ext/s28/zipline-reloaded/src/zipline/finance/metrics/tracker.py\", line 134, in hook_implementation",
+      "    impl(*args, **kwargs)",
+      "  File \"/home/claude/ext/s28/zipline-reloaded/src/zipline/finance/metrics/metric.py\", line 197, in end_of_session",
+      "    r = self._daily_cumulative_returns[session_ix]",
+      "        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^",
+      "IndexError: index 361 is out of bounds for axis 0 with size 361"
+    ]
+  },
+  "2023-12-31 own benchmark": {
+    "ok": true,
+    "rows": 363,
+    "calendar_days": 363,
+    "day_names": [
+      "Friday",
+      "Monday",
+      "Saturday",
+      "Sunday",
+      "Thursday",
+      "Tuesday",
+      "Wednesday"
+    ],
+    "seconds": 0.42,
+    "final_value": 151159.328
+  }
+}

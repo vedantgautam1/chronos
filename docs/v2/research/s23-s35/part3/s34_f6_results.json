@@ -1,0 +1,85 @@
+{
+  "settings": {
+    "sigma": 0.03,
+    "days": 1500,
+    "split": 1000,
+    "timesteps": 20000,
+    "cost": 0.001,
+    "annualisation": "sqrt(365)",
+    "ppo_params": {
+      "n_steps": 2048,
+      "ent_coef": 0.01,
+      "learning_rate": 0.00025,
+      "batch_size": 64
+    }
+  },
+  "seeds": [
+    {
+      "seed": 0,
+      "train_days": 1000,
+      "test_days": 500,
+      "sharpe_in": 0.0,
+      "sharpe_out": 0.0,
+      "buyhold_in": -0.7567917830707513,
+      "buyhold_out": -0.23579056788254477,
+      "final_value_in": 1000000.0,
+      "final_value_out": 1000000.0,
+      "seconds": 127.5
+    },
+    {
+      "seed": 1,
+      "train_days": 1000,
+      "test_days": 500,
+      "sharpe_in": -0.38186361263990154,
+      "sharpe_out": -0.038316797297120536,
+      "buyhold_in": -0.3903629239278825,
+      "buyhold_out": 1.549651525408484,
+      "final_value_in": 956799.8367919815,
+      "final_value_out": 998903.8232482609,
+      "seconds": 150.4
+    },
+    {
+      "seed": 2,
+      "train_days": 1000,
+      "test_days": 500,
+      "sharpe_in": -0.4762486479348088,
+      "sharpe_out": -1.054807702704753,
+      "buyhold_in": -1.0687743801366423,
+      "buyhold_out": -0.2170737479396311,
+      "final_value_in": 773831.584751063,
+      "final_value_out": 943818.4564232079,
+      "seconds": 136.5
+    },
+    {
+      "seed": 3,
+      "train_days": 1000,
+      "test_days": 500,
+      "sharpe_in": 0.0,
+      "sharpe_out": 0.0,
+      "buyhold_in": -1.179464589703666,
+      "buyhold_out": -1.701440926863323,
+      "final_value_in": 1000000.0,
+      "final_value_out": 1000000.0,
+      "seconds": 286.4
+    },
+    {
+      "seed": 4,
+      "train_days": 1000,
+      "test_days": 500,
+      "sharpe_in": -0.440682996805715,
+      "sharpe_out": -1.2868737338726037,
+      "buyhold_in": -0.05996007613722012,
+      "buyhold_out": -0.012686342481522008,
+      "final_value_in": 794375.0178604005,
+      "final_value_out": 892100.7897538268,
+      "seconds": 270.9
+    }
+  ],
+  "summary": {
+    "mean_sharpe_in": -0.2597590514760851,
+    "mean_sharpe_out": -0.47599964677489554,
+    "se_out": 0.2861165107890908,
+    "hyp_in_gt_out": true,
+    "hyp_out_within_2se_of_0": true
+  }
+}

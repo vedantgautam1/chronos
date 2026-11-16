@@ -1,0 +1,42 @@
+{
+  "G1_gsquant": {
+    "tests": "1573",
+    "failures": "2",
+    "errors": "0",
+    "skipped": "3",
+    "time": "71.655",
+    "failures_list": [
+      "markets/test_close_market.py::test_close_market_roll",
+      "markets/test_close_market.py::test_close_market_roll_diff_days"
+    ],
+    "tz_rerun": {
+      "UTC": "3 passed",
+      "Europe/London": "3 passed",
+      "America/New_York": "2 failed, 1 passed"
+    }
+  },
+  "F1_finrl": {
+    "tests": "77",
+    "failures": "7",
+    "errors": "1",
+    "skipped": "0",
+    "time": "36.973",
+    "note": "7 failures = Yahoo/Alpaca downloads (network); 1 collection error: env_stocktrading_cashpenalty imports gym, not installed by FinRL"
+  },
+  "M1_ml4t_backtest_0.2.0": {
+    "tests": "3285",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "123",
+    "time": "237.222",
+    "summary": "3162 passed, 123 skipped"
+  },
+  "M1_ml4t_diagnostic_0.2.1": {
+    "tests": "10059",
+    "failures": "4",
+    "errors": "11",
+    "skipped": "997",
+    "time": "946.146",
+    "summary": "9047 passed, 997 skipped, 4 failed (Plotly CDN not reachable in browser tests), 11 errors (wheel build cannot fetch hatchling)"
+  }
+}

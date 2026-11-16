@@ -1,0 +1,30 @@
+{
+  "calendar_bars": 70105,
+  "calendar_expected_hours": 70128,
+  "has_weekend_bars": true,
+  "alpha158_features": 158,
+  "C2_ingest": {
+    "rows": 70105,
+    "feature_nan_share": 1.8868622924564327e-05,
+    "test_ic_pearson": 0.03229762717466357,
+    "test_ic_spearman": 0.015223040754803643,
+    "test_rows": 17521
+  },
+  "C3_leak": {
+    "test_ic_pearson": 0.052411816033646655,
+    "test_ic_spearman": 0.029480175852108752,
+    "warnings_about_future_refs": []
+  },
+  "C3_leak_label_aligned": {
+    "test_ic_pearson": 0.9973731420497016,
+    "test_ic_spearman": 0.9999528147241271
+  },
+  "C2_short": {
+    "short_opened": false,
+    "error": "KeyError: 'BTCUSD not in current position'"
+  },
+  "C2_short_flip": {
+    "went_negative": false,
+    "error": "ValueError: only have 1.0 BTCUSD, require 2.0"
+  }
+}
