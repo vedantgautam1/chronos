@@ -348,7 +348,7 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | — | 3 Nov | v2 doc pack: `docs/v2/CHRONOS_V2.md` is the single master doc; repo is canonical; v1 frozen under branch `v1-final` | Done (founder instruction 3 Nov) |
 | — | 5 Nov | Content analysis **resumes alongside building** (repos first). New items are judged by whether they replace something we would otherwise build in §9 steps 2–5; new design proposals face a higher bar until the spike passes | Founder instruction 5 Nov |
 | — | 5 Nov | Step 4 also loads **Kraken's quarterly bulk trade files** (BTC/ETH) for history, after one real file's columns and timestamp resolution are checked; no upstream bug report to freqtrade (S20) | Founder instruction 5 Nov |
-| — | 15 Nov | **S-NEWS source list starts from World Monitor's news catalog** (koala73/worldmonitor `shared/`: 757 feeds, source tiers, source types), imported as-is, then observed and refined (founder). Its licence is **AGPL-3.0**: importing it into this repo while the repo is public makes the repo AGPL. **Waiting on the founder: make the repo private before importing, or accept AGPL.** Import happens with step 4's collectors. A minimal news-feed recorder ahead of the spike was offered and **declined: skeleton first** (founder) | Leaning (import Locked by founder; licence route open) |
+| — | 15 Nov | **S-NEWS source list starts from World Monitor's news catalog** (koala73/worldmonitor `shared/`: 757 feeds, source tiers, source types), imported as-is, then observed and refined (founder). Its licence is **AGPL-3.0**: importing it into this repo while the repo is public makes the repo AGPL. **Founder, 15 Nov: keep the repo public and accept AGPL-3.0** for the whole repo. When the catalog is imported, add the AGPL licence file and keep World Monitor's notices. Third-party code that can't go under AGPL is used as a dependency only, never copied in (as already for GPL code). Import happens with step 4's collectors. A minimal news-feed recorder ahead of the spike was offered and **declined: skeleton first** (founder) | Locked (founder) |
 
 **Next decision ID: V2-D45.** Next proposal ID: P-12.
 
@@ -421,7 +421,7 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | O-5 | Consensus-forecast vendor for S-MACRO | Open | When S-MACRO leaves collection |
 | O-6 | Mac RAM (only matters for local model sizes) | Open | Before local models |
 | O-7 | Before live: actual capital, sleeve %, max losses, running cost vs expected returns; revisit the 2× equity account ceiling (V2-D40) | Open | Before L4 |
-| O-12 | World Monitor's catalog is AGPL-3.0: make this repo private before importing it, or accept that the repo becomes AGPL | Open → founder | Before step 4's news collectors |
+| ~~O-12~~ | World Monitor's catalog is AGPL-3.0: repo private, or accept AGPL? | **Resolved 15 Nov: stay public, accept AGPL-3.0** (founder) | — |
 | ~~O-9~~ | Should data collection block the build order? | **Resolved 3 Nov → V2-D30: server after the spike** | — |
 | O-8 | Kronos spec horizons (1h/4h bars) vs the intraday track | Open | Before Kronos work |
 | ~~O-10~~ | Sealed-block size and confirm rule | **Resolved 5 Nov → V2-D38** | — |
