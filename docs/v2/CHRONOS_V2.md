@@ -1,7 +1,7 @@
 # CHRONOS v2 — the master document
 
 **Read this first. Every Claude chat, every Claude Code session, every time.**
-Last updated: **16 Nov 2026** (pre-build audit; proposals P-12–P-15 await the founder; last decisions locked: V2-D43, V2-D44). Dates in this pack are UTC. Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
+Last updated: **16 Nov 2026** (pre-build audit; proposals P-12–P-15 await the founder; last decision locked: V2-D45). Dates in this pack are UTC. Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
 
 This one file answers: what Chronos is, what is built, what is not built, what we decided and why, what we rejected and why, what to watch out for when building, and where everything else lives. If anything else disagrees with this file, **this file wins** (see §0 for the order).
 
@@ -35,7 +35,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 **What changed.** v1 (Jul–Aug 2026) was a research instrument built to produce a clean, documented FAIL, with an 11-gate validation gauntlet and no way to trade. Its own results showed no honest should-pass test strategy could clear all 11 gates. v2 (designed 27 Oct–3 Nov 2026) keeps v1's honest statistics, replaces the rest with open-source parts (NautilusTrader as the engine), and adds a path to live trading.
 
 **Where we are today (16 Nov 2026).**
-- **Design: done** (decisions V2-D01–D44, §10). **Pre-build audit done 16 Nov** (`docs/v2/research/pre-build-audit.md`): four proposals for the founder before or during step 2 (P-12–P-15, §12). The biggest: at nano fees, holds of minutes barely cover costs; hours look workable.
+- **Design: done** (decisions V2-D01–D45, §10). **Pre-build audit done 16 Nov** (`docs/v2/research/pre-build-audit.md`): four proposals for the founder before or during step 2 (P-12–P-15, §12). The biggest: at nano fees, holds of minutes barely cover costs; hours look workable.
 - **v2 code: none written yet.**
 - **v1: frozen** (branch `v1-final`).
 - **Data collection: not started.** Price candles and Kraken trades can be downloaded or backfilled later; what can't be recovered is news/X sentiment as it looked at the time (needed for S-NEWS) and our own snapshots of IBKR futures spreads.
