@@ -4,6 +4,30 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 16 Nov 2026 — pre-build audit
+
+Founder asked for an in-depth audit before §9 step 2. Full report: `docs/v2/research/pre-build-audit.md`.
+
+- **Ran:** v1's stats probe in a fresh `uv` environment from v1's own lock file (Python 3.13): **28/28**. The v1 tests step 2 ports (`tests/statistics`, `tests/moirai`, `test_costs.py`, `test_run.py`): **182 pass**. Port targets confirmed (strict `<` still at `null_bench.py:125`; fragmentation screen in `eligibility.py`).
+- **Looked up:**
+  - IBKR Canada lists Coinbase nano BTC/ETH including perpetual-style;
+  - IB Gateway needs a manual weekly re-login;
+  - NautilusTrader 1.231.0 needs Python ≥ 3.12, LGPL.
+- **Computed (descriptive, pre-seal 2024 data):** round-trip nano fees ≈ 9.7 bps vs median absolute BTC moves of 12.7 bps (15 min) and 24.4 bps (1 h).
+- **Proposals added (§12):**
+  - P-12: cost-feasibility check and minimum hold horizon before S-INTRADAY cards;
+  - P-13: the crypto seal blocks research on post-seal series (S-NEWS, recorded trades), with three options;
+  - P-14: small-capital sizing rounding and the running-cost vs capital check before step 4;
+  - P-15: basis check on real nano bars, Jul 2025–Mar 2026.
+- **Fixed stale text:**
+  - master doc §1 (decisions through V2-D44) and §2c (S1–S35);
+  - sentiment spec staleness note (World Monitor, AGPL, P-13);
+  - "dates are UTC" added to the header.
+- **BUILD_NOTES §5:** IB Gateway weekly re-login trap; nano fees in bps vary with price.
+- **Step-2 forks listed for the founder** (audit §6): v2 project layout and package name, Python version, whether strategy rules live in the public repo.
+
+---
+
 ## 16 Nov 2026 — news sources: founder decisions
 
 - **S-NEWS sources.** The founder chose to start the source list by **importing World Monitor's news catalog** (757 feeds, tiers, types), observing it, and refining later. Recorded in the master doc §10 (dash row).

@@ -1,7 +1,7 @@
 # CHRONOS v2 — the master document
 
 **Read this first. Every Claude chat, every Claude Code session, every time.**
-Last updated: **16 Nov 2026** (content analysis S23–S35 finished; last decisions locked: V2-D43, V2-D44). Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
+Last updated: **16 Nov 2026** (pre-build audit; proposals P-12–P-15 await the founder; last decisions locked: V2-D43, V2-D44). Dates in this pack are UTC. Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
 
 This one file answers: what Chronos is, what is built, what is not built, what we decided and why, what we rejected and why, what to watch out for when building, and where everything else lives. If anything else disagrees with this file, **this file wins** (see §0 for the order).
 
@@ -35,7 +35,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 **What changed.** v1 (Jul–Aug 2026) was a research instrument built to produce a clean, documented FAIL, with an 11-gate validation gauntlet and no way to trade. Its own results showed no honest should-pass test strategy could clear all 11 gates. v2 (designed 27 Oct–3 Nov 2026) keeps v1's honest statistics, replaces the rest with open-source parts (NautilusTrader as the engine), and adds a path to live trading.
 
 **Where we are today (16 Nov 2026).**
-- **Design: done** (decisions V2-D01–D42, §10).
+- **Design: done** (decisions V2-D01–D44, §10). **Pre-build audit done 16 Nov** (`docs/v2/research/pre-build-audit.md`): four proposals for the founder before or during step 2 (P-12–P-15, §12). The biggest: at nano fees, holds of minutes barely cover costs; hours look workable.
 - **v2 code: none written yet.**
 - **v1: frozen** (branch `v1-final`).
 - **Data collection: not started.** Price candles and Kraken trades can be downloaded or backfilled later; what can't be recovered is news/X sentiment as it looked at the time (needed for S-NEWS) and our own snapshots of IBKR futures spreads.
@@ -90,7 +90,7 @@ Statistics with known-answer tests (Lo 2002, Newey–West, Politis–Romano stat
 ### 2c. Outside the repo
 
 - **Content-intake pipeline** on the founder's Mac (`~/chronos-intake`): downloads, transcribes and OCRs Instagram posts for analysis.
-- **Content analysis S1–S22** (resumed 5 Nov alongside building; next item S23): reasoning in the claude.ai Project (`claude/item-analyses.md`, `-2.md`, `-3.md`); check scripts for S10–S22 in `docs/v2/research/`.
+- **Content analysis S1–S35** (resumed 5 Nov alongside building; repos judged by whether they replace something in steps 2–5): reasoning in the claude.ai Project (`claude/item-analyses.md`, `-2.md`, `-3.md`, `-4.md`); check scripts for S10–S35 in `docs/v2/research/`.
 
 ---
 
@@ -350,7 +350,7 @@ Format: ID · date · decision · status. Appended only when the founder says "l
 | — | 5 Nov | Step 4 also loads **Kraken's quarterly bulk trade files** (BTC/ETH) for history, after one real file's columns and timestamp resolution are checked; no upstream bug report to freqtrade (S20) | Founder instruction 5 Nov |
 | — | 15 Nov | **S-NEWS source list starts from World Monitor's news catalog** (koala73/worldmonitor `shared/`: 757 feeds, source tiers, source types), imported as-is, then observed and refined (founder). Its licence is **AGPL-3.0**: importing it into this repo while the repo is public makes the repo AGPL. **Founder, 15 Nov: keep the repo public and accept AGPL-3.0** for the whole repo. When the catalog is imported, add the AGPL licence file and keep World Monitor's notices. Third-party code that can't go under AGPL is used as a dependency only, never copied in (as already for GPL code). Import happens with step 4's collectors. A minimal news-feed recorder ahead of the spike was offered and **declined: skeleton first** (founder) | Locked (founder) |
 
-**Next decision ID: V2-D45.** Next proposal ID: P-12.
+**Next decision ID: V2-D45.** Next proposal ID: P-16.
 
 ---
 
@@ -415,6 +415,10 @@ Full list with links: Project doc `claude/reference-library.md` §8.
 | ~~P-9~~ | Budget guard for paid APIs | **Resolved 5 Nov → V2-D41** | — |
 | ~~P-10~~ | Trial records carry their data footprint | **Resolved 5 Nov → V2-D42** | — |
 | ~~P-11~~ | From the S23–S35 batch (16 Nov), two additions for the founder:<br>**(a)** Spike criteria (a)/(b): run the five known-answer fill tests (BUILD_NOTES §5) on ml4t-backtest as well as Nautilus, and explain every difference. ml4t-backtest passed all of them in S33, including funding, the 0.01 multiplier and gap-through stops.<br>**(b)** Nemesis/Aletheia check list: a mismatch between saved positions and the broker's at startup **halts** trading until the founder clears it (S33: ml4t-live logs and continues by default). | **Resolved 16 Nov → V2-D43 (a), V2-D44 (b)** | — |
+| P-12 | **Cost-feasibility check before any S-INTRADAY research card** (pre-build audit §2). On pre-seal data, compute round-trip cost at 1× and 2× (fees are fixed dollars per contract, so bps vary with price) against typical absolute moves per holding horizon, and write down a minimum hold horizon before research cards are filed. Descriptive only, not a counted trial. 2024 numbers: 1× fees ≈ 9.7 bps vs median 15-min move 12.7 bps and 1-hour move 24.4 bps. Also: does the founder want S-TREND as its own first sleeve if the horizon floor lands at many hours? (V2-D28 stays as locked unless the founder changes it) | Proposed (audit) | Before step 6 research cards; ideally in step 2 |
+| P-13 | **Research on series that start after the crypto seal** (S-NEWS, recorded Kraken trades; audit §3a). As written, V2-D38 forbids reading BTC/ETH prices after 31 Mar 2026, which those series need. Options: **(a)** no backtest phase: their rules are frozen from collection data without prices and tested only in L3 paper; **(b)** such research may read post-seal prices *only through code joined to that series* (never charts or LLM views), every read footprinted (V2-D42), and S-INTRADAY's sealed block is treated as contaminated for any lineage that used them; **(c)** each post-seal series gets a research window [start, X) and its own sealed block from X, and prices in [start, X) become readable for that series only. Touches a locked decision: founder decides | Proposed (audit) | Before any S-NEWS or order-flow research |
+| P-14 | **Small-capital fit** (audit §4). **(a)** Themis rounding when the target is below one contract: round down and skip; round to nearest with a cap of 1; or ETH nano (0.1 ETH, finer) first. Risk-limit-adjacent: founder decides before L3. **(b)** Move the running-cost vs capital comparison (O-7) to before step 4 starts paying for anything: at ~$2k, $20–60/month is 12–36% of capital a year | Proposed (audit) | (a) before L3; (b) before step 4 |
+| P-15 | **Basis reality check** (audit §3b). Before the edge check trusts a spot-signal backtest, rerun each S-INTRADAY candidate on the real nano contract's own bars for Jul 2025–31 Mar 2026 (pre-seal) as a VERIFICATION run, and state the basis model used for years before the contract existed | Proposed (audit) | Step 5 acceptance test design |
 | P-2 | Add a HAR realised-variance baseline (5-min returns) to Kronos role C when the spec is re-checked for intraday bars | Proposed (S10) | Before Kronos work |
 | O-3 | Exact neighbourhood rule (size, allowed degradation) | Open → acceptance test | Step 5 |
 | O-4 | IBKR futures cost model. **Partly answered 16 Nov:** Coinbase nano ≈ USD 0.31 a side on tiered pricing (0.20 commission + 0.10 exchange + 0.01 NFA). Still open: CME fees for MBT/BFF; how IBKR passes Coinbase funding through (cash adjustment per settlement); IBKR market-data cost; confirm all in the paper account | Open → spike | Step 3 |

@@ -135,6 +135,8 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
 
 - **Spike criterion (e) is the make-or-break:** can Nautilus's IBKR adapter trade Coinbase perpetual-style nano contracts, and can we read their funding and fees? If not, raise it immediately as an engine problem.
 - **IB Gateway** must run on the VPS for IBKR paper/live.
+- **IB Gateway needs a manual login once a week.** Daily auto-restart can be configured; the weekly re-authentication (cycle starts Monday) needs a manual login [Certain — IBKR docs, read 16 Nov]. If it's missed, a 24/7 strategy, its market data and the V2-D36 watchdog's own connection all stop. Make spike criterion (c)'s several days span a Monday re-authentication; schedule the login and alert if it hasn't happened. Every reconnect runs the V2-D44 reconciliation.
+- **Nano fees are fixed dollars, so their cost in bps moves with the BTC price:** round trip ≈ 0.62 / (0.01 × price) → ≈ 9.7 bps at USD 64k, ≈ 6.2 bps at USD 100k, before spread and slippage. Compute costs per trade from the price at the time, never as a fixed bps number [Certain — arithmetic]. Size of this vs typical moves: `research/pre-build-audit.md` §2.
 - **Coinbase Derivatives nano contracts trade 24/7 except Fri 17:00–18:00 ET;** CME crypto Sun–Fri ~23h. Model the gaps.
 - **Cost model must include:** commission per contract + exchange/regulatory fees + spread + slippage + funding + basis. **Coinbase nano through IBKR, per contract per side** [Certain — IBKR pricing pages, read 16 Nov]:
   - USD 0.20 commission (tiered, ≤1,000/month; a nano counts as 1/100 contract for IBKR's tiers);

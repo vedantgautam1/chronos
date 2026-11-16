@@ -3,6 +3,7 @@
 > - Crypto is traded via **IBKR crypto futures**, not Kraken (V2-D27). Wherever this spec says "crypto (Kraken)" or "Kraken sub-account", read IBKR futures; sleeves are tracked in the version registry and Nemesis per-sleeve budgets.
 > - Insider filings moved to their own parked equity strategy, S-INSIDER (V2-D14).
 > - "Matrix refs" point to `claude/comparison-matrix.md` in the claude.ai Project.
+> - **16 Nov:** the source list starts from **World Monitor's news catalog** (757 feeds, tiers, types), imported with step 4's collectors; it is AGPL-3.0 and the founder accepted AGPL for the repo (master doc §10, dash row of 15 Nov). **Seal gap:** studying S-NEWS needs BTC/ETH prices after 1 Apr 2026, which V2-D38 seals; how to handle it is open (P-13). Don't start S-NEWS research until P-13 is answered.
 > - Where this spec and `docs/v2/CHRONOS_V2.md` disagree, CHRONOS_V2 wins.
 
 # Spec — News & sentiment strategy (v0.1 draft, 27 Oct 2026)
