@@ -8,8 +8,8 @@ A separate AI agent that has never seen the plan being written. It gets only the
 ## Log
 | When (UTC) | What happened |
 |---|---|
-| 16 Nov 2026, ~05:40 | Red-team agent started on a different model (Opus) from the one that wrote the plan (Fable), with no access to the planning conversation. Brief: ten attack areas, findings ranked by severity, a final "real walls vs honour system" list. |
-| 16 Nov 2026, ~05:50 | **Stopped before reporting anything:** the account's five-hour usage allowance ran out (resets 09:50 UTC / 4:50 am Toronto). No findings were delivered. Its partial work is saved and it resumes from where it stopped. |
+| 16 Nov 2026, ~05:16 | Red-team agent started on a different model (Opus) from the one that wrote the plan (Fable), with no access to the planning conversation. Brief: ten attack areas, findings ranked by severity, a final "real walls vs honour system" list. |
+| 16 Nov 2026, before 05:28 | **Stopped before reporting anything:** the account's five-hour usage allowance ran out (resets 09:50 UTC / 4:50 am Toronto). No findings were delivered. Its partial work is saved and it resumes from where it stopped. A follow-up is scheduled for 10:02 UTC (5:02 am Toronto) to resume it and apply its findings. |
 
 ## Findings
 *None delivered yet.*
