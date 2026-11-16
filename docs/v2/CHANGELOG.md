@@ -4,6 +4,15 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 16 Nov 2026 — news sources: founder decisions
+
+- **S-NEWS sources.** The founder chose to start the source list by **importing World Monitor's news catalog** (757 feeds, tiers, types), observing it, and refining later. Recorded in the master doc §10 (dash row).
+  - Its AGPL-3.0 licence means the repo must be private first, or become AGPL. This is open as **O-12**.
+  - No files imported yet; that happens with step 4's collectors.
+- **Early news recorder declined:** the skeleton (§9 step 2) comes first.
+
+---
+
 ## 16 Nov 2026 — V2-D43 and V2-D44 locked; four open questions looked up
 
 - Founder said "yes both" to P-11:
