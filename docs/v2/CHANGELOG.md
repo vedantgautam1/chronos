@@ -4,6 +4,20 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 16 Nov 2026 — V2-D43 and V2-D44 locked; four open questions looked up
+
+- Founder said "yes both" to P-11:
+  - **V2-D43:** the spike's five fill tests also run on ml4t-backtest, and every difference is explained (spike criterion (a) amended);
+  - **V2-D44:** a startup or reconciliation position mismatch halts trading until the founder clears it (Nemesis and Aletheia rows).
+- Looked up instead of deferring (sources in the session; facts tagged in the docs):
+  1. **IBKR costs for Coinbase nano:** USD 0.20 commission + 0.10 exchange + 0.01 NFA ≈ 0.31 per contract per side on tiered pricing. O-4 is partly answered; CME's own fees and IBKR's market-data cost are still open.
+  2. **Kraken's bulk trade files carry a buy/sell field** (7 columns incl. `type` b/s and `trade_id`). This corrects the 5 Nov "apparently no side". Updated: master doc §2, BUILD_NOTES §4, COMPONENTS, order-flow dossier.
+  3. **Kraken Derivatives isn't available in Canada** (Kraken support). This closes the founder's open check: Kraken stays data-only.
+  4. **Nautilus's IBKR adapter** parses futures generically but its venue list has no Coinbase Derivatives entry, and its docs never mention Coinbase. Spike criterion (e) remains a live test (BUILD_NOTES §5).
+- Sweep: master doc (§2 rows, §9 step 3, Nemesis, Aletheia, decisions log, §12, IDs); BUILD_NOTES §4, §5, §11; COMPONENTS (IBKR, Kraken, ml4t-backtest); `specs/orderflow-parked.md`; Project handoff and library.
+
+---
+
 ## 16 Nov 2026 — order-flow dossier; pre-build sweep
 
 - Founder (15 Nov): keep order flow on the side for now, wanted later; record everything found. New `specs/orderflow-parked.md` gathers it:

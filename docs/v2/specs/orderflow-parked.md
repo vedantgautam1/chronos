@@ -11,7 +11,7 @@ Last updated 16 Nov 2026.
 | Data | Status | Notes |
 |---|---|---|
 | **Kraken BTC/USD and ETH/USD trades, forward**: price, size, time, **aggressor side**, market/limit | Locked (V2-D26), built at §9 step 4 (after the spike, V2-D30) | The only true aggressor-side source we'll have. Kraken's public `Trades` endpoint: 1,000 per call, page forward with `since`. |
-| **Kraken quarterly bulk trade files** (history) | Planned at step 4 (founder, 5 Nov) | **Apparently no aggressor side** [Likely, S20]. Usable for unsigned volume profiles and activity/Hawkes work. Check one real file's columns and timestamp resolution first. |
+| **Kraken quarterly bulk trade files** (history) | Planned at step 4 (founder, 5 Nov) | **Carry a buy/sell field** (corrected 16 Nov from Kraken's support page): timestamp, price, volume, type b/s, order_type, misc, trade_id. So years of signed history may be available, which is a big help for this thesis. Confirm `type` is the taker side against recorder data on overlapping days, and check the timestamp resolution. |
 | Kraken trades backfilled through the API (with side) | Optional | Possible but slow (1,000 trades per call). |
 | Order book (L2/L3) | **Not collected** | Book-based strategies are out of scope (V2-D22). |
 | Coinbase nano / CME futures trades | Not collected | We trade these through IBKR. Whether IBKR gives trade-level data with side is unchecked. |
@@ -77,7 +77,7 @@ So any signal is a partial view. Measure how Kraken flow relates to the nano con
 ## 5. Before unparking: open checks
 
 1. A few months of V2-D26 recordings exist and the gap log is clean enough to use.
-2. One real Kraken bulk file opened: columns, timestamp resolution, side or not.
+2. One real Kraken bulk file opened: timestamp resolution; `type` matches the recorder's aggressor side on overlapping days.
 3. Kraken's share of BTC volume, and how Kraken flow relates to Coinbase nano price moves at the horizons we trade.
 4. Whether IBKR offers trade-level data for the nano contracts, and at what cost.
 5. A research card per thesis, with falsifiers and the trial count written before any screen.
