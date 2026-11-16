@@ -314,7 +314,7 @@ Why the builder and reviewer are separate sessions and not "one smart agent": a 
 
 One scheduled task wakes the loop (at most hourly; that is the platform's minimum [Certain — same docs]). Each wake-up:
 
-1. Runs a small deterministic script (`v2/tools/loop/next_action.py`). **Code, not an AI, decides what is next**, by reading `LADDER.yaml`, the branches and each build's status file.
+1. Runs a small deterministic script (`v2/tools/loop/next_action.py`). **Code, not an AI, decides what is next**, by reading `LADDER.yaml`, the branches and each build's status file. Next is the first build on the ladder whose prerequisites are done; one build is finished (built, reviewed, merged) before another starts.
 2. Does exactly one action: start a build · resume a build · review · fix · merge · run a gate audit · or nothing.
 3. Commits its progress and stops.
 
@@ -589,7 +589,7 @@ flowchart TD
   G2 --> P4A
   G3 --> P4B
   P4A --> P4B --> G5
-  G4 --> G5
+  G4 --> NX
   G5 --> NX
 
   classDef founder stroke:#d97706,stroke-width:4px;
