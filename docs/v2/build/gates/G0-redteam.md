@@ -1,6 +1,6 @@
 # G0 — Red team of the build blueprint: findings and what was done
 
-**Status: three passes. First pass (whole draft): do not adopt. Second pass (the fixes): do not adopt, for the loop's enforcement only; the statistics and data fixes held. Third pass (builds B02–B05 as redesigned): see the last section.**
+**Status: three passes. First pass (whole draft, v0.1): do not adopt. Second pass (the fixes, v0.2): do not adopt, for the loop's enforcement only; the statistics and data fixes held. Third pass (builds B02–B05 as redesigned, v0.3): adopt with fixes. Those fixes are in v0.4 and have not been attacked again.**
 
 ## What this is
 
@@ -16,6 +16,8 @@ Before a plan is adopted, a separate agent that did not write it tries to break 
 | same day | Author verified the red team's corrected numbers against v1 by running v1's functions, then redesigned: blueprint v0.2 |
 | about 12:30 | **Second pass**, a fresh agent that had seen neither draft being written, on v0.2. **Verdict: DO NOT ADOPT.** 18 findings: 1 blocker, 14 major, 3 minor. Every number it re-ran matched. The loop's enforcement did not hold |
 | same day | Author confirmed the two GitHub facts behind the blocker on GitHub's own changelog, then redesigned builds B02–B05: blueprint v0.3 |
+| about 12:40 | **Third pass**, another fresh agent, narrow: only builds B02–B05 and the rules around them, on v0.3. **Verdict: ADOPT WITH FIXES.** Two blockers and a set of major findings, all of them corrections to the text of four specs, none needing a new design. It ran two of its attacks for real (pytest 9.1.1) and both worked |
+| same day | The fixes were applied to B02–B05, the spec rules, the blueprint and the handbook: v0.4. The session was then interrupted for about four hours before this record was written (see the note at the top of the third-pass section) |
 
 ## The verdict in plain words
 
@@ -108,10 +110,36 @@ A fresh agent on a different model from the author, told not to trust the "what 
 
 **What the author takes from two failed passes.** Both times the plan described protection it did not have, and both times the gap was in the part that polices the builders, not in the part that does statistics. The second time the cause was designing GitHub behaviour from memory. The response in v0.3 is to claim less: the working line gets tripwires, `main` gets walls, and a wall counts only after B05 has attacked it on GitHub and been refused.
 
+## Third pass (on v0.3, builds B02–B05 only): findings and what was done
+
+**A note on this section's reliability.** The third pass's findings were applied to the specs straight away. The session was then interrupted, and the red team's own report text was not kept. This section was written afterwards **from the changes that were made and from the summary written at the time** (blueprint Part 9). So the red team's own numbering is not reproduced here (the letters are the author's, and so are the severity labels below the two blockers), and if it raised a point that led to no change, that point is missing from this list. Everything listed can be checked against the specs named in the last column.
+
+**Verdict: adopt with fixes.** Nothing it found needed a new design; the second pass's redesign held in outline. What it found is that several of the new protections would not have worked as written.
+
+| | Severity | Finding | What was done | Where |
+|---|---|---|---|---|
+| a | **Blocker** | **An approval on the working line survived later pushes.** After the founder approved a pull request that touched a rule file, the automation could add commits and merge: his approval still counted for content he never saw | The working line's rules now cancel an approval when anything is pushed. The reviewer pushes its last commit **before** the founder is asked, and the merge is done without another push. A new attack (A8) tries exactly this | B05 rulesets and A8; `specs/README.md` reviewer rule 6; B03 "parked" rule, rows 28–28c; B04 |
+| b | **Blocker** | **The first move of `main` could never pass its own check.** The guards take their code from the base branch, and `main` has no guard code until the G1 move itself lands. The required check would have had nothing to run: the loop jams at its first gate | A bootstrap rule: with no guard code at the base, the job runs the pull request's own copy and says so in bold. By construction that happens exactly twice (B02's own pull request and the G1 move), both with the founder present | B02 deliverable 1; BLUEPRINT 2.5 (the v1 row) |
+| c | Major | **Most of B05's attack tests could be refused for the wrong reason** (a red check, a branch name the guards reject), which proves nothing about the setting they were meant to test | Every attack is now set up so the setting under test is the only thing in the way; the reason GitHub gives is read back through the API and pasted; an attack refused for another reason is run again. Added a **control that must succeed** (A10: an ordinary change still merges on its own) and an inventory (A12: exactly two identities can write). Twelve tests, was eleven | B05 |
+| d | Major | **The reasoning for why `main` holds was wrong.** It leaned on code-owner review, but the owners file isn't on `main` until G1; and it didn't consider a third identity (an installed GitHub App) that could approve | Rewritten on what GitHub does with two identities: no self-approval, approvals cancelled by a push, the last push approved by someone other than the pusher. A12 checks there is no third identity. The G1 audit re-runs A1–A4 once `main` has its own guard code and owners file | B05; BLUEPRINT 2.4–2.5 |
+| e | Major | **The emergency stop was called a wall.** The automation's account can remove the label, or delete the label from the repository, and the rule that it "doesn't count" lives in the loop's own code | The loop reads the issue's history, not its current labels: a stop ends only when the owner closes it or removes the label (rows 30b, 30c; A11 tries all three). And it is now called what it is, a **guard rail**. The stops nothing can override are named: switch the scheduled task off in the Claude app, or remove the automation's account from the repository | B03; B05 A11; BLUEPRINT 2.5–2.6; HANDBOOK §2 |
+| f | Major | **The earlier-tests job could be beaten from beside the package.** Demonstrated two ways: a `conftest.py` above the tests folder whose hook name is built from two strings, and a `pytest.ini` that narrows which functions count as tests. Also possible: a `sitecustomize.py`, a pytest plugin pulled in through the lock file | The job now starts from the base branch's copy of everything under `v2/` and takes from the pull request **only** the package, the migrations and the two dependency files. Plugin auto-loading is off, the base's pytest settings are used, and the job fails unless the set of tests that ran equals the base's own collection. Each of the four tricks is a test in B02 that must end red | B02 (`earlier-tests`; "what the guards don't stop" table) |
+| g | Major | **The owners file listed what to protect, and kept missing things** (the lock file, the loop's own code, a `conftest.py` beside the package) | Turned round: everything is the founder's, except the named folders builds work in. A test evaluates the file's patterns against twelve sample paths | B02 deliverable 3 |
+| h | Major | **B02's proofs on GitHub couldn't work inside B02:** the guard code isn't on the base branch until B02 has merged, so they would have gone red for the wrong reason | Moved to step 0 of B03, with the expected result of each stated | B02 step 6, B03 step 0 |
+| i | Major | **The probes couldn't run as written:** two prepared branches at once against "one active build at a time"; probe files in a founder-owned folder; status files for the probes would have tripped "unknown build" on the real ladder; the end state named the wrong next action | Probes run one after another, each under `scratch/probe/`; with `--ladder`, files for ids not on that ladder are ignored; the cleanup lists exactly what it removes; the expected end state is "waiting on you: B05" | B05; B03 deliverable 3, row 37 |
+| j | Major | **Dead ends in the loop's table:** a gate write-up the founder sends back, or a move he refuses, had no way forward; a failure of the script itself told nobody | Rows 6 and 8b say whose move it is and that nothing is re-opened automatically; when the script errors, `/tick` opens a stop issue with the error text | B03 rows 6, 8b, 37b; B04 |
+| k | Major | **A later build could edit an earlier build's database migration** | Existing migrations are frozen, like existing tests | B02 (`frozen_files`) |
+| l | Minor | The lock's proof against GitHub ran one race (not evidence); a lock's age is a date the holder wrote, and there is a gap between checking the lock and pushing | Twenty races each way against GitHub. The two residual gaps are stated and accepted: a session can only lose or keep its *own* lock by them, and the overrun halt bounds the damage | B03 |
+| m | Minor | A library could arrive through the lock file without `pyproject.toml` naming it | The lock's added and removed packages are printed; a lock change in a build that declares no new library fails; the lock file is founder-owned | B02 (`plumbing`) |
+| n | Minor | With T-d's band removed, a correct build still has a 1-in-20 chance that the fixed seed lands in the top 5% when it is finally run | Stated in the spec: if it does, that is a halt for the founder, never a reason to pick another seed (hard rule 10) | B20 |
+
+**What the author takes from the third pass.** The pattern from the first two held: the errors were in the policing, not the statistics, and they were found by someone trying the attack, not by re-reading. Two of them (b, h) are plain sequencing mistakes that any first run would have hit. That is the case for the order of phase 0: B03's first step and B05's attack tests are where this design meets GitHub for the first time, with the founder present, before any real build.
+
 ## What this file does not show
 
 - Whether GitHub really offers every setting B05 relies on, on this account type. The second pass rated them [Likely]; B05 reads each back through the API and halts with options if one is missing.
-- **The loop has never run.** Whether the walls hold is tested for real in B05, on GitHub, with the automation's own account, before any real build: eleven named attacks, each of which must be refused.
+- **The v0.4 fixes have not been attacked.** Three passes each found real problems; there is no reason to think a fourth would find none. The author's judgement is that the next useful test is no longer another read-through but B03's step 0 and B05's attack tests, on GitHub.
+- **The loop has never run.** Whether the walls hold is tested for real in B05, on GitHub, with the automation's own account, before any real build: twelve named tests, each of which must come out as stated, for the reason stated.
 - Specs for B23–B54 don't exist yet (cards only), so they haven't been attacked at all.
 
 ## Old build numbers → new
@@ -128,6 +156,6 @@ A fresh agent on a different model from the author, told not to trust the "what 
 | B19–B27 (spike) | B23–B31 | | B28–B37 (collection) | B32–B41 |
 | — | **B42** Kraken history load (new) | | B38–B49 (acceptance test) | B43–B54 |
 
-## Walls, tripwires and guard rails after v0.3
+## Walls, tripwires and guard rails after v0.4
 
-The line-by-line table is BLUEPRINT 2.5. In one sentence: on the working line the checks are tripwires that catch mistakes and shortcuts; `main`, the rule files and the emergency stop become walls at B05 if, and only if, GitHub refuses the eleven attacks; what stays on trust is that the reviewing session is separate from the building one, and that new code doesn't defeat a test from the inside. Those two are what the gate audits exist to catch.
+The line-by-line table is BLUEPRINT 2.5. In one sentence: on the working line the checks are tripwires that catch mistakes and shortcuts; `main` and the rule files become walls at B05 if, and only if, GitHub refuses the attacks for the reasons named; the emergency stop by labelled issue is a guard rail and stays one (the certain stops are switching the scheduled task off and removing the automation's account); and what stays on trust is that the reviewing session is separate from the building one, and that new code doesn't defeat a test from the inside. Those two are what the gate audits exist to catch.

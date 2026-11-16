@@ -27,7 +27,7 @@ B03 decides what to do. This build defines who does it: a builder, a reviewer an
 
 ## Deliver
 1. `.claude/agents/chronos-builder-opus.md`, `chronos-builder-sonnet.md` (same body, different `model`), `chronos-reviewer.md` (opus; no file-editing tools beyond what writing the review and status files needs), `chronos-auditor.md` (opus). Each body: the role's rules from `specs/README.md`, the commit trailer it must use, and "read the spec from `v2-build`".
-2. `.claude/skills/tick/SKILL.md`: run `v2/tools/loop/next_action.py`; if the action's model differs from the session's, print one plain sentence and stop; take the lock; dispatch to the named agent; release the lock; print `status_report`. It never chooses the action itself and never merges into `main`.
+2. `.claude/skills/tick/SKILL.md`: run `v2/tools/loop/next_action.py` (passing a `--ladder` argument through when the prompt gives one); if the script exits with an error, open a `chronos-halt` issue containing the error text and stop; if the action's model differs from the session's, print one plain sentence and stop; take the lock; dispatch to the named agent; release the lock; print `status_report`. It never chooses the action itself and never merges into `main`.
 3. `.claude/skills/status`, `halt` (opens a `chronos-halt` issue), `resume` (switches the scheduled task on if it exists; **it never closes a `chronos-halt` issue**: if one is open it says "close the issue yourself on GitHub; only your account releases the stop").
 4. Templates in `docs/v2/build/templates/`: `report.md` (with the "For the gate" section), `review.md` (with "code commit reviewed"), `gate-report.md` (sections per BLUEPRINT Part 6).
 5. `CLAUDE.md`: extend the "Build loop" section (added at G0) with the real command names (`/tick`, `/status`, `/halt`, `/resume`) and where the agents are defined. The three rules already in that section stay word for word.
@@ -42,6 +42,9 @@ B03 decides what to do. This build defines who does it: a builder, a reviewer an
 - `/tick` run on a model other than the action's prints the mismatch sentence and makes no commit.
 - `/tick` with a fresh lock held by someone else prints "claimed, nothing to do" and makes no commit.
 - `/resume` with a `chronos-halt` issue open leaves the issue open (asserted against a fake GitHub layer).
+- `/tick` when `next_action` exits non-zero opens exactly one `chronos-halt` issue and makes no commit (fake GitHub layer).
+- `/tick --ladder X` runs `next_action --ladder X`.
+- The reviewer agent's body says: for a build whose pull request needs the founder's review, push the final `merged` commit **before** asking for it, and never push after it is given.
 - Each agent file's body says: never create a `CLAUDE.md`, an `AGENTS.md` or a `.claude` folder anywhere; check `still_mine` before every push.
 - The toy run produces: a builder commit with the builder trailer, a review file naming that commit, a reviewer commit setting `merged`, and B02's guards green on the toy pull request.
 - `CLAUDE.md`'s "Build loop" section still contains its three original bullets unchanged (compared against the base branch), plus the command names.

@@ -1,6 +1,6 @@
 # CHRONOS v2 — BUILD BLUEPRINT (the skeleton)
 
-**Status: DRAFT v0.3, 16 Nov 2026 (UTC): revised after two red-team passes (`gates/G0-redteam.md`). Not adopted until the founder approves gate G0.**
+**Status: DRAFT v0.4, 16 Nov 2026 (UTC): revised after three red-team passes (`gates/G0-redteam.md`); the third said "adopt with fixes", and this version has those fixes. Not adopted until the founder approves gate G0.**
 Companion to the master document `docs/v2/CHRONOS_V2.md`, which still wins if the two disagree (§0 there).
 
 This file answers three questions:
@@ -311,7 +311,7 @@ flowchart TD
 
 Every commit on a build branch says which role made it. The checks read that label and refuse a builder commit that writes a review or marks its own work passed, a reviewer commit that touches code, and a "passed" with no review of the current code (`specs/README.md`, "Who may write what"; built in B02).
 
-**What that does and doesn't prove.** The label is one a session puts on its own commit, and builder and reviewer act through the same GitHub account. So the check catches a session doing the wrong job by mistake; it can't catch one that lies about which role it is. Both red-team passes pressed on this (`gates/G0-redteam.md`). The honest position: builder–reviewer separation is a **guard rail**, kept by the loop starting a fresh session for each action and checked afterwards at each gate. It becomes a wall only if the reviewer gets an identity of its own, which is a decision for you at G1 (2.5).
+**What that does and doesn't prove.** The label is one a session puts on its own commit, and builder and reviewer act through the same GitHub account. So the check catches a session doing the wrong job by mistake; it can't catch one that lies about which role it is. The first two red-team passes pressed on this (`gates/G0-redteam.md`). The honest position: builder–reviewer separation is a **guard rail**, kept by the loop starting a fresh session for each action and checked afterwards at each gate. It becomes a wall only if the reviewer gets an identity of its own, which is a decision for you at G1 (2.5).
 
 Why builder and reviewer are separate sessions and not "one smart agent": a session that wrote the code believes its own story about it. Every tick of the loop starts a fresh session with no memory of the last one [Certain — Claude Code scheduled-task docs, read 16 Nov].
 
@@ -340,9 +340,9 @@ flowchart LR
 
 - **`main` is the only thing that is trusted.** `v2-build` is a workbench: builds merge into it on their own when the checks are green and the reviewer has passed them, and anything on it can be thrown away back to the last gate.
 - **`main` moves only when you approve a gate.** A gate is two pull requests, both opened for you by the loop: first the **write-up** (the gate report and the updates to the master document), which is the one to read; then the **move** of `main`, which is one click. A gate counts as done when its report is on `main`.
-- **Rule changes need you.** The files that define the rules (the checks, the workflows, the specs, the ladder, this blueprint, the master document, `CLAUDE.md`, the list of libraries, the protected values, the touchstones) have a named owner: you. From B05, a pull request that touches one can't merge without your review.
+- **Rule changes need you.** Every file in the repository has a named owner, you, except the folders builds do their work in (the v2 package, its tests, build reports, the changelog and a few others). So the checks, the workflows, the loop's own code, the specs, the ladder, this blueprint, the master document, `CLAUDE.md`, the list of libraries and the protected values are all yours. From B05, a pull request that touches one can't merge without your review, and if anything is added after you review it, GitHub asks you again.
 - **Between gates, document changes you approve** (a new decision, research notes) go to `main` as they do today. The next gate's write-up merges `main` into the working line, so the two never drift apart. If a decision made mid-phase changes what a build should do, the build's spec is corrected (a small pull request you approve); builds follow their specs.
-- **None of this is a wall until build B05.** Until then every Claude session acts on GitHub as you, so GitHub can't tell your approval from the agent's. In B05 the automation gets its own account, GitHub's rules are switched on, and then **the automation attacks them**: eleven named attempts (merge into `main` on its own approval; approve a pull request you opened; add a commit after you approved; fake a passed check; change a workflow, a protected value or a rule; close your emergency stop). Each must be refused on GitHub. A protection whose attack isn't refused is written down as a guard rail, and you decide what to do about it.
+- **None of this is a wall until build B05.** Until then every Claude session acts on GitHub as you, so GitHub can't tell your approval from the agent's. In B05 the automation gets its own account, GitHub's rules are switched on, and then **the automation attacks them**: twelve named tests (merge into `main` with no approval; push to a pull request you opened and approve it; add a commit after you approved; fake a passed check; change a workflow, a library, a protected value, the loop's own code or a rule). Each must be refused by GitHub, and for the reason named: a test refused for some other reason is run again. A protection whose attack isn't refused is written down as a guard rail, and you decide what to do about it.
 
 ### 2.5 The five layers of checking
 
@@ -365,19 +365,19 @@ Two rules sit across all layers:
 - a **tripwire** is an automatic check that catches mistakes and shortcuts, and that a session determined to cheat could get around;
 - a **guard rail** depends on sessions following their instructions.
 
-The first draft of this table called tripwires and guard rails walls; both red-team passes said so. This version claims a wall only where an attack test exists, and the "from" column is conditional on that test passing.
+Earlier drafts of this table called tripwires and guard rails walls; the red-team passes said so, three times. This version claims a wall only where an attack test exists, and the "from" column is conditional on that test passing.
 
 | Protection | What it is | Becomes a wall |
 |---|---|---|
-| `main` moves only with your approval of exactly what is merged | Guard rail until B05 | **B05**, if attacks A1–A5 and A9 are refused |
-| The rules can't change without you (checks, workflows, specs, ladder, master doc, `CLAUDE.md`, libraries, protected values) | Tripwire from B02 (the `protected` check); guard rail before | **B05**, if attacks A6–A8 and A10 are refused |
-| Your emergency stop can't be undone by the automation | Guard rail until B03 | **B03/B05**: the loop ignores a stop closed by any account but yours (attack A11) |
-| v1 can't be edited | Tripwire from B02 | At each gate: the gate move can't merge with a v1 change, because the check is required on `main` (B05) |
+| Nothing reaches `main` without your approval of exactly what is merged (code only at gates; documents when you approve them) | Guard rail until B05 | **B05**, if attacks A1–A6 are refused and A12 finds no third account that can approve |
+| The rules can't change without you (checks, workflows, the loop's code, specs, ladder, master doc, `CLAUDE.md`, libraries and their lock file, protected values) | Tripwire from B02 (the `protected` check); guard rail before | **B05**, if attacks A6–A9 are refused |
+| Your emergency stop (the labelled issue) can't be undone by the automation | **Guard rail, and it stays one.** From B03 the loop ignores a stop that any account but yours closes or unlabels (tested, A11), but that rule lives in the loop's own code | No. The switches nothing can override are yours: turn the scheduled task off in the Claude app, or remove the automation's account from the repository |
+| v1 can't be edited | Tripwire from B02 | From G1, at each gate: the gate move can't merge with a v1 change, because the check is required on `main` and its code comes from `main`'s own copy. (At G1 itself `main` has no copy yet, so the check uses the pull request's; you are present for it.) |
 | A build stays inside the files its spec lists, and can't widen its own spec | Tripwire from B02 | No. A phase's worth of out-of-scope changes is shown to you at the gate |
-| Earlier tests can't be changed, deleted or switched off | Tripwire from B02: existing test files are frozen, and the earlier tests are re-run from the base branch's copy | No. A session could still defeat a test from inside new *source* code. The reviewer, the gate's re-run of the last gate's tests, and the sabotage run are what catch that |
+| Earlier tests can't be changed, deleted or switched off | Tripwire from B02: existing test files are frozen; and the earlier tests are re-run from the base branch's copy of everything except the package itself, with plugins off and the count of tests checked | No. A session could still defeat a test from inside new *package* code. The reviewer, the gate's re-run of the last gate's tests, and the sabotage run are what catch that |
 | The builder can't approve its own work | Tripwire from B02 (role labels) + guard rail (fresh sessions) | Only with a reviewer that has its own identity: your decision at G1 |
 | A new test checks as much as its spec says | Guard rail (the reviewer) + the sabotage run at gates | No |
-| Known answers are right | Tests assert the numbers in the spec; v1's numbers are regenerated from v1 itself in CI, and an existing oracle script can't be edited | The spec's own numbers were re-run by two red-team passes (the first found four wrong, the second re-ran six and all matched) and are re-derived blind at gates |
+| Known answers are right | Tests assert the numbers in the spec; v1's numbers are regenerated from v1 itself in CI (a tripwire stops an existing oracle script being edited) | The spec's own numbers were re-run by two red-team passes (the first found four wrong; the second re-ran six and all matched) and are re-derived blind at gates |
 | Trial records can't be changed or deleted | — | **B09**: database permissions and triggers, attacked in tests. A database superuser can still disable triggers; the audit detects it afterwards |
 | Research can't read sealed data | Tripwire: a test that nothing reads the files around the door | **B14** for reads through the door (it refuses) + **B11** (an audit over every stored footprint) |
 | The loop can't spend money | It never runs a model billed per use | Your usage-credit limit, once you set it (HANDBOOK §6) |
@@ -399,7 +399,7 @@ A build is **halted** (status `halted`, with the reason and the options written 
 
 A halt is cleared by the founder, usually with one sentence in a session ("split it as proposed", "take option b"). Nothing proceeds around a halt.
 
-**The big red button.** Saying "halt the loop" to Claude, or opening a GitHub issue with the label `chronos-halt` from your phone, stops every action until **you** close the issue. It needs no pull request and can't be blocked by a check; and if any account other than yours closes it, the loop treats it as still open.
+**The big red button.** Saying "halt the loop" to Claude, or opening a GitHub issue with the label `chronos-halt` from your phone, stops every action until **you** close the issue. It needs no pull request and can't be blocked by a check; and if any account other than yours closes it or takes the label off, the loop treats it as still in force. That rule is the loop policing itself, so treat this button as the convenient stop, not the last resort. **The last resort is yours alone and nothing can override it: switch the scheduled task off in the Claude app, or remove the automation's account from the repository on GitHub.**
 
 **When a spec is wrong.** The build halts. The correction is made on its own small branch (`spec/…`), which needs your approval because specs are yours; then the build resumes. A builder never fixes its own instructions.
 
@@ -726,5 +726,6 @@ Open items carried from elsewhere that bite during phases 0–1:
 5. **This blueprint was attacked before adoption, twice,** by separate agents that had not seen it being written.
    - First pass, on v0.1: **do not adopt** (3 blockers, 16 major, 6 minor). All answered in v0.2.
    - Second pass, on v0.2: **do not adopt** again, for the loop's enforcement only. It re-ran the statistics, cost, slippage and sabotage answers and all matched; it found that the check design rested on a GitHub feature that no longer works that way, and that the plan still called tripwires walls. Answered in v0.3 (this version): builds B02–B05 redesigned, and the walls table made conditional on attack tests.
-   - Every finding from both passes and what was done is in `gates/G0-redteam.md`, together with the result of the third, narrow pass on B02–B05.
+   - Third pass, on v0.3, narrow (builds B02–B05): **adopt with fixes.** Two blockers and several major findings, all text edits: an approval on the working line survived later pushes; the first gate move could never pass its own check; most of B05's attack tests could be refused for the wrong reason; the emergency stop was called a wall; the earlier-tests job could be beaten from beside the package (it demonstrated two ways). Fixed in v0.4 (this version). **These last fixes have not been attacked again.**
+   - Every finding from all three passes and what was done is in `gates/G0-redteam.md`.
    - The loop has still never run. B05 is where its walls are attacked on GitHub for real, before any real build.

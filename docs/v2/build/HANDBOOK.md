@@ -1,6 +1,6 @@
 # CHRONOS BUILD HANDBOOK — for the founder
 
-**Status: DRAFT v0.3, 16 Nov 2026 (UTC), revised after two red-team passes.** Sections marked *(planned)* describe commands that exist only after builds B04 and B05; those builds replace the wording with what really happens on screen.
+**Status: DRAFT v0.4, 16 Nov 2026 (UTC), revised after three red-team passes.** Sections marked *(planned)* describe commands that exist only after builds B04 and B05; those builds replace the wording with what really happens on screen.
 
 You don't need to read code to run this. You need to know five things: where to look, how to start and stop the loop, what to do when it stops, how to approve a gate, and what to do when usage runs out.
 
@@ -24,11 +24,11 @@ Facts are tagged: [Certain] = verified · [Likely] · [Guessing]. Sources are at
 | Rent the **server**, hold the **API keys** | Once | 30 minutes |
 
 **The three rules that keep you safe:**
-1. `main` moves only when you approve a gate, from your own GitHub account. Everything else happens on a working branch you can throw away.
-2. The session that writes code never grades it, and the checks that judge a build are read from the approved copy, not from the build's own.
+1. Nothing reaches `main` without your approval, from your own GitHub account: code only at gates, documents when you approve them. Everything else happens on a working branch you can throw away.
+2. The session that writes code never grades it.
 3. If the loop is unsure, it stops. A stopped loop costs nothing. A loop that guessed costs weeks.
 
-**What you should not assume.** Between gates, the automatic checks catch mistakes and shortcuts; they would not stop an AI session that set out to deceive. Two red-team passes made that plain. What you are guaranteed is narrower and firmer: nothing reaches `main` without you, every phase is re-checked from clean at its gate, and the worst case is redoing part of one phase. If you want more than that, G1 offers two ways (BLUEPRINT 2.5, last paragraph).
+**What you should not assume.** Between gates, the automatic checks catch mistakes and shortcuts; they would not stop an AI session that set out to deceive. Three red-team passes made that plain. What you are guaranteed is narrower and firmer: nothing reaches `main` without you, every phase is re-checked from clean at its gate, and the worst case is redoing part of one phase. If you want more than that, G1 offers two ways (BLUEPRINT 2.5, last paragraph).
 
 ---
 
@@ -53,7 +53,9 @@ The GitHub mobile app shows pull requests, reports and the diagrams. You never n
 
 **Start it:** switch it on, or say "resume the Chronos loop."
 
-**Emergency stop for everything:** say "halt Chronos" to Claude, **or** do it yourself from the GitHub app on your phone: Issues → New issue → any title → add the label `chronos-halt`. While such an issue is open, every session, scheduled or manual, refuses to act. **Only you closing it releases it**: if any other account closes it, the loop treats it as still open. This works even if Claude is unavailable.
+**Emergency stop for everything:** say "halt Chronos" to Claude, **or** do it yourself from the GitHub app on your phone: Issues → New issue → any title → add the label `chronos-halt`. While such an issue is open, every session, scheduled or manual, refuses to act. **Only you closing it releases it**: if any other account closes it or removes the label, the loop treats it as still in force. This works even if Claude is unavailable.
+
+**The last resort, which nothing can override:** switch the scheduled task off in the Claude app, or remove the automation's account from the repository (GitHub → Settings → Collaborators). The labelled issue is the convenient stop; these two are the certain ones.
 
 **Take over by hand** (when you have time and want it faster, or usage is short and you want to choose what gets done):
 1. Open a Claude Code session on the repo (cloud, desktop app, or `claude` in the Mac terminal inside `~/chronos`).
@@ -105,7 +107,7 @@ Once B05 is done, telling Claude "approve G2" in a chat is not enough, on purpos
 | Gate | What you are really approving |
 |---|---|
 | G0 | This plan |
-| G1 | That the loop works, that GitHub refused each of the eleven attacks B05 ran against it, and what a tick costs. Which Claude plan to stay on. Whether builds keep merging on their own between gates, or you want a reviewer with its own identity, or to merge each build yourself |
+| G1 | That the loop works, that GitHub refused each of the attacks B05 ran against it (for the reason named), and what a tick costs. Which Claude plan to stay on. Whether builds keep merging on their own between gates, or you want a reviewer with its own identity, or to merge each build yourself |
 | G2 | The foundations (statistics, trial store, data, costs) are correct and match v1 |
 | G3 | The engine choice |
 | G4 | The server's monthly cost and that collection is running clean |
