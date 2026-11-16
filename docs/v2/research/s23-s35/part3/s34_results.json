@@ -1,0 +1,59 @@
+{
+  "F2_fill_timing": {
+    "price_in_observation": 100.0,
+    "paid_per_share": 100.0,
+    "next_bar_close": 110.0,
+    "shares": 10.0,
+    "same_bar": true,
+    "pass": false
+  },
+  "F3_costs": {
+    "cash": 1000097.9,
+    "hand_cash": 1000097.9,
+    "cost": 2.1,
+    "hand_cost": 2.1,
+    "shares": 0.0,
+    "pass": true
+  },
+  "F4_slice": {
+    "cut_day_index": 599,
+    "max_abs_diff": {
+      "macd": 0.0,
+      "boll_ub": 0.0,
+      "boll_lb": 0.0,
+      "rsi_30": 0.0,
+      "cci_30": 0.0,
+      "dx_30": 0.0,
+      "close_30_sma": 0.0,
+      "close_60_sma": 0.0,
+      "turbulence": 0.0,
+      "daily_return": 0.0
+    },
+    "pass": true
+  },
+  "F4b_survivorship": {
+    "tickers_after_clean": [
+      "AAA",
+      "BBB"
+    ],
+    "CCC_rows_in_input": 790,
+    "CCC_rows_after_clean": 0,
+    "pass": false
+  },
+  "F5_crypto_env": {
+    "fill_price_bar": "price at time+1 (next bar after the observation)",
+    "bought_btc": 2.0,
+    "cash_after": 939739.8,
+    "hand_cash": 939739.8,
+    "fees_exact": true,
+    "whole_units_only": true,
+    "short_attempt": {
+      "btc_after": 0.0,
+      "eth_after": 0.0
+    },
+    "can_short": false,
+    "funding_modelled": "no funding term in the code (read)",
+    "action_scale_16547.5": 1.0,
+    "action_scale_16547.500001": 1e-05
+  }
+}

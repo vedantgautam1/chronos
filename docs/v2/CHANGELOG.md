@@ -4,6 +4,41 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 16 Nov 2026 — last repo batch S23–S35, Part 3: ML for Trading (S33), FinRL (S34), gs-quant (S35)
+
+- Pre-registered in `cb70a0a`; results in `research/s23-s35/part3/RESULTS.md`. **No engine or venue switch; no proposal, no lock.**
+- **ML for Trading (3rd ed.) and its libraries:**
+  - **ml4t-backtest 0.2.0:** 3,162 tests pass. Every fill check passed (next-bar open, fees, gap-through stop at the open, funding to the cent, 0.01 multiplier, 24/7 year, blocking controls). It's the best third opinion for the spike's fill tests.
+  - **ml4t-live 0.1.3:** builds only US-stock contracts through IBKR; by default it keeps trading through a startup reconciliation mismatch.
+  - **ml4t-diagnostic 0.2.1:** 9,047 tests pass.
+    - Its DSR is the 2025 form: it ignores skew/kurtosis against 0, and its rescaling table stops at N = 100. Within size under the null: 2.6% vs v1's 0.0%.
+    - RAS used as documented: 100% false finds on noise; 0% standardised.
+    - White's Reality Check and purged walk-forward pass.
+  - **The book's own crypto case study:** best of 2,807 candidates, validation Sharpe 1.67, deflated Sharpe negative, holdout −44.8% a year.
+- **FinRL:**
+  - the stock env fills at the observed close;
+  - cleaning drops a ticker from all history for a gap at the end;
+  - a frame-wide `bfill` copies one ticker's warm-up values to the others;
+  - the crypto env is long-only, whole units, no funding;
+  - PPO on noise (5 seeds) lost in- and out-of-sample.
+- **gs-quant:**
+  - the offline backtest's clock guard returns today's date-keyed close at 10:00;
+  - the offline engine ignores per-unit transaction cost;
+  - TWAP uses (start, end];
+  - daily vol is annualised with 252;
+  - its MCP server is read-only and needs GS credentials;
+  - 2 tests fail only under a New York/Toronto time zone.
+- Deviations recorded in RESULTS (timestamp, two harness fixes, test-only installs).
+- `BUILD_NOTES.md`:
+  - §1: `TZ=UTC` everywhere;
+  - §2: DSR variants, RAS units, outside p-value tie rules;
+  - §4: no fills across a stacked frame, point-in-time universes, timestamp-level availability guards;
+  - §5: ml4t-backtest as third opinion;
+  - §11: a reconciliation mismatch must halt.
+- `CHRONOS_V2.md` §1 count (30 items) and "Last updated".
+
+---
+
 ## 6 Nov 2026 — last repo batch S23–S35, Part 2: pysystemtrade (S30), Zipline (S28), RQAlpha (S29)
 
 - Pre-registered in `bc851d8`; results in `research/s23-s35/part2/RESULTS.md`. **No engine switch; none is a Nautilus fallback; no proposal, no lock.**

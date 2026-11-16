@@ -1,0 +1,185 @@
+{
+  "M2.1_next_bar_open": {
+    "fill": {
+      "timestamp": "2024-01-03 00:00:00",
+      "side": "buy",
+      "quantity": 1.0,
+      "price": 102.0,
+      "commission": 0.0,
+      "exit_reason": ""
+    },
+    "expected_ts": "2024-01-03 00:00:00",
+    "expected_price": 102,
+    "pass": true
+  },
+  "M2.2_fees": {
+    "fills": [
+      {
+        "timestamp": "2024-01-03 00:00:00",
+        "side": "buy",
+        "quantity": 10.0,
+        "price": 102.0,
+        "commission": 0.51,
+        "exit_reason": ""
+      },
+      {
+        "timestamp": "2024-01-05 00:00:00",
+        "side": "sell",
+        "quantity": 10.0,
+        "price": 106.0,
+        "commission": 0.53,
+        "exit_reason": "signal"
+      }
+    ],
+    "final_equity": 100038.96,
+    "hand": 100038.96,
+    "pass": true
+  },
+  "M2.3_gap_stop_order": {
+    "fills": [
+      {
+        "timestamp": "2024-01-03 00:00:00",
+        "side": "buy",
+        "quantity": 1.0,
+        "price": 100.0,
+        "commission": 0.0,
+        "exit_reason": ""
+      },
+      {
+        "timestamp": "2024-01-04 00:00:00",
+        "side": "sell",
+        "quantity": 1.0,
+        "price": 90.0,
+        "commission": 0.0,
+        "exit_reason": "signal"
+      }
+    ],
+    "expected_sell_price": 90,
+    "pass": true
+  },
+  "M2.3b_gap_stoploss_rule_default": {
+    "fills": [
+      {
+        "timestamp": "2024-01-03 00:00:00",
+        "side": "buy",
+        "quantity": 1.0,
+        "price": 100.0,
+        "commission": 0.0,
+        "exit_reason": ""
+      },
+      {
+        "timestamp": "2024-01-04 00:00:00",
+        "side": "sell",
+        "quantity": 1.0,
+        "price": 90.0,
+        "commission": 0.0,
+        "exit_reason": "stop_loss"
+      }
+    ]
+  },
+  "M2.4_both_hit": {
+    "stop_listed_first": [
+      {
+        "timestamp": "2024-01-03 00:00:00",
+        "side": "buy",
+        "quantity": 1.0,
+        "price": 100.0,
+        "commission": 0.0,
+        "exit_reason": ""
+      },
+      {
+        "timestamp": "2024-01-05 00:00:00",
+        "side": "sell",
+        "quantity": 1.0,
+        "price": 95.0,
+        "commission": 0.0,
+        "exit_reason": "stop_loss"
+      }
+    ],
+    "target_listed_first": [
+      {
+        "timestamp": "2024-01-03 00:00:00",
+        "side": "buy",
+        "quantity": 1.0,
+        "price": 100.0,
+        "commission": 0.0,
+        "exit_reason": ""
+      },
+      {
+        "timestamp": "2024-01-05 00:00:00",
+        "side": "sell",
+        "quantity": 1.0,
+        "price": 105.0,
+        "commission": 0.0,
+        "exit_reason": "take_profit"
+      }
+    ],
+    "note": "which fills depends on rule order if the two differ"
+  },
+  "M2.5_funding": {
+    "payments": [
+      {
+        "ts": "2024-01-03 00:00:00",
+        "qty": 0.0,
+        "mark": null,
+        "rate": 0.0001,
+        "cash_delta": 0.0
+      },
+      {
+        "ts": "2024-01-05 00:00:00",
+        "qty": 1.0,
+        "mark": 100.0,
+        "rate": 0.0001,
+        "cash_delta": -0.01
+      }
+    ],
+    "final_equity": 99999.99,
+    "fill_ts": "2024-01-03 00:00:00",
+    "charged_at_entry_bar_timestamp": false,
+    "pass": true
+  },
+  "M2.6_control": {
+    "errors": [
+      {
+        "bar": 0,
+        "error": "TradingControlViolation('order quantity 3 exceeds 1')"
+      }
+    ],
+    "fills": [],
+    "final_qty": 0.0,
+    "pass": true
+  },
+  "M2.7_multiplier": {
+    "fills": [
+      {
+        "timestamp": "2024-01-03 00:00:00",
+        "side": "buy",
+        "quantity": 1.0,
+        "price": 30000.0,
+        "commission": 0.0,
+        "exit_reason": ""
+      },
+      {
+        "timestamp": "2024-01-04 00:00:00",
+        "side": "sell",
+        "quantity": 1.0,
+        "price": 31000.0,
+        "commission": 0.0,
+        "exit_reason": "signal"
+      }
+    ],
+    "pnl": 10.0,
+    "expected": 10.0,
+    "pass": true
+  },
+  "M2.8_247": {
+    "input_bars": 8592,
+    "equity_rows": 8592,
+    "first": "2023-01-07 00:00:00",
+    "last": "2023-12-30 23:00:00",
+    "seconds": 0.76,
+    "first_is_saturday": "Saturday",
+    "last_is_saturday": "Saturday",
+    "pass": true
+  }
+}
