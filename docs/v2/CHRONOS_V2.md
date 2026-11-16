@@ -1,7 +1,7 @@
 # CHRONOS v2 — the master document
 
 **Read this first. Every Claude chat, every Claude Code session, every time.**
-Last updated: **16 Nov 2026** (content analysis S33–S35; last decisions locked: V2-D41, V2-D42). Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
+Last updated: **16 Nov 2026** (content analysis S23–S35 finished; last decisions locked: V2-D41, V2-D42). Owner: the founder (Big Dawg / Vedant). Kept current by whoever changes anything (rules in §14).
 
 This one file answers: what Chronos is, what is built, what is not built, what we decided and why, what we rejected and why, what to watch out for when building, and where everything else lives. If anything else disagrees with this file, **this file wins** (see §0 for the order).
 
@@ -39,7 +39,7 @@ This one file answers: what Chronos is, what is built, what is not built, what w
 - **v2 code: none written yet.**
 - **v1: frozen** (branch `v1-final`).
 - **Data collection: not started.** Price candles and Kraken trades can be downloaded or backfilled later; what can't be recovered is news/X sentiment as it looked at the time (needed for S-NEWS) and our own snapshots of IBKR futures spreads.
-- **Content analysis:** 30 items done (S1–S22, S28–S35; the last batch S23–S35 is in progress, 8 of 13 done: only the five order-flow visualisers left); **resumed 5 Nov alongside building** (founder), repos first, judged by whether they replace something in build steps 2–5. Parts 3–7 of the S11–S12 series produced V2-D34 to V2-D40. S18–S22 (Skylit, OpenBB, freqtrade, Qlib, RD-Agent) replace nothing in steps 2–5; they added build notes (data traps, two look-ahead tests). S28–S32 (Zipline, RQAlpha, pysystemtrade, quantstats, VectorBT) don't either: none is a fallback engine; VectorBT stays the screening engine, quantstats is for reports, pysystemtrade is a reference for sizing and roll arithmetic. S33–S35 (the ML for Trading book's code and libraries, FinRL, gs-quant) don't either: ml4t-backtest is the best third opinion for the spike's fill tests, but its live half can't trade futures through IBKR. It feeds the design but does not replace building.
+- **Content analysis:** 35 items done (S1–S35; the last repo batch S23–S35 finished 16 Nov, synthesis in `docs/v2/research/s23-s35/SYNTHESIS.md`); **resumed 5 Nov alongside building** (founder), repos first, judged by whether they replace something in build steps 2–5. Parts 3–7 of the S11–S12 series produced V2-D34 to V2-D40. S18–S22 (Skylit, OpenBB, freqtrade, Qlib, RD-Agent) replace nothing in steps 2–5; they added build notes (data traps, two look-ahead tests). S28–S32 (Zipline, RQAlpha, pysystemtrade, quantstats, VectorBT) don't either: none is a fallback engine; VectorBT stays the screening engine, quantstats is for reports, pysystemtrade is a reference for sizing and roll arithmetic. S33–S35 (the ML for Trading book's code and libraries, FinRL, gs-quant) don't either: ml4t-backtest is the best third opinion for the spike's fill tests, but its live half can't trade futures through IBKR. The five order-flow tools (S23–S27) don't either: OrderflowChart is kept as a viewer for when S-ORDERFLOW unparks. It feeds the design but does not replace building.
 
 **First trading target.** BTC (then ETH) **intraday, long and short**, several trades a day with holds of minutes to hours. Traded through **IBKR crypto futures** (Coinbase nano BTC/ETH first, CME micro and Bitcoin Friday second). Signal history comes from Kraken spot data.
 

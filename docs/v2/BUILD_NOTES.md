@@ -118,6 +118,8 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
   
   Fill within one asset, forward only, and decide universe membership point-in-time.
 - **Availability guards must compare timestamps, not dates.** gs-quant's backtest clock refuses an 11:00 price at 10:00 but **returns that day's date-keyed end-of-day price** [Certain — run, S35 G4]. Key every non-price value by `available_at` (a timestamp) and check `available_at <= now` at that resolution.
+- **A feed recorder must detect gaps, not just apply what arrives.** order-book-heatmap applied book updates 110–115 straight after 101–105 with 106–109 missing: no error, no flag, no resync [Certain — run, S24 H3]. For the Kraken trade recorder (V2-D26): check that each page continues from the last stored trade (`since`/trade id), log any break as a gap row with its time range, and never paper over it.
+- **Store sizes at their own precision, never at the price tick.** The same tool parsed trade and depth sizes with the price-tick rounder, so a 0.004 BTC trade was stored as 0 at tick 0.01 [Certain — run, S24 H4]. Prices and sizes get separate exact representations (integers or Decimal at each instrument's own increments).
 - **Same-time duplicate prints:** one taker order filling several resting orders prints several trades at the same timestamp. Merge them before any order-flow or clustering analysis (see §8).
 - **Nautilus Kraken spot bars are emitted only after the next interval's first trade;** the Kraken futures adapter offers only a demo environment [Likely — Nautilus docs, Oct 2026]. Check before relying on either.
 - **Point-in-time:** anything non-price gets `available_at`:
@@ -217,6 +219,9 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
   Use a time-of-day baseline, merge same-time prints, and pick the decay by likelihood. A wrong decay moved branching from 0.55 to 0.15 or 0.75 [Certain — run, S10].
 - **Stay above one minute.** Predicting the next seconds of flow is HFT (V2-D22).
 - **Market profile needs a measured volume profile from trades,** not a candle-shape estimate (S9's indicator models it with Gaussians).
+- **Write down the price-bin tie rule, and test it.** The same 100.25 print lands in the 100.5 row in flowsurface (ties away from zero) and in the 100.0 row in OrderflowChart (NumPy rounding, ties to even) [Certain — run, S23 W3, S26 C2]. Pick one (floor to the bin's lower edge is simplest), state it with the profile, and keep a known-answer test with exact half-tick prints.
+- **Side inferred from price changes is not aggressor data.** OrderFlowMap's live mode guesses each trade's side by the tick rule and lumps all volume between snapshots into one trade. On a synthetic tape with true sides it signed 78.7% of volume correctly with a snapshot per trade and 52.6% (a coin flip) with one every 5 trades; its CVD ended at −3,452 against a true +790 [Certain — run, S27 O2; accuracy depends on the synthetic tape]. NinjaTrader-style quote rules also leave inside-spread trades out of delta (S25, read). Use the venue's aggressor flag (Kraken trades carry it).
+- **Viewer for later:** OrderflowChart (Apache-2.0) builds exact footprints, delta and diagonal imbalance from a trade tape with aggressor side, and handled 86,400 one-second trades in under 0.3 s [Certain — run, S26]. Its candle OHLC are rounded to the tick.
 
 ## 9. Kronos
 

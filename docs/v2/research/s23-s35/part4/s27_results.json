@@ -1,0 +1,45 @@
+{
+  "O1_offline": {
+    "blocked_requests": [
+      "https://cdn.jsdelivr.net/npm/lightweight-charts@5.0.9/dist/lightweight-charts.standalone.production.js"
+    ],
+    "page_errors": [
+      "LightweightCharts is not defined"
+    ],
+    "LightweightCharts_defined": false,
+    "canvas_count": 1,
+    "pass": false
+  },
+  "O2_live_inference": {
+    "1": {
+      "snapshots_every_k_trades": 1,
+      "inferred_trades": 4999,
+      "correctly_signed_volume_share": 0.7867155269408677,
+      "true_cvd": 790,
+      "inferred_cvd": -3452,
+      "cvd_error": -4242,
+      "volume_counted": 127984
+    },
+    "5": {
+      "snapshots_every_k_trades": 5,
+      "inferred_trades": 999,
+      "correctly_signed_volume_share": 0.5259400025025025,
+      "true_cvd": 902,
+      "inferred_cvd": -9608,
+      "cvd_error": -10510,
+      "volume_counted": 127872
+    },
+    "pass": false
+  },
+  "O3_sim_cvd": {
+    "ticks": 300,
+    "trades": 350,
+    "cvd": 2837,
+    "sum_signed_trades": 2837,
+    "pass": true
+  },
+  "page_errors_O2_O3": [
+    "Value is null",
+    "Value is null"
+  ]
+}

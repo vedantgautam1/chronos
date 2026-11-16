@@ -4,6 +4,23 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 16 Nov 2026 — last repo batch S23–S35, Part 4 (order-flow tools) and synthesis
+
+- Pre-registered in `f1ae09f`; results in `research/s23-s35/part4/RESULTS.md`; batch synthesis in `research/s23-s35/SYNTHESIS.md`. **No switch, no proposal, no lock.**
+  - **OrderflowChart (S26)** kept as a future viewer: footprint, delta and imbalance from a trade tape with aggressor side are exact, and fast.
+  - **flowsurface (S23)**: reference only. Its footprints are exact, but it's GPL, has none of our venues, and its app build needs ALSA.
+  - **Rejected:**
+    - order-book-heatmap (S24): applies a book with missing updates silently; rounds sizes to the price tick; 13 npm vulnerabilities;
+    - NT8 OrderFlowKit (S25): NinjaTrader only, no licence, its quote rule drops inside-spread trades;
+    - OrderFlowMap (S27): live side guessed by the tick rule, 78.7% right per trade and 52.6% at 5-trade snapshots; needs a CDN.
+- Deviations: Rust 1.97 instead of the pinned 1.95 (not downloadable); ALSA installed for the app build; npm installed with `--ignore-scripts`.
+- `BUILD_NOTES.md`:
+  - §4: recorders detect gaps; sizes stored at their own precision;
+  - §8: write and test the price-bin tie rule; inferred side is not aggressor data; OrderflowChart as the viewer.
+- `CHRONOS_V2.md` §1: content analysis 35 items done, batch finished.
+
+---
+
 ## 16 Nov 2026 — last repo batch S23–S35, Part 3: ML for Trading (S33), FinRL (S34), gs-quant (S35)
 
 - Pre-registered in `cb70a0a`; results in `research/s23-s35/part3/RESULTS.md`. **No engine or venue switch; no proposal, no lock.**

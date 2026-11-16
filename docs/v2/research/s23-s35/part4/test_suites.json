@@ -1,0 +1,17 @@
+{
+  "W1_flowsurface": {
+    "data": "16 passed",
+    "exchange": "0 tests",
+    "indicator_engine": "65 passed, 2 ignored",
+    "indicator_cli": "4 passed",
+    "toolchain": "stable 1.97.0 (pinned 1.95.0 not downloadable)"
+  },
+  "C1_orderflowchart": "17 passed",
+  "H1_order_book_heatmap": "no tests (npm test exits 1 by design)",
+  "K1_nt8": "not buildable here (NinjaTrader 8 assemblies, Windows)",
+  "S27": "no test suite in repo",
+  "W2_flowsurface_build": {
+    "first": "failed after 345 s: alsa-sys needs libasound2-dev",
+    "second": "finished in 4m07s after apt install libasound2-dev; 48,445,808-byte binary"
+  }
+}
