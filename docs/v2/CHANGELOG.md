@@ -4,24 +4,35 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
-## 16 Nov 2026 — build blueprint, build specs B01–B18, founder handbook (draft, awaiting gate G0)
+## 16 Nov 2026 — build blueprint v0.2 (after the red team), specs B01–B22, founder handbook; V2-D47–D51 locked (awaiting gate G0)
 
 - **Founder asked for** a build skeleton with line diagrams, session-sized builds, automated build-and-check loops in place of the chat → paste → Claude Code relay, a handbook, and a re-audit of v1. Nothing here is adopted until the founder approves gate G0.
 - **New folder `docs/v2/build/`:**
-  - `BLUEPRINT.md`: eight diagrams (the whole machine top to bottom, the evidence ladder, the order path, the seal, where things run, the build loop, branches, the build ladder); the build system (four roles, ticks, five layers of checking, brakes, size classes, model routing, money); when each outside component enters; **49 builds and 6 gates to the end of the acceptance test**.
-  - `specs/B01`–`B18` (full) with `specs/README.md` (rules for every builder and reviewer); `BUILD_CARDS.md` for B19–B49; `LADDER.yaml`; `LEDGER.md`; `V1_CARRYOVER.md`; `HANDBOOK.md`.
-- **v1 re-audit** (all of `src/`, `tests/`, root scripts): the data layer (schema, store, snapshot hash, validate, clean) moves from "reference" to "port" (P-16); touchstone *definitions* are separated from their gauntlet-bound runner; trade-shuffle drawdown and round-trip code are ported into sizing. `main` equals `v1-final` on every v1 path [run].
+  - `BLUEPRINT.md`: eight diagrams (the whole machine top to bottom, the evidence ladder, the order path, the seal, where things run, the build loop, branches, the build ladder); the build system (roles, ticks, five layers of checking, walls vs guard rails, brakes, size classes, model routing, money); when each outside component enters; **54 builds and 6 gates planned to the end of the acceptance test**.
+  - `specs/B01`–`B22` (full) with `specs/README.md` (rules for every builder and reviewer); `BUILD_CARDS.md` for B23–B54; `LADDER.yaml`; `LEDGER.md`; `V1_CARRYOVER.md`; `HANDBOOK.md`; `gates/G0-redteam.md`, `gates/G0-report.md`.
+- **Red team** (founder: yes; a separate agent on a different model that had not seen the plan being written). **Verdict on the first draft: do not adopt.** 25 findings: 3 blockers, 16 major, 6 minor. All 25 are answered in `gates/G0-redteam.md`. The main changes:
+  - *The builder could approve and merge its own work; the checks ran from the pull request's own code; any build could edit the master doc.* Now: every commit carries a role; the checks run from the base branch and read each spec from there; no build touches the master doc; rule files have a named owner (the founder); and the automation gets its own GitHub account at B05, so GitHub itself can refuse it.
+  - *Four known answers were wrong or would fail a correct build by chance* (the laundering pair without skew and kurtosis; the generator's planted-Sharpe check; the bootstrap band at 5,000 resamples; a [20, 80] band on a uniform rank). Corrected against v1 by running it.
+  - *Design errors in the trial store* (a status that could never change in an append-only table; lineage wider than V2-D34 allows; a duplicate check that couldn't work). Redesigned: trials are registered at start with an append-only event log; lineage is the hypothesis plus direct siblings; a `trial_key` identifies the same try across hypotheses.
+  - *Two builds were too big and three jobs had no build.* Phase 0 is now five builds (was three); added file loaders (B15), a sabotage tool (B22), and the full Kraken history load (B42). Builds renumbered: 49 → 54. The old-to-new table is in `gates/G0-redteam.md`.
+  - **Not done:** the fixes have not been attacked again by an independent pass at the time of this entry.
+- **Locked by the founder (16 Nov, "it's a go"):** V2-D47 (data layer in step 2), V2-D48 (one standard input for the edge check), V2-D49 (T-a1 and T-c expectations pre-registered), V2-D50 (engine-independent step-5 builds may start early), V2-D51 (second reviewer from another AI family from G1, as a trial; left to Claude's call). P-16–P-20 closed.
+- **Founder facts and instructions (16 Nov):** the Mac is 16 GB memory, 256 GB storage (master doc §3 said 512 GB; O-6 closed). The US$100 month-one cap is not hard: Claude says where more spend buys something clearly better (blueprint 2.9, handbook §6).
+- **New for the founder:** proposal **P-21** (server and free collectors from G2 instead of after the spike; amends V2-D30; Claude's view: small gain); open question **O-14** (does a chain of sibling hypotheses share one sealed look?).
+- **Rule files changed, for the founder's approval at G0:** `CLAUDE.md` gets a "Build loop" section (a build writes its report and changelog entry; the master doc is updated at gates). Master doc §14 rule 3 gets the same exception. §9 step 2's strict-rank sentence is restored to its original wording with a clarifying note.
+- **v1 re-audit** (all of `src/`, `tests/`, root scripts): the data layer (schema, store, snapshot hash, validate, clean) moves from "reference" to "port" (V2-D47); touchstone *definitions* are separated from their gauntlet-bound runner; trade-shuffle drawdown and round-trip code are ported into sizing. `main` equals `v1-final` on every v1 path [run].
 - **Checked by running:**
   - Python 3.14 with numpy, scipy, pandas, pyarrow, duckdb, arch, quantstats, vectorbt, psycopg and NautilusTrader 1.231.0 installs with no conflicts (Linux).
   - Cloud sessions have PostgreSQL 16 and the Claude Code CLI, so database tests and the loop can run there.
-  - The mid-rank tie demonstration for build B05: with `numpy.sum`, strict ranking gives a mean rank of 38.9 on identical sums and mid-rank 50.2. **New trap:** Python's built-in `sum()` is compensated since 3.12 and hides the artefact; numpy and running totals don't.
-  - All eight diagrams render (mermaid-cli).
+  - The mid-rank tie demonstration for build B07: with `numpy.sum`, strict ranking gives a mean rank of 38.9 on identical sums and mid-rank 50.2. **New trap:** Python's built-in `sum()` is compensated since 3.12 and hides the artefact; numpy and running totals don't.
+  - The laundering pair with skew and kurtosis passed in: 0.563048882547666 and 0.05423064441493044 (v1's functions on v1's fixture). Without them: 0.56300 and 0.05438.
+  - The slippage tape values (exact decimals) and the sabotage toy (11 mutations by hand: 7 caught, 4 survive, 2 of them equivalent).
+  - All diagrams render (mermaid-cli).
 - **Corrections:**
   - `BUILD_NOTES.md` §4: a true Sharpe of 0.5 needs about **25** years to show, not 18 (v1's own function: 24.73).
-  - Master doc §12: the second "O-12" (AGPL) renumbered O-13; §13: content analysis is S1–S35 with `item-analyses-4.md`; §9 step 2: the strict-rank fix is in the v2 port, v1 stays frozen.
-- **Master doc:** §1 next step, §2a new row, §9 step 2, §10 three founder-instruction rows (16 Nov), §12 proposals **P-16 to P-20** (none locked), §13. Next IDs: V2-D47, P-21.
-- **Red team** (founder: yes): started on a separate agent and a different model; **stopped by the five-hour usage limit before it reported anything.** It resumes after the reset. `docs/v2/build/gates/G0-redteam.md` holds the log, the author's own list of known weaknesses, and a "real walls vs guard rails" table. G0 waits for the findings.
-- **Not done:** no v2 code; no loop yet (builds B01–B03); full specs for B19–B49 are written when each phase opens.
+  - Master doc §12: the second "O-12" (AGPL) renumbered O-13; §13: content analysis is S1–S35 with `item-analyses-4.md`.
+- **Master doc:** header, §1 next step, §2a new row, §3 hardware, §9 step 2, §10 (three founder-instruction rows, V2-D47–D51), §12 (P-16–P-20 closed, P-21, O-6 closed, O-14), §13, §14 rule 3. Next IDs: V2-D52, P-22.
+- **Not done:** no v2 code; no loop yet (builds B01–B05); full specs for B23–B54 are written when each phase opens.
 
 ---
 

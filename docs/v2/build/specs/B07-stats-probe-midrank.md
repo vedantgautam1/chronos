@@ -1,10 +1,10 @@
 ```yaml
-id: B05
+id: B07
 title: Statistics II — the math probe as tests, mid-rank counters, the floating-point tie case
 size: M
 model: opus
 who: loop
-needs: [B04]
+needs: [B06]
 ticks: 3
 touches:
   - v2/src/chronos2/stats/**
@@ -16,7 +16,7 @@ touches:
 may_modify_tests: []
 ```
 
-# B05 — Statistics II
+# B07 — Statistics II
 
 ## Why
 Two things. First, v1's 28-check probe becomes ordinary tests, so it runs on every change instead of when someone remembers. Second, v2 needs one shared way to count "how many random results beat ours", with ties handled correctly. Counting ties the naive way made pure noise look non-random in a published reproducer (mean rank 37.6 where 50 is correct) [Certain — run, S8a]; v1 has that naive count at one spot (`null_bench.py` line 125). v2 never will.
@@ -47,7 +47,7 @@ Let `null` be B values from a null distribution and `obs` the observed value. `G
 2. `ranks.py` → green.
 3. Port the probe → 28 green.
 4. `test_no_naive_rank.py`, with a planted offender in a temp file to prove it fires.
-5. Docs, report.
+5. The two doc lines below; report.
 
 ## Known answers and checks
 **Ranks, by hand:**
@@ -66,14 +66,16 @@ Let `null` be B values from a null distribution and `obs` the observed value. `G
 
 *Design note, for the record (V2-D25).* The three bounds were written first. A first version of the construction used Python's built-in `sum()`, and showed no artefact at all: since Python 3.12 the built-in compensates for rounding, so every ordering gives the identical float. The construction was changed to `numpy.sum` (what real code uses); **the bounds were not changed.** One design-time run of the construction above (16 Nov, numpy 2.5.5): strict 38.9, mid-rank 50.2, equal share 22.6% [Certain — run]. A plain running total (`acc += v`) gives 42.9 / 50.2 / 14.6%.
 
+*Recorded as a deviation (G0 red team, finding 24).* V2-D25 says the rules are committed before the test runs. Here the pass/fail bounds were, but the construction was changed once after a first look. It is disclosed rather than hidden; the founder sees it in the G0 report. From here on the construction is frozen as well: the builder may not change sizes, seeds or the summation method.
+
 **Probe:** 28 of 28 pass; the report lists them by name next to v1's output from the same commit.
 
 ## Not in this build
-The null benchmark itself (B40) · any decision rule that uses a p-value.
+The null benchmark itself (B45) · any decision rule that uses a p-value.
 
 ## Halt if
 - Any of the three tie-case bounds fails with the stated construction. Don't change sizes, seeds or the summation method to get there: report the numbers. The definitions above stand either way; only the demonstration would need rethinking.
 - A probe check needs a wider tolerance than v1's.
 
-## Doc rows to update
-`BUILD_NOTES.md` §2 first bullet: add "v2: `stats/ranks.py` is the only place ranks and p-values are counted (B05)", and the trap "Python's built-in `sum()` hides order-dependent rounding (compensated since 3.12); `numpy.sum` and running totals don't, so the tie artefact is real in our stack". `COMPONENTS.md` §2 rows "Known-answer tests" and "Null benchmark".
+## For the gate
+This build edits two rows itself. `BUILD_NOTES.md` §2 first bullet: add "v2: `stats/ranks.py` is the only place ranks and p-values are counted (B07)", and the trap "Python's built-in `sum()` hides order-dependent rounding (compensated since 3.12); `numpy.sum` and running totals don't, so the tie artefact is real in our stack". `COMPONENTS.md` §2 rows "Known-answer tests" and "Null benchmark".

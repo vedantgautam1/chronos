@@ -1,22 +1,21 @@
 ```yaml
-id: B13
+id: B16
 title: Costs — venue fee schedules, cost components, 2x and adverse-funding stress
 size: M
 model: opus
 who: loop
-needs: [G1]
+needs: [B11]
 ticks: 3
 touches:
   - v2/src/chronos2/costs/**
   - v2/config/venues/**
-  - v2/config/protected/**
   - v2/tests/costs/**
   - docs/v2/BUILD_NOTES.md
   - docs/v2/COMPONENTS.md
 may_modify_tests: []
 ```
 
-# B13 — Costs
+# B16 — Costs
 
 ## Why
 At a few trades a day, costs are the same size as the edge. The fees on the contract we plan to trade are fixed dollars per contract, so in percentage terms they change with the BTC price: about 9.7 basis points a round trip at $64,000 and 6.2 at $100,000, before spread and slippage [Certain — arithmetic, pre-build audit]. A cost model that gets this wrong makes every later result wrong. Each cost is kept as its own number so the stress tests can double the right ones and only those (V2-D35).
@@ -31,9 +30,9 @@ At a few trades a day, costs are the same size as the edge. The fees on the cont
    - `ibkr_coinbase_nano_eth`: multiplier 0.1 ETH; same three fees (marked `unverified: true` for ETH until read from IBKR's page).
    - `ibkr_cme_mbt`: multiplier 0.1 BTC; commission 0.85, exchange 1.15, regulatory 0.02 (`approximate: true`); no funding.
    - `ibkr_cme_bff`: multiplier 0.02 BTC; commission 0.25, exchange 0.35, regulatory `unknown` → the loader refuses to price it until filled.
-2. `v2/config/protected/validation.yaml`: `stress_friction_multiplier: 2.0`; `adverse_funding_percentile: 95`; `adverse_funding_hourly_rate: null` per contract (computed at the spike, V2-D39).
+2. The stress settings are **read** from the protected file created in B02 (`stress_friction_multiplier`, `adverse_funding_hourly_rate`) through `core.protected` (B11). This build doesn't change that file.
 3. `costs/venue.py`: load and validate a venue file; refuse `unknown` values; expose `fees_per_side(contracts)`.
-4. `costs/model.py`: `CostBreakdown` with exactly these seven Decimal fields: `commission`, `exchange_fee`, `regulatory_fee`, `spread`, `slippage`, `funding`, `basis` (the same names B09's `Trade` uses; whichever of B09 and B13 is built second adds a test that the two sets of names are equal) and `price_trade(venue, side, contracts, entry_price, exit_price, hours_held, half_spread, slippage_per_side, funding_rate_path, basis_at_entry, basis_at_exit) -> CostBreakdown`.
+4. `costs/model.py`: `CostBreakdown` with exactly these seven Decimal fields: `commission`, `exchange_fee`, `regulatory_fee`, `spread`, `slippage`, `funding`, `basis` (the same names B11's `Trade` uses; this build adds a test that the two sets of names are equal) and `price_trade(venue, side, contracts, entry_price, exit_price, hours_held, half_spread, slippage_per_side, funding_rate_path, basis_at_entry, basis_at_exit) -> CostBreakdown`.
 5. `costs/stress.py`: `stress(breakdown, mode, config)` for `mode` in `x1`, `x2_frictions`, `adverse_funding`.
 6. `costs/units.py`: `fees_in_bps(venue, price)`: round-trip fixed fees as basis points of notional at a given price.
 7. A test that every public function in `costs/` returns a full `CostBreakdown`: no function returns a P&L without one (the "no cost-free path" rule).
@@ -62,20 +61,20 @@ At a few trades a day, costs are the same size as the edge. The fees on the cont
 - `x2_frictions`: `0.10 − 0.60 + 0.50 = 0.00` → **not above zero**
 - `stress(..., "x2_frictions")` must return exactly the third line; a test asserts it is **not** the second.
 
-**Adverse funding.** Same trade as "by hand", adverse hourly rate 0.004%: funding becomes `3 × 0.01 × 100,000 × 0.00004 × 5 = 0.60`, charged whatever the side. With the production config (`null`), `stress(..., "adverse_funding")` raises `FundingLevelNotSet`. With a contract that has no funding (MBT), the mode returns the 1× breakdown unchanged and says so.
+**Adverse funding.** Same trade as "by hand", adverse hourly rate 0.004%: funding becomes `3 × 0.01 × 100,000 × 0.00004 × 5 = 0.60`, charged whatever the side. With the real protected file (no rate set for the contract yet), `stress(..., "adverse_funding")` raises `FundingLevelNotSet`; the test for the 0.60 figure passes its own rate explicitly. With a contract that has no funding (MBT), the mode returns the 1× breakdown unchanged and says so.
 
 **Short side:** the same trade short with the price falling 500 has the same gross and fees; funding at +0.001% for longs is **income** for the short (`−0.15`).
 
 **Refusals:** pricing BFF raises (regulatory fee unknown). Zero or negative contracts raise. A fractional contract count raises.
 
-**Protected:** `validation.yaml` lives under `v2/config/protected/`, so this pull request trips the protected guard: **stop after step 1 and ask the founder** to approve creating it with exactly the three values above (they restate V2-D35 and V2-D39, already locked).
+**No double counting of the spread:** `spread` is half the quoted spread, paid on each side; `slippage` is what a market order pays **beyond** that by walking the book (B17 measures it net of the spread). The 2× run doubles each exactly once.
 
 ## Not in this build
-Measuring spread or slippage from data (B14) · wiring costs into any engine (B21, B38) · basis modelling before the contract existed (proposal P-15) · choosing the cheaper contract by size (phase 4, sizing).
+Measuring spread or slippage from data (B17) · wiring costs into any engine (B25, B43) · basis modelling before the contract existed (proposal P-15) · choosing the cheaper contract by size (phase 4, sizing).
 
 ## Halt if
 - Any fee on IBKR's pages has changed since 16 Nov (re-read the two source pages first; if a page can't be reached from the session, keep the 16 Nov values and say so).
-- The half-spread and slippage conventions (per side, in price units) don't fit how B09's `Trade` stores them.
+- The half-spread and slippage conventions (per side, in price units) don't fit how B11's `Trade` stores them.
 
-## Doc rows to update
-`BUILD_NOTES.md` §5: "v2 cost model: `costs/` (B13); venue fees live in `v2/config/venues/` with source and date". `COMPONENTS.md` §2 "Cost and slippage measurement".
+## For the gate
+`BUILD_NOTES.md` §5 (this build edits it): "v2 cost model: `costs/` (B16); venue fees live in `v2/config/venues/` with source and date". `COMPONENTS.md` §2 "Cost and slippage measurement".

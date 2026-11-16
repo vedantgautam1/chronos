@@ -1,5 +1,5 @@
 ```yaml
-id: B04
+id: B06
 title: Statistics I — the ported core, its known-answer tests, the v1 oracle
 size: M
 model: opus
@@ -11,13 +11,12 @@ touches:
   - v2/tests/stats/**
   - v2/tests/known_answers/v1_oracle/**
   - v2/tools/v1_oracle/**
-  - .github/workflows/v2.yml
   - docs/v2/COMPONENTS.md
   - docs/v2/BUILD_NOTES.md
 may_modify_tests: []
 ```
 
-# B04 — Statistics I
+# B06 — Statistics I
 
 ## Why
 These functions decide whether a strategy's result is luck. v1 has them, tested against the published papers, and they pass today (28/28 probe checks, 35 tests) [Certain — run in the pre-build audit]. The job is to move them without changing a digit, and to prove that with a second, independent comparison against v1 itself.
@@ -35,14 +34,14 @@ These functions decide whether a strategy's result is luck. v1 has them, tested 
 3. **The v1 oracle.** `v2/tools/v1_oracle/dump_stats.py`, run in the **v1** environment (`uv run python v2/tools/v1_oracle/dump_stats.py` from the repo root), calls v1's functions on fixed inputs and writes `v2/tests/known_answers/v1_oracle/stats.json` (floats by `repr`; a header with the v1 commit, numpy and scipy versions).
    - Inputs: for each function, seeds 1000–1049 into `numpy.random.default_rng`, drawing arguments from ranges written at the top of the script (returns: normal, mean 1e-4, sd 2e-3, length 500–5,000; AR(1) series with φ ∈ {0, 0.3, 0.6}; N ∈ {1.0001, 2, 10, 280, 5,000}; V ∈ [1e-6, 1e-3]; T ∈ [100, 50,000]).
 4. `v2/tests/stats/test_v1_parity.py`: every v2 function reproduces the oracle to a relative tolerance of **1e-10** (the two environments use different numpy versions, so last-digit differences are allowed and nothing larger).
-5. A fourth job in `.github/workflows/v2.yml`, **v1-oracle**: in the v1 environment, run **every** `v2/tools/v1_oracle/dump_*.py` and fail if any committed JSON differs. That proves the oracle files really come from v1, and later builds (B10, B16) add a dump script without touching the workflow.
+5. Nothing to add to the workflow: B01's **v1-oracle** job already runs every `v2/tools/v1_oracle/dump_*.py` in the v1 environment and fails if a committed JSON differs. That proves the oracle file really comes from v1.
 
 ## Steps
 1. Copy the six test files with the import changes; commit (red: module missing).
 2. `core.py` → the 35 tests green.
 3. `dump_stats.py`; generate and commit `stats.json`.
 4. `test_v1_parity.py` → green.
-5. The `v1-oracle` job → green on the pull request.
+5. The `v1-oracle` job is green on the pull request, and its log shows `dump_stats.py` ran.
 6. Docs, report.
 
 ## Known answers and checks
@@ -54,11 +53,11 @@ These functions decide whether a strategy's result is luck. v1 has them, tested 
 - `stats/core.py` imports only `numpy` and `scipy.stats`.
 
 ## Not in this build
-The math probe (B05) · mid-rank counters (B05) · outside-library cross-checks (B06) · any use of these functions.
+The math probe (B07) · mid-rank counters (B07) · outside-library cross-checks (B08) · any use of these functions.
 
 ## Halt if
 - A ported test needs any change beyond imports and the one rename.
 - Parity fails beyond 1e-10 for any function. For `stationary_bootstrap_indices` specifically: if the cause is a change in numpy's random methods between versions, say so with the evidence and stop; the fix (compare distributions, or pin the draw order) is a statistical choice.
 
-## Doc rows to update
-`COMPONENTS.md` §2 "Statistics core": ported in B04. `BUILD_NOTES.md` §2: the oracle method (v1 environment writes a JSON of known answers; a CI job regenerates and diffs it).
+## For the gate
+`COMPONENTS.md` §2 "Statistics core": ported in B06 (this build edits that row). `BUILD_NOTES.md` §2: the oracle method (the v1 environment writes a JSON of known answers; a CI job regenerates and diffs it).

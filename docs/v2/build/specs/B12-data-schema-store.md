@@ -1,5 +1,5 @@
 ```yaml
-id: B10
+id: B12
 title: Data I — bar schema, Parquet store, snapshot hash
 size: M
 model: opus
@@ -15,12 +15,12 @@ touches:
 may_modify_tests: []
 ```
 
-# B10 — Data I
+# B12 — Data I
 
 ## Why
 Every later result must be able to say exactly which data it saw. That needs one definition of a price bar and a fingerprint (hash) of any table of bars that is the same on every machine. v1 has both, tested. This build ports them and makes the fingerprint fast enough for years of one-minute data.
 
-*Scope note: the data layer in step 2 is proposal P-16. It is built only if the founder approved P-16 at G0.*
+*Scope note: the data layer is in step 2 by V2-D47 (locked by the founder on 16 Nov).*
 
 ## Read first
 - v1 `src/chronos/oceanus/model.py` (101), `store.py` (147); tests `tests/oceanus/test_model.py` (88), `test_store.py` (125).
@@ -46,10 +46,10 @@ Every later result must be able to say exactly which data it saw. That needs one
 - `oceanus/` imports nothing from `mnemosyne/`, and no `ccxt`.
 
 ## Not in this build
-Fetching anything from an exchange · validation and cleaning (B11) · the data door and the seal (B12) · trades, funding, non-price tables.
+Fetching anything from an exchange · validation and cleaning (B13) · the data door and the seal (B14) · trades, funding, non-price tables.
 
 ## Halt if
 - The vectorised hash can't reproduce v1's exactly for some float (for example a formatting difference between `repr` and a vectorised formatter). Don't change the hash definition: keep v1's row-by-row version for correctness, report the timing, and stop for a decision.
 
-## Doc rows to update
-`COMPONENTS.md` §2: new row "Bar schema and Parquet store — ported in B10".
+## For the gate
+`COMPONENTS.md` §2 (this build edits it): new row "Bar schema and Parquet store — ported in B12".

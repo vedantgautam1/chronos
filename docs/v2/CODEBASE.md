@@ -39,7 +39,7 @@ v1 is frozen on branch `v1-final` (commit `6b2b628`). Never edit v1 code (V2-D29
 | `docs/v2/COMPONENTS.md` | Where every third-party and v1 piece comes from |
 | `docs/v2/CODEBASE.md` | This file |
 | `docs/v2/CHANGELOG.md` | Dated work log |
-| `docs/v2/build/` | **How v2 gets built:** `BLUEPRINT.md` (system diagrams, the build loop, the ladder of builds and gates), `HANDBOOK.md` (founder's manual), `LADDER.yaml` (the ladder as the loop reads it), `specs/` (one spec per build, B01–B18 so far), `BUILD_CARDS.md` (phases 2–4), `V1_CARRYOVER.md` (every v1 file's fate after the 16 Nov re-audit; where it differs from this file, that one is newer), `LEDGER.md` (estimate vs actual) |
+| `docs/v2/build/` | **How v2 gets built:** `BLUEPRINT.md` (system diagrams, the build loop, the ladder of builds and gates), `HANDBOOK.md` (founder's manual), `LADDER.yaml` (the ladder as the loop reads it), `specs/` (one spec per build, B01–B22 so far), `BUILD_CARDS.md` (phases 2–4), `V1_CARRYOVER.md` (every v1 file's fate after the 16 Nov re-audit; where it differs from this file, that one is newer), `LEDGER.md` (estimate vs actual), `gates/` (the G0 red-team findings and one report per gate) |
 | `docs/v2/specs/` | Kronos shadow-signal spec; news/sentiment strategy spec (each with a staleness note); parked order-flow dossier `orderflow-parked.md` (not a spec yet) |
 | `docs/v2/research/` | Check scripts behind the content-analysis findings (README inside) |
 | `docs/STATE.md` | Pointer: "moved, read the master doc" |
@@ -112,5 +112,5 @@ v1 is frozen on branch `v1-final` (commit `6b2b628`). Never edit v1 code (V2-D29
 
 ## What v2 will add (not created yet)
 
-- Folder `v2/` holding its own `uv` project (V2-D45: own `pyproject.toml` + `uv.lock`, Python 3.14), package **`chronos2`** (founder, 16 Nov), with its own tests and guards added to CI. Layout: `docs/v2/build/BLUEPRINT.md` Part 1F. Built by builds B01–B18.
+- Folder `v2/` holding its own `uv` project (V2-D45: own `pyproject.toml` + `uv.lock`, Python 3.14), package **`chronos2`** (founder, 16 Nov), with its own tests and guards added to CI. Layout: `docs/v2/build/BLUEPRINT.md` Part 1F. Built by builds B01–B22.
 - First contents (§9 step 2): ported statistics + known-answer tests, the trial ontology with per-trial return storage (V2-D33), the search-fragmentation screen (V2-D31), cost/slippage measurement, touchstones.
