@@ -55,14 +55,14 @@ The estimates are guesses until B01–B05 have run [Guessing]. That is the point
 | B41 | IBKR spread snapshots (IB Gateway on the server) | M | 2–3 | 1 | | | | | |
 | **G4** | **Collection audit** | gate | — | — | | | | | |
 | B42 | Load the full Kraken 1-minute history; real-file check of the loader | S | 1–2 | 1 | | | | | |
-| B43 | Screening wrapper: five fixes, every variant a counted trial | M | 2–3 | 1 | | | | | |
+| B43 | Screening wrapper: VectorBT with five fixes, every variant a counted trial | M | 2–3 | 1 | | | | | |
 | B44 | Look-ahead test kit: slice, warm-up, nudge | M | 2–3 | 1 | | | | | |
 | B45 | Null benchmark (V2-D21) with its four known-answer tests | M | 2–3 | 1 | | | | | |
 | B46 | Sealed-look ledger, series windows; refusal enforced in the database | M | 2–3 | 1 | | | | | |
-| B47 | Edge check I: frozen config, data sufficiency, DSR at honest N, cost runs, basis check (P-15) | M | 2–3 | 1 | | | | | |
-| B48 | Edge check II: neighbourhood, sealed-look confirm, warnings, one fixture per test | M | 2–3 | 1 | | | | | |
+| B47 | Edge check I: frozen config, decision table, data sufficiency, DSR at honest N, cost runs | M | 2–3 | 1 | | | | | |
+| B48 | Edge check II: null, neighbourhood, sealed-look confirm, warnings | M | 2–3 | 1 | | | | | |
 | B49 | Change check with its fixtures (V2-D32) | M | 2–3 | 1 | | | | | |
-| B50 | Sizing v0: drawdown budget, ruin formula, bootstrap check | M | 2–3 | 1 | | | | | |
+| B50 | Sizing v0: drawdown budget, ruin formula, bootstrap check, 1/4 Kelly | M | 2–3 | 1 | | | | | |
 | B51 | Run the touchstones against their pre-registered verdicts | M | 2–3 | 1 | | | | | |
 | B52 | Planted-edge calibration: write the criteria (before running) | S | 1–2 | 1 | | | | | |
 | B53 | Planted-edge calibration: run it, pick the rule by the written criteria | M | 2–3 | 1 | | | | | |

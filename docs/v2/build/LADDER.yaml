@@ -95,14 +95,14 @@ ladder:
   # ---------- Phase 4 · validation acceptance test (step 5) ----------
   # B43–B50 don't depend on the engine and may run while phases 2–3 wait on the founder (V2-D50).
   - {id: B42, title: "Load the full Kraken 1-minute history; real-file check of the loader", phase: 4, size: S, model: opus, who: founder, ticks: 2, needs: [G2], spec: card}
-  - {id: B43, title: "Screening wrapper: five fixes, every variant a counted trial", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [G2], spec: card}
-  - {id: B44, title: "Look-ahead test kit: slice, warm-up, nudge", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B43], spec: card}
-  - {id: B45, title: "Null benchmark (V2-D21) with its four known-answer tests", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B43], spec: card}
-  - {id: B46, title: "Sealed-look ledger, series windows; refusal enforced in the database", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [G2], spec: card}
-  - {id: B47, title: "Edge check I: frozen config, data sufficiency, DSR at honest N, cost runs, basis check (P-15)", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B43, B46], spec: card}
-  - {id: B48, title: "Edge check II: neighbourhood, sealed-look confirm, warnings, one fixture per test", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B45, B47], spec: card}
-  - {id: B49, title: "Change check with its fixtures (V2-D32)", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B47], spec: card}
-  - {id: B50, title: "Sizing v0: drawdown budget, ruin formula, bootstrap check", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [G2], spec: card}
+  - {id: B43, title: "Screening wrapper: VectorBT with five fixes, every variant a counted trial", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [G2], spec: specs/B43-screening-wrapper.md}
+  - {id: B44, title: "Look-ahead test kit: slice, warm-up, nudge", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B43], spec: specs/B44-lookahead-kit.md}
+  - {id: B45, title: "Null benchmark (V2-D21) with its four known-answer tests", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B43], spec: specs/B45-null-benchmark.md}
+  - {id: B46, title: "Sealed-look ledger, series windows; refusal enforced in the database", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [G2], spec: specs/B46-sealed-look-ledger.md}
+  - {id: B47, title: "Edge check I: frozen config, decision table, data sufficiency, DSR at honest N, cost runs", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B44, B46], spec: specs/B47-edge-check-core.md}
+  - {id: B48, title: "Edge check II: null, neighbourhood, sealed-look confirm, warnings", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B45, B47], spec: specs/B48-edge-check-evidence.md}
+  - {id: B49, title: "Change check with its fixtures (V2-D32)", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B47], spec: specs/B49-change-check.md}
+  - {id: B50, title: "Sizing v0: drawdown budget, ruin formula, bootstrap check, 1/4 Kelly", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [G2], spec: specs/B50-sizing-v0.md}
   - {id: B51, title: "Run the touchstones against their pre-registered verdicts", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [G3, B44, B48, B50], spec: card}
   - {id: B52, title: "Planted-edge calibration: write the criteria (before running)", phase: 4, size: S, model: opus, who: founder, ticks: 2, needs: [B48], spec: card}
   - {id: B53, title: "Planted-edge calibration: run it, pick the rule by the written criteria", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B51, B52], spec: card}

@@ -7,6 +7,7 @@ who: loop
 needs: [B43]
 ticks: 3
 touches:
+  - v2/migrations/0004_lookahead_reports.sql
   - v2/src/chronos2/lookahead/**
   - v2/tests/lookahead/**
   - docs/v2/BUILD_NOTES.md
@@ -32,7 +33,7 @@ All three tests take a strategy, one parameter point and a bar frame, and return
 
 **3. Nudge probe** (random, seeded). Pick 30 entries at random (seed from the call). For each, multiply the close of the bar **after** the entry by 1.05, recompute, then by 0.95, recompute. If any entry **at or before** the original entry changes in either case, the strategy fails. Picking the bar right after an entry is the point: a strategy that reads one bar ahead decides that entry from exactly that bar.
 
-**Order and result.** Slice, then warm-up, then nudge; all three always run, and the report lists every failure. `check_strategy(...)` returns pass only if all three pass. Reports are stored, keyed by strategy name, parameter point and code coordinate; `has_passing_report(...)` answers yes or no. The edge check (B47) refuses a candidate without one.
+**Order and result.** Slice, then warm-up, then nudge; all three always run, and the report lists every failure. `check_strategy(...)` returns pass only if all three pass. Reports are stored in `mnemosyne.lookahead_report` (migration `0004`; append-only, hashed and journaled like every B09 table), keyed by strategy name, parameter point and code coordinate; `has_passing_report(...)` answers yes or no. The edge check (B47) refuses a candidate without one.
 
 **Parse-time rule.** `ScreeningStrategy` code may not call `.shift()` with a negative number, `.iloc` with a negative step past the current row, or `.mean()`/`.std()`/`.max()`/`.min()` on a whole column outside a rolling or expanding window. A static check (Python's `ast`) refuses these when a strategy is registered. It is a quick first filter; the three tests above are the real ones.
 

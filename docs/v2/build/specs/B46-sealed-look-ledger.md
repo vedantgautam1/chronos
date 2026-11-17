@@ -7,7 +7,7 @@ who: loop
 needs: [G2]
 ticks: 3
 touches:
-  - v2/migrations/0004_sealed_looks.sql
+  - v2/migrations/0005_sealed_looks.sql
   - v2/src/chronos2/mnemosyne/looks.py
   - v2/src/chronos2/oceanus/door.py
   - v2/src/chronos2/oceanus/series_join.py
@@ -50,7 +50,7 @@ Everything from 1 April 2026 onward is data nobody is allowed to look at while r
 **Data series that begin after the seal** (recorded trades, news; V2-D46). Before any research on such a series, its window is registered: `series_key`, the asset, `research_start`, and `X`, the date its own sealed block starts. Once registered it can't be changed. Inside `[seal date, X)`, prices of that asset may be read **only** through `join_prices_to_series`, which returns price moves around the series' own events and never a raw run of bars; its footprint is tagged with the series. Sealed looks at the series' own block `[X, …)` use the same ledger with `series_key` set.
 
 ## Deliver
-1. `0004_sealed_looks.sql`: extension `btree_gist`; tables `mnemosyne.seal_anchor`, `mnemosyne.sealed_look`, `mnemosyne.sealed_look_member` with `EXCLUDE USING gist (asset WITH =, series_key WITH =, hypothesis_id WITH =, look_range WITH &&)`, and `mnemosyne.series_window`; triggers for the anchor and requester rules; all append-only, hashed, journaled (B09).
+1. `0005_sealed_looks.sql`: extension `btree_gist`; tables `mnemosyne.seal_anchor`, `mnemosyne.sealed_look`, `mnemosyne.sealed_look_member` with `EXCLUDE USING gist (asset WITH =, series_key WITH =, hypothesis_id WITH =, look_range WITH &&)`, and `mnemosyne.series_window`; triggers for the anchor and requester rules; all append-only, hashed, journaled (B09).
 2. `mnemosyne/looks.py`: `take_look(hypothesis_id, asset, look_end, *, series_key="", edge_config_hash=None) -> Look` (one transaction; raises `LookRefused` carrying the database's reason), `members_for(hypothesis_id)`, `looks_for(...)`, `register_series_window(...)`, `audit_looks(validation) -> list`.
 3. `oceanus/door.py`: the `sealed_look` purpose. `oceanus/series_join.py`: `join_prices_to_series(series_key, event_times, horizon_bars) -> frame of returns from each event's next bar open over the horizon`.
 4. Tests.

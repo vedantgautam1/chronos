@@ -7,7 +7,7 @@ who: loop
 needs: [B45, B47]
 ticks: 3
 touches:
-  - v2/migrations/0006_search_frozen.sql
+  - v2/migrations/0007_search_frozen.sql
   - v2/src/chronos2/mnemosyne/ontology.py
   - v2/src/chronos2/moirai/edge/**
   - v2/src/chronos2/moirai/neighbourhood/**
@@ -110,7 +110,7 @@ Choosing the neighbourhood rule (B52, B53) · the look-ahead kit itself (B44; th
 
 ## Halt if
 - Running missing neighbours needs something B43's runner doesn't offer.
-- Freezing the search can't be done as one new append-only table, `mnemosyne.search_freeze` (`hypothesis_id` primary key, `frozen_at`), checked by a trigger on `trial` inserts of kind SEARCH (migration `0006`). That is the design; anything else is a halt.
+- Freezing the search can't be done as one new append-only table, `mnemosyne.search_freeze` (`hypothesis_id` primary key, `frozen_at`), checked by a trigger on `trial` inserts of kind SEARCH (migration `0007`). That is the design; anything else is a halt.
 - The end-to-end worlds take more than about five minutes in CI.
 
 ## For the gate

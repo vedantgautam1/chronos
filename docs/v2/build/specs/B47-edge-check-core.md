@@ -7,7 +7,7 @@ who: loop             # merges only with the founder's approval: it creates a pr
 needs: [B44, B46]
 ticks: 3
 touches:
-  - v2/migrations/0005_edge_check.sql
+  - v2/migrations/0006_edge_check.sql
   - v2/src/chronos2/moirai/edge/**
   - v2/src/chronos2/core/protected.py
   - v2/config/protected/edge_check.yaml
@@ -70,7 +70,7 @@ Warnings (subperiods, trade count, capacity, fragmentation) are carried in the v
 
 ## Deliver
 1. `v2/config/protected/edge_check.yaml` with exactly the five keys in the table, and `load_edge()` in `core/protected.py` (frozen object + content hash; an unknown key raises).
-2. `0005_edge_check.sql`: `mnemosyne.edge_config` (`config_hash` primary key, `payload jsonb`, `created_at`) and `mnemosyne.edge_verdict` (`config_hash` foreign key, `stage` in `pre_look|final`, `verdict`, `criteria jsonb`, `evidence jsonb`, `warnings jsonb`, `created_at`); both append-only, hashed and journaled with B09's machinery.
+2. `0006_edge_check.sql`: `mnemosyne.edge_config` (`config_hash` primary key, `payload jsonb`, `created_at`) and `mnemosyne.edge_verdict` (`config_hash` foreign key, `stage` in `pre_look|final`, `verdict`, `criteria jsonb`, `evidence jsonb`, `warnings jsonb`, `created_at`); both append-only, hashed and journaled with B09's machinery.
 3. `moirai/edge/config.py` (`EdgeConfig`, `freeze`, `load_frozen`), `evidence.py` (`Evidence`: a frozen record of plain numbers, one group per criterion, each group optional), `criteria.py` (one pure function per criterion returning `pass | fail | unavailable` and a one-line reason), `decide.py` (`decide(evidence, edge, validation) -> Verdict`, pure, no I/O).
 4. `moirai/edge/gather.py`: `gather_c1`, `gather_c2`, `gather_c3` from the store and the cost model. `moirai/edge/run.py`: `run_edge_check(config_hash)`, which gathers C1–C3, leaves C4–C6 empty (so every real run ends `INCOMPLETE` until B48), decides, and stores the verdict.
 5. Tests.

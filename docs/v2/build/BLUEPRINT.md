@@ -18,7 +18,7 @@ Companion files in this folder:
 | `LEDGER.md` | Estimate vs actual for every build. The plan is re-sized from this, not from hope |
 | `V1_CARRYOVER.md` | Every v1 file: port, adapt, reference or retire, and which build takes it |
 | `BUILD_CARDS.md` | One card per build for phases 2–4 (the spike, collection, the acceptance test) |
-| `specs/B01…B22` | One full spec per build for phases 0–1. A build session needs nothing but its spec and the files the spec lists |
+| `specs/B01…B22`, `specs/B43…B50` | One full spec per build for phases 0–1, and for the engine-independent part of phase 4 (the validation machine, written 17 Nov). A build session needs nothing but its spec and the files the spec lists |
 | `gates/` | The red team's findings on this blueprint (`G0-redteam.md`) and one report per gate |
 
 **Words used here.** A **build** is one piece of work small enough for one session, ending in one pull request. A **tick** is one wake-up of the loop: it does one thing (build, review, fix or merge) and stops. A **gate** is a checkpoint where the loop stops and waits for the founder. The **loop** is the scheduled wake-ups plus the rules in Part 2.
@@ -425,7 +425,7 @@ These numbers are my estimates of what fits in one unhurried session with room t
 - **Gate G1 and gate G2 re-size the rest of the ladder from those numbers.** If M builds keep needing 4 ticks, M shrinks.
 - **I can't promise a count of sessions** [Certain]. What the system guarantees instead: an overrun is caught at the first build it happens in, costs one halt, and updates every later estimate.
 
-Honest count as planned: **54 builds and 6 gates to the end of the acceptance test** (master doc §9 steps 2–5). The first draft said 49; the red team found two builds too big to be one session (now split into four), and three jobs the plan needed but had no build for (file loaders, the sabotage tool, loading the full Kraken history). Of the 54, 22 are fully specified today; the rest have cards (`BUILD_CARDS.md`) and get full specs when their phase opens, because the engine spike can still change what they should say. Expect the count to move again at G1 and G2: that is the ledger doing its job, not the plan failing.
+Honest count as planned: **54 builds and 6 gates to the end of the acceptance test** (master doc §9 steps 2–5). The first draft said 49; the red team found two builds too big to be one session (now split into four), and three jobs the plan needed but had no build for (file loaders, the sabotage tool, loading the full Kraken history). Of the 54, 30 are fully specified (B01–B22, and B43–B50 since 17 Nov: those don't depend on the engine, V2-D50); the rest have cards (`BUILD_CARDS.md`) and get full specs when their phase opens, because the engine spike can still change what they should say. Expect the count to move again at G1 and G2: that is the ledger doing its job, not the plan failing.
 
 ### 2.8 Which model does what — decided by the spec, not by you
 

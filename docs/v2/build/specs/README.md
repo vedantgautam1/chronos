@@ -61,6 +61,8 @@ The reviewer is a different session from the builder, on Opus, and has not seen 
 
 **What the role checks can and can't do.** They reject: a commit with no role trailer; a builder commit that writes a review file or sets `passed`/`merged`; a reviewer commit that touches code; a `passed` or `merged` status with no review file naming the current code commit. A trailer is a label a session puts on its own commit, and builder and reviewer act with the same GitHub account, so these checks catch a session doing the wrong role's work by mistake. They can't catch a session that labels its commits falsely. The separation between builder and reviewer comes from the loop starting a fresh session for each action; the gate audit checks it afterwards against the session records; and it becomes a wall only if the founder gives the reviewer its own identity (BLUEPRINT 2.5; a decision at G1).
 
+**Migration numbers** are fixed in each spec by the build's place on the ladder (B09 `0001` … B49 `0008`), so two builds never claim the same number. If a build merges before an earlier-numbered one (because the earlier one halted), the runner applies the lower number when it arrives; each migration only adds its own tables, so the order between builds doesn't matter.
+
 ## Sections of a spec
 
 **Why** · **Read first** · **Deliver** · **Steps** · **Known answers and checks** (written before the code; these are the pass/fail rules of V2-D25) · **Not in this build** · **Halt if** · **For the gate**.

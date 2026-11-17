@@ -102,7 +102,7 @@ Once B05 is done, telling Claude "approve G2" in a chat is not enough, on purpos
 
 **Don't approve if:** the sabotage section lists survivors that aren't explained; a number re-derived blind doesn't match; the report can't tell you plainly what was built.
 
-**Opening a new phase.** Phases 2, 3 and 4 have cards, not full specs (see `BUILD_CARDS.md` for why). After the gate, start one planning session on the strongest model you have available and say: "Write the specs for phase N from BUILD_CARDS.md, using what the earlier phases found. Follow the format of specs B01–B22." Its specs arrive as a pull request for your review (specs are yours). Read its summary, approve, then let the loop run.
+**Opening a new phase.** Phases 2 and 3, and builds B42 and B51–B54 of phase 4, have cards, not full specs (see `BUILD_CARDS.md` for why). Builds B43–B50 (the validation machine) already have full specs. After the gate, start one planning session on the strongest model you have available and say: "Write the specs for phase N from BUILD_CARDS.md, using what the earlier phases found. Follow the format of specs B01–B22." Its specs arrive as a pull request for your review (specs are yours). Read its summary, approve, then let the loop run.
 
 | Gate | What you are really approving |
 |---|---|
