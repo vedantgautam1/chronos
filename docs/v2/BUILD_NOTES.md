@@ -130,7 +130,7 @@ Tags: [Certain — run] = we ran code and saw it · [Certain — read] = read in
 - **SEC EDGAR:** free, max 10 requests/second, declared User-Agent required [Certain]. Use a generic project name in the User-Agent, never a personal email.
 - **Forex Factory:** terms forbid non-interface access and copying calendar data. Don't scrape (V2-D15) [Certain].
 - **Binance public archives:** usable for longer research history only; never for costs.
-- **The binding limit for slow strategies is how many years BTC has traded,** not the venue. Run the data-sufficiency check first (a true Sharpe of 1.0 needs about 6 years to show; 0.5 needs about 18) [Certain — formula].
+- **The binding limit for slow strategies is how many years BTC has traded,** not the venue. Run the data-sufficiency check first (a true Sharpe of 1.0 needs about 6 years to show; 0.5 needs about 25) [Certain — run on v1's `atropos_years`, 16 Nov: 6.18 and 24.73 years at 5% significance and 80% power; years scale with 1/Sharpe². **Corrected 16 Nov:** this line said "about 18" for 0.5, which doesn't follow from the formula].
 
 ## 5. Engine and execution (NautilusTrader + IBKR)
 

@@ -34,9 +34,18 @@ Don't extend v1 code. Port pieces into v2 as `COMPONENTS.md` §2 describes. If a
 
 tz-aware UTC everywhere · half-open `[start, end)` ranges · Decimal for the money ledger, float64 for series maths · every money amount is configuration (capital-agnostic) · `uv` for the environment · run third-party or downloaded code with `python -I` from outside its folder.
 
+## Build loop (from gate G0)
+
+Builds follow `docs/v2/build/`: the build's spec (`specs/Bnn-*.md`) and the rules in `specs/README.md`. If a spec and the master doc disagree, the master doc wins and the build halts.
+
+- **In a build or review session, the end-of-session list below is replaced** by the build report (`docs/v2/build/reports/`) and one `CHANGELOG.md` entry. A build never edits the master doc, a spec or the ladder. It edits this file, `.claude/`, the guards, a workflow, `v2/pyproject.toml` or a protected value only if its own spec lists that path (a few builds do, and their pull requests need the founder's review). The master doc is updated at gates, from the reports, in a pull request the founder approves.
+- **Unattended sessions never merge into `main`, never approve a pull request, and never change a founder-owned file.** A scheduled prompt is not the founder's approval.
+- Builder and reviewer are different sessions. The session that wrote the code doesn't review it.
+- Never create a `CLAUDE.md`, `AGENTS.md` or `.claude` folder below the repository root.
+
 ## At the end of every session
 
-In the same commit as the work:
+*(Sessions outside the build loop: planning, research, content analysis, gate write-ups.)* In the same commit as the work:
 - **Update `docs/v2/CHRONOS_V2.md`:** the status board (§2) for anything whose status changed; the decisions log (§10) **only** for decisions the founder locked; open questions (§12); "Last updated".
 - **Add any new trap** to `BUILD_NOTES.md`.
 - **Add any adopted library** to `COMPONENTS.md`.

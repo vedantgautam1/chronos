@@ -1,0 +1,111 @@
+# CHRONOS v2 — the build ladder, machine-readable.
+# The loop's script (v2/tools/loop/next_action.py, built in B03) reads THIS file.
+# BLUEPRINT.md Part 5 is the human copy; a B03 test checks that the two agree on id, size and who, in order.
+#
+# Fields
+#   id        B01… for builds, G0… for gates. Order in this file is the order of work.
+#   title     plain words
+#   phase     0–4
+#   size      S | M            (BLUEPRINT 2.7; there is no L)
+#   model     opus | sonnet    (BLUEPRINT 2.8; never fable, never a local model)
+#   who       loop | founder   loop = may run unattended · founder = needs the founder present
+#   needs     ids that must be done first; every one appears earlier in this file
+#   spec      path to the full spec, or `card` when only a card exists yet (BUILD_CARDS.md)
+#   ticks     build ticks allowed before the loop halts for an overrun (S: 2, M: 3)
+#
+# Rules the script enforces (specs/B03-loop-core.md has the full decision table)
+#   - A build is done when its status file with state `merged` is on the build branch.
+#   - A gate is done when docs/v2/build/gates/<id>-report.md is on `main`. Only a pull request
+#     the founder approved can put it there.
+#   - NEXT = the first entry, in file order, that isn't done and whose `needs` are all done.
+#     `needs` decides what is runnable; file order only breaks ties. So independent chains
+#     (statistics, trial store, data) don't block each other, and a build waiting on the founder
+#     doesn't block loop builds whose needs are met.
+#   - who: founder entries are never started by the loop; they are listed as "waiting on you".
+#   - a build with spec: card can't start; the loop halts once and asks for its spec to be written.
+#   - one active build at a time: while a build is open and not halted, the loop finishes it first.
+#     A halted build is parked and blocks only the builds that need it.
+#   - branch for a build is exactly <branch_prefix><id in lower case>, e.g. claude/b06.
+#   - every action first takes the lock branch lock/<id>; a lock older than claim_hours is stale.
+#   - an open GitHub issue labelled `chronos-halt` stops everything.
+
+version: 0.2
+build_branch: v2-build
+branch_prefix: claude/
+claim_hours: 3
+max_review_rounds: 2
+halt_label: chronos-halt
+
+ladder:
+  - {id: G0,  gate: true, title: "Blueprint approved", phase: 0, needs: []}
+
+  # ---------- Phase 0 · the workshop ----------
+  - {id: B01, title: "v2 project scaffold, core helpers, automatic tests", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [G0], spec: specs/B01-scaffold.md}
+  - {id: B02, title: "The guards: tripwire checks on every pull request, protected values, code owners", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B01], spec: specs/B02-guards.md}
+  - {id: B03, title: "The loop's decision core: ladder reader, next action, locks", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B02], spec: specs/B03-loop-core.md}
+  - {id: B04, title: "The loop's hands: agent definitions, commands, templates", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B03], spec: specs/B04-loop-agents.md}
+  - {id: B05, title: "The automation's own GitHub identity, GitHub rules, attack tests, first unattended run", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B04], spec: specs/B05-first-unattended-run.md}
+  - {id: G1,  gate: true, title: "The loop is proven", phase: 0, needs: [B05]}
+
+  # ---------- Phase 1 · foundations (master doc §9 step 2) ----------
+  - {id: B06, title: "Statistics I: the ported core, its known-answer tests, the v1 oracle", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [G1], spec: specs/B06-stats-core.md}
+  - {id: B07, title: "Statistics II: the 28-check probe as tests, mid-rank counters, the floating-point tie case", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B06], spec: specs/B07-stats-probe-midrank.md}
+  - {id: B08, title: "Statistics III: cross-checks against three outside libraries", phase: 1, size: S, model: opus, who: loop, ticks: 2, needs: [B07], spec: specs/B08-stats-oracles.md}
+  - {id: B09, title: "Trial store I: Postgres harness, migrations, append-only, audit", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [G1], spec: specs/B09-store-foundation.md}
+  - {id: B10, title: "Trial store II: ids, code coordinate, hypotheses, SEARCH/VERIFICATION, honest N", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B09], spec: specs/B10-trial-ontology.md}
+  - {id: B11, title: "Trial store III: returns, trades, data footprint, compare guard, seal audit", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B10], spec: specs/B11-trial-payloads-footprint.md}
+  - {id: B12, title: "Data I: bar schema, Parquet store, snapshot hash", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [G1], spec: specs/B12-data-schema-store.md}
+  - {id: B13, title: "Data II: validate and clean", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B12], spec: specs/B13-data-validate-clean.md}
+  - {id: B14, title: "Data III: the data door, seal guard, footprints", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B11, B13], spec: specs/B14-data-door.md}
+  - {id: B15, title: "Data IV: file loaders (Kraken candles, Bitstamp minute set)", phase: 1, size: S, model: opus, who: loop, ticks: 2, needs: [B14], spec: specs/B15-data-loaders.md}
+  - {id: B16, title: "Costs: venue fee schedules, cost components, 2x and adverse-funding stress", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B11], spec: specs/B16-costs.md}
+  - {id: B17, title: "Slippage and spread measurement method", phase: 1, size: S, model: opus, who: loop, ticks: 2, needs: [B16], spec: specs/B17-slippage-method.md}
+  - {id: B18, title: "Search-fragmentation warning", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B06, B11], spec: specs/B18-fragmentation-warning.md}
+  - {id: B19, title: "Synthetic world generator", phase: 1, size: S, model: opus, who: loop, ticks: 2, needs: [B12], spec: specs/B19-generator.md}
+  - {id: B20, title: "Touchstones as pre-registered fixtures (written down, not run)", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [B06, B19], spec: specs/B20-touchstone-fixtures.md}
+  - {id: B21, title: "Costs vs typical price moves by holding time (P-12)", phase: 1, size: S, model: opus, who: loop, ticks: 2, needs: [B15, B16], spec: specs/B21-cost-feasibility.md}
+  - {id: B22, title: "Sabotage harness: break the code on purpose, count what the tests miss", phase: 1, size: S, model: opus, who: loop, ticks: 2, needs: [B08], spec: specs/B22-sabotage-harness.md}
+  - {id: G2,  gate: true, title: "Foundations audit (step 2 done)", phase: 1, needs: [B06, B07, B08, B09, B10, B11, B12, B13, B14, B15, B16, B17, B18, B19, B20, B21, B22]}
+
+  # ---------- Phase 2 · engine spike (step 3) ----------
+  - {id: B23, title: "Spike prep: pinned NautilusTrader, data in, the v1 test strategy re-implemented", phase: 2, size: M, model: opus, who: loop, ticks: 3, needs: [G2], spec: card}
+  - {id: B24, title: "Criterion (a): match v1's engine; five fill tests on two engines", phase: 2, size: M, model: opus, who: loop, ticks: 3, needs: [B23], spec: card}
+  - {id: B25, title: "Criterion (b): our cost model plugged into the engine", phase: 2, size: S, model: opus, who: loop, ticks: 2, needs: [B24], spec: card}
+  - {id: B26, title: "IBKR paper hookup on the Mac; find the nano contract", phase: 2, size: S, model: opus, who: founder, ticks: 2, needs: [B23], spec: card}
+  - {id: B27, title: "Criterion (e): paper-trade nano both ways; funding, fees, nano contract bars", phase: 2, size: M, model: opus, who: founder, ticks: 3, needs: [B26], spec: card}
+  - {id: B28, title: "Criterion (f): broker refuses an oversize order; a second connection can flatten", phase: 2, size: S, model: opus, who: founder, ticks: 2, needs: [B27], spec: card}
+  - {id: B29, title: "Criterion (d): two strategies, two venues, one node", phase: 2, size: S, model: opus, who: founder, ticks: 2, needs: [B27], spec: card}
+  - {id: B30, title: "Criterion (c): several days unattended, across a Monday re-login", phase: 2, size: S, model: opus, who: founder, ticks: 2, needs: [B28, B29], spec: card}
+  - {id: B31, title: "Spike report", phase: 2, size: S, model: opus, who: loop, ticks: 2, needs: [B24, B25, B30], spec: card}
+  - {id: G3,  gate: true, title: "Engine decision", phase: 2, needs: [B31]}
+
+  # ---------- Phase 3 · always-on collection (step 4) ----------
+  - {id: B32, title: "Server up: hardening, Postgres, backups, UTC", phase: 3, size: M, model: opus, who: founder, ticks: 3, needs: [G3], spec: card}
+  - {id: B33, title: "Budget guard for paid APIs (V2-D41)", phase: 3, size: M, model: opus, who: loop, ticks: 3, needs: [G3], spec: card}
+  - {id: B34, title: "Collector frame: schedule, raw files and hashes, gap rows, alerts", phase: 3, size: M, model: opus, who: loop, ticks: 3, needs: [B32], spec: card}
+  - {id: B35, title: "Kraken trade recorder (V2-D26)", phase: 3, size: M, model: opus, who: loop, ticks: 3, needs: [B34], spec: card}
+  - {id: B36, title: "Kraken bulk trade files; side check against the recorder", phase: 3, size: M, model: opus, who: founder, ticks: 3, needs: [B35], spec: card}
+  - {id: B37, title: "News catalog import (AGPL licence), headline recorder", phase: 3, size: M, model: opus, who: loop, ticks: 3, needs: [B34], spec: card}
+  - {id: B38, title: "GDELT collector", phase: 3, size: S, model: opus, who: loop, ticks: 2, needs: [B34], spec: card}
+  - {id: B39, title: "Grok/X collector, both scorers logged", phase: 3, size: M, model: opus, who: founder, ticks: 3, needs: [B33, B37], spec: card}
+  - {id: B40, title: "Macro actuals with release times", phase: 3, size: S, model: opus, who: loop, ticks: 2, needs: [B34], spec: card}
+  - {id: B41, title: "IBKR spread snapshots (IB Gateway on the server)", phase: 3, size: M, model: opus, who: founder, ticks: 3, needs: [B34], spec: card}
+  - {id: G4,  gate: true, title: "Collection audit", phase: 3, needs: [B35, B36, B37, B38, B39, B40, B41]}
+
+  # ---------- Phase 4 · validation acceptance test (step 5) ----------
+  # B43–B50 don't depend on the engine and may run while phases 2–3 wait on the founder (V2-D50).
+  - {id: B42, title: "Load the full Kraken 1-minute history; real-file check of the loader", phase: 4, size: S, model: opus, who: founder, ticks: 2, needs: [G2], spec: card}
+  - {id: B43, title: "Screening wrapper: five fixes, every variant a counted trial", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [G2], spec: card}
+  - {id: B44, title: "Look-ahead test kit: slice, warm-up, nudge", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B43], spec: card}
+  - {id: B45, title: "Null benchmark (V2-D21) with its four known-answer tests", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B43], spec: card}
+  - {id: B46, title: "Sealed-look ledger, series windows; refusal enforced in the database", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [G2], spec: card}
+  - {id: B47, title: "Edge check I: frozen config, data sufficiency, DSR at honest N, cost runs, basis check (P-15)", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B43, B46], spec: card}
+  - {id: B48, title: "Edge check II: neighbourhood, sealed-look confirm, warnings, one fixture per test", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B45, B47], spec: card}
+  - {id: B49, title: "Change check with its fixtures (V2-D32)", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B47], spec: card}
+  - {id: B50, title: "Sizing v0: drawdown budget, ruin formula, bootstrap check", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [G2], spec: card}
+  - {id: B51, title: "Run the touchstones against their pre-registered verdicts", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [G3, B44, B48, B50], spec: card}
+  - {id: B52, title: "Planted-edge calibration: write the criteria (before running)", phase: 4, size: S, model: opus, who: founder, ticks: 2, needs: [B48], spec: card}
+  - {id: B53, title: "Planted-edge calibration: run it, pick the rule by the written criteria", phase: 4, size: M, model: opus, who: loop, ticks: 3, needs: [B51, B52], spec: card}
+  - {id: B54, title: "Acceptance report", phase: 4, size: S, model: opus, who: loop, ticks: 2, needs: [B49, B53], spec: card}
+  # G5 doesn't wait for G4: collection runs alongside step 5 (master doc §9 step 4).
+  - {id: G5,  gate: true, title: "Acceptance test passed (protected)", phase: 4, needs: [B42, B54]}
