@@ -39,7 +39,11 @@ Researching an idea means trying many versions of it (a fast average of 5, 10 or
 4. Funding is charged per trade from its own records: hours held × notional × the hourly rate path (and, in the adverse run, B16's adverse level).
 5. `freq` and `year_freq` are always set; a run without them is refused.
 
-**A strategy for screening** is a pure function `signals(bars, params) -> Signals` (long entries, long exits, short entries, short exits as boolean columns; optional stop as a fraction) plus `warmup_bars(params)`. It sees only the bars it is given. The look-ahead kit (B44) tests exactly this function.
+**A strategy for screening** is a pure function `signals(bars, params) -> Signals` (long entries, long exits, short entries, short exits as boolean columns; optional stop as a fraction) plus `warmup_bars(params)` and an optional `trading_hours` (UTC hours in which it may open a trade; absent = all). It sees only the bars it is given. The look-ahead kit (B44) tests exactly this function; the null benchmark (B45) uses `warmup_bars` and `trading_hours` to know where a random trade could have started.
+
+**Only our numbers leave the wrapper.** With fees and slippage at zero, every VectorBT statistic is gross of costs. So `run_grid` and `run_point` return trial ids and nothing else; the `Portfolio` object and its `stats()` never leave `screen/`. Every number stored is computed from the repriced net returns (red team F23: anything else is a cost-free path, hard rule 3). Fix 5 stays, as a guard on VectorBT's internal annualisation.
+
+**Kinds are not a free choice.** `run_grid` files every point as SEARCH. `run_point` files SEARCH by default; it files VERIFICATION only for a point that already exists as a SEARCH trial of the same hypothesis (same strategy class and parameters) and on that trial's window, as a re-run or cost stress. A new parameter point or a new window as VERIFICATION is refused (red team F6: filing new tries as VERIFICATION would never raise N). B48 adds the database trigger that makes this a wall. `run_point` has no `purpose` argument: it always reads for research. The one sealed run goes through `run_sealed(look_id, trial_id, ...)`, which only works for the look's bound reader (the door checks, B46).
 
 **Every version is a trial.** For a grid run: the hypothesis must exist; one SEARCH trial is **started** for every grid point (B10) before the first VectorBT call; each is finished with its stored `TrialResult` (returns, trades, footprint) or as `errored`. Nothing is returned to the caller until every point has a terminal event. Grids over 200 points are run in chunks (memory: 1,000 × 17,544 hourly bars used 1.5 GB in S32).
 
@@ -53,7 +57,7 @@ Researching an idea means trying many versions of it (a fast average of 5, 10 or
 
 ## Deliver
 1. `vectorbt` added (the version the lock resolves; recorded in `COMPONENTS.md`).
-2. `screen/strategy.py` (`ScreeningStrategy`, `Signals`), `screen/run.py` (`run_grid(hypothesis_id, strategy, grid, window, venue, cost_inputs, capital, freq) -> list[trial_id]`, `run_point(...)` for single points, used by B48 for neighbours and the sealed run, with `kind` and `purpose` passed explicitly), `screen/reprice.py` (VectorBT trade records → B11 `Trade`s), `screen/returns.py` (additive net returns).
+2. `screen/strategy.py` (`ScreeningStrategy`, `Signals`), `screen/run.py` (`run_grid(hypothesis_id, strategy, grid, window, venue, cost_inputs, capital, freq) -> list[trial_id]`; `run_point(...)` for single points, used by B48 for neighbours; `run_sealed(...)` for the one sealed run; none returns anything but trial ids), `screen/reprice.py` (VectorBT trade records → B11 `Trade`s), `screen/returns.py` (additive net returns).
 3. Two example strategies used by tests and later builds: a moving-average cross (long/short, grid `fast`, `slow`) and a breakout with a stop.
 4. Tests.
 
@@ -72,9 +76,15 @@ Researching an idea means trying many versions of it (a fast average of 5, 10 or
 | 4 | Long, 10,000 USD notional, held 10 hourly bars, hourly funding 0.001% | `funding == 1.00` USD | no funding |
 | 5 | Any run with `freq` missing | refused | `stats()` has no Sharpe ratio |
 
-For row 2 the exit price is recorded in the report as VectorBT gives it (the gap-down handling is VectorBT's; the test asserts the exit bar, not the price).
+For row 2 the exit price used for repricing must be **at most the bar's open, 90** (for a long; the mirror for a short): a stop the price gapped through can't fill at the stop. If VectorBT reports 95, the wrapper corrects it to the open and the report says so.
 
 **Every version counted.** A hypothesis with N = 0. A 1,000-point grid (`fast` × `slow` × `stop`, 10 × 10 × 10) on two years of synthetic hourly bars → `search_n == 1000` afterwards; every one of the 1,000 trials has a terminal event and, if `completed`, stored returns, trades and a footprint. A run interrupted after the first chunk (simulated by raising inside chunk 2) leaves `search_n == 1000` anyway (all were started before any ran) and the unfinished ones without a `completed` event.
+
+**Open at the end.** A position still open at the window's last bar is closed at that bar's open and priced with its costs, so every P&L belongs to a closed trade.
+
+**Gross numbers stay inside.** For a grid point with costs, the stored per-bar Sharpe equals `per_bar_sharpe(net_returns)` and **differs** from VectorBT's own `stats()` Sharpe on the same run. `run_grid`'s return value is a list of trial ids (type asserted).
+
+**Kinds.** `run_point(kind=VERIFICATION)` with parameters that aren't a SEARCH trial of the hypothesis → refused; with a different window → refused; on an existing SEARCH point and its window → accepted, and `search_n` doesn't change. `run_point` has no `purpose` parameter (signature inspected).
 
 **Identity.** For every stored trial: `Σ net_returns × capital` equals `Σ trade nets` to 1e-9 relative; `trade net = gross − all seven components` (B11's own check).
 
@@ -91,6 +101,7 @@ Look-ahead tests (B44) · the null (B45) · whole-contract sizing (B50) · Vecto
 
 ## Halt if
 - Any of S32's five findings no longer holds on the resolved version.
+- `vectorbt` or its `numba` doesn't install on the locked Python (3.14, V2-D45).
 - VectorBT's trade records lack something repricing needs (entry and exit bar, side, size).
 - The additive-return identity can't hold to 1e-9 because of how VectorBT reports positions: say why; don't widen the tolerance.
 

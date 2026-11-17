@@ -1,3 +1,5 @@
+*Kept as written by the red team (an agent on Opus, read-only), 17 Nov 2026. Every finding below was fixed in the specs the same day (commit after this file); the fixes have not been attacked again. Where the fix took a choice that belongs to the founder, it is in proposal P-22 (d2), (f), (g) in the master doc.*
+
 # Red team — Phase 4a specs B43–B50 (branch spec/phase4a)
 
 Independent review. Read-only on the repo. Findings appended as found; summary + verdict at the end.

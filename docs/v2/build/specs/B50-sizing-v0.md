@@ -33,7 +33,7 @@ v1 threw strategies away for drawing down too far. That judged the bet size, not
 **The formula** (S2, corrected). For a trade distribution with positive mean, θ is the positive root of `E[exp(−θ·X)] = 1`, X the result in R. The chance of ever falling D R below the start is about `exp(−θ·D)`. **Not** `exp(−θ·D·L)`: θ is already in R units, and the extra L is the bug [Certain — run, S2 audit]. So the largest risk whose ruin chance is at most ε is
 `r_formula = θ · cushion ÷ ln(1/ε)`.
 
-**The bootstrap check.** The strategy's own sequence of R results is resampled with a stationary block bootstrap (B06; mean block length from B06's block-length rule, with a floor of 5), into 20,000 paths of `horizon` trades. `ruin_boot(r)` = the share of paths whose running sum falls to `−cushion ÷ r` R. `r_boot` = the largest r with `ruin_boot(r) <= ε`, found by bisection to 1e-6. Seeds come from the call.
+**The bootstrap check.** The strategy's own sequence of R results is resampled with a stationary block bootstrap (B06; mean block length from B06's block-length rule, with a floor of 5), into 20,000 paths of `horizon` trades. `ruin_boot(r)` = the share of paths whose running sum falls to `−cushion ÷ r` R. `r_boot` = the largest r with `ruin_boot(r) <= ε`, found by bisection to 1e-6, **using the same 20,000 resampled paths for every r** (drawn once; only the ruin line moves), so the ruin share can only fall as r falls and the bisection can't wander. Seeds come from the call.
 
 **The Kelly cap.** `f_kelly` maximises `E[ln(1 + f·X)]`; `r_kelly_cap = f_kelly ÷ 4`.
 
@@ -41,7 +41,7 @@ v1 threw strategies away for drawing down too far. That judged the bet size, not
 
 **To contracts.** `contracts = floor(r × capital ÷ risk_per_contract)`, where `risk_per_contract` = stop distance × contract multiplier + round-trip costs per contract (B16). Zero contracts → the trade is **skipped**, and skips are counted (proposal P-14(a) is still open; "skip" is v0's answer and is reported, not hidden). Above the venue's maximum order → refused.
 
-**Volatility targeting** (Carver's method, ported as a known-answer test, V2 principle "vol targeting"): `contracts = forecast ÷ 10 × daily_cash_vol_target ÷ contract_daily_value_vol`, `daily_cash_vol_target = capital × annual_vol_target ÷ sqrt(periods per year)`. **Periods per year is √365 for daily crypto bars and √8,760 for hourly,** never Carver's 16, which is right only for business days.
+**Volatility targeting** (Carver's method, ported as a known-answer test, V2 principle "vol targeting"): `contracts = forecast ÷ 10 × daily_cash_vol_target ÷ contract_daily_value_vol`, `daily_cash_vol_target = capital × annual_vol_target ÷ sqrt(periods per year)`. **Divide by the square root of the number of bars per year:** `sqrt(365)` for daily crypto bars, `sqrt(8,760)` for hourly ones (and then the target and the contract's volatility are both per hour, not per day), never Carver's 16, which is right only for business days.
 
 **Protected risk limits.** `v2/config/protected/risk.yaml` holds `accepted_ruin_probability`, `cushion`, `horizon_trades`, `annual_vol_target`, all `null`. These are risk limits: only the founder sets them (hard rule 7). While any is `null`, real sizing refuses (`RiskLimitNotSet`); tests pass their own values. Every money amount (capital, per-contract values) comes from configuration.
 

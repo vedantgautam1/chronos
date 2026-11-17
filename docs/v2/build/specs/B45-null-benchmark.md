@@ -40,20 +40,26 @@ A strategy can make money for reasons that have nothing to do with its timing: i
 
 **The statistic** is the total net P&L at 1× costs, summed in Decimal. **The p-value** is `p_upper(null, candidate)` from B07 and nothing else: `(1 + G + E/2) / (1 + B)`. **Pass** is decided in B47, not here.
 
-**Draws:** at least `null_min_draws` (1,000) in any real run; fewer is refused. Tests may use fewer through an explicit test-only argument. One seed (`numpy.random.default_rng(seed)`) fixes every draw; the seed comes from the frozen edge-check configuration.
+**Draws:** at least `min_draws` in any real run, a parameter that defaults to 1,000 (B47 later passes the protected `null_min_draws`; B48 has a test that it does); fewer is refused. Tests may use fewer through an explicit test-only argument. One seed (`numpy.random.default_rng(seed)`) fixes every draw; the caller supplies it (in the edge check it is derived from the frozen config, B47).
+
+**One pricer for both sides.** `candidate_stat` is **recomputed** by the pricer passed in, from each candidate trade's entry bar, exit bar, side and contracts, exactly as the draws are priced. The candidate's own stored trades (which may include stops filled inside a bar) are not used for the statistic, so candidate and null are priced under the same fill rule (red team F12).
+
+**Bars.** A trade from `entry_bar` to `exit_bar = entry_bar + duration` needs `exit_bar <= n_bars − 1`.
 
 **Never** in this module: shuffling trade order to test a sum; resampling prices.
 
 ## Deliver
 1. `moirai/null/placement.py`: `place(...)`, `PlacementInfeasible`.
 2. `moirai/null/pricer.py`: the `Pricer` protocol (`price(entry_bar, exit_bar, side, contracts) -> Trade`) and `OpenToOpenPricer(bars, venue, cost_inputs)`: entry at the entry bar's open, exit at the exit bar's open, cost components from B16.
-3. `moirai/null/benchmark.py`: `null_benchmark(candidate_trades, n_bars, bar_of, eligible, pricer, n_draws, seed) -> NullResult` with `p_upper`, `percentile_rank`, `n_draws`, `candidate_stat`, a seven-number summary of the null, and the restart count.
+3. `moirai/null/benchmark.py`: `null_benchmark(candidate_trades, n_bars, bar_of, eligible, pricer, n_draws, seed, min_draws=1000) -> NullResult` with `p_upper`, `percentile_rank`, `strict_percentile_rank` (for test (a) only), `n_draws`, `candidate_stat`, a seven-number summary of the null, and the restart count.
 4. Tests, including a float test pricer (`price difference × side × contracts`, no costs) used by the statistical tests below for speed.
 
 ## Steps
 1. The property tests and the four known-answer tests (red). 2. `placement.py`. 3. `pricer.py`. 4. `benchmark.py` → green. 5. Report, including how long the statistical tests take.
 
 ## Known answers and checks
+
+**About placement uniformity.** Sequential placement, longest first, is not uniform over all possible arrangements, and the method switches at 60% occupancy. That is accepted for v0 and written down here; test (b) can't see it because its candidates are placed by `place` itself.
 
 **Placement properties** (500 random cases, seed 45000, both methods): no overlap; every entry eligible; every trade ends inside the bars; the draw has the candidate's trade count, the same multiset of sides and of sizes; every duration is one the candidate had. Same seed → same placement. `place` takes exactly four parameters, `n_bars`, `durations`, `eligible`, `rng` (signature inspected): there is nowhere to pass a price. Durations adding up to more than the bars → redrawn, never truncated.
 
@@ -62,11 +68,11 @@ A strategy can make money for reasons that have nothing to do with its timing: i
 **(b) Random entries give uniform p-values.** Worlds from `numpy.random.default_rng(45001)`: 1,500 bars; price `= 1000 + cumulative sum of standard normals`; a candidate of 20 trades with durations drawn from {5, 10, 20}, random sides, **placed by `place` itself**; float pricer; 199 draws. Over 1,000 worlds the p-values have: mean in **[0.466, 0.539]**, Kolmogorov–Smirnov distance from uniform below **0.067**, and a share at or below 0.05 in **[0.022, 0.078]**. The bands are four standard errors around the theoretical values (0.5025; 0; 0.05), fixed before any run. A prototype written for this spec gave 0.5001, 0.027 and 0.040 [Certain — run, 16 Nov; the builder's draws will differ, the bands won't].
 - **(b2) With trading hours.** The same with eligibility true only on 8 bars in every 24, 400 worlds, seed 45002: mean in **[0.445, 0.560]**, KS below **0.103**. (Prototype: 0.522, 0.065.)
 
-**(c) A planted timing edge is found.** Seed 45003, 200 worlds: 20 long trades of 10 bars, placed at random; the price path is noise plus `1.5/√10` per bar during each of the candidate's own holding periods. The share of worlds with `p <= 0.05` is at least **0.95**. (Prototype: 1.000.)
+**(c) A planted timing edge is found.** Seed 45003, 200 worlds: 20 long trades of 10 bars, placed at random; the price path is noise plus `1.5/√10` per bar during each of the candidate's own holding periods. 199 draws per world. The share of worlds with `p <= 0.05` is at least **0.95**. (Prototype: 1.000.)
 
 **(d) Constant exposure on a trend does not pass.**
-- *(d1) Always in the market.* 1,500 bars rising 0.5 a bar; 15 long trades of 100 bars, back to back. Every draw is the same arrangement, so `p_upper == (1 + B/2)/(1 + B)` exactly. Not a pass, at any trend strength.
-- *(d2) 60% exposure, no timing.* Seed 45004, 300 worlds: price `= 1000 + cumulative sum of (0.5 + standard normal)`; 18 long trades of 50 bars at fixed, evenly spaced starts. The share with `p <= 0.05` is at most **0.10** (prototype: 0.063). In the same worlds, a plain one-sided t-test on the trades' P&L "passes" in at least **95%** (prototype: 100%). The test asserts both: the wrong test is fooled by the trend and this one isn't.
+- *(d1) Always in the market.* 1,501 bars rising 0.5 a bar; 15 long trades of 100 bars, back to back (the last exits at bar 1,500). Every draw is the same arrangement, so `p_upper == (1 + B/2)/(1 + B)` exactly. Not a pass, at any trend strength.
+- *(d2) 60% exposure, no timing.* Seed 45004, 300 worlds, 199 draws each: price `= 1000 + cumulative sum of (0.5 + standard normal)`; 18 long trades of 50 bars at fixed, evenly spaced starts. The share with `p <= 0.05` is at most **0.10** (prototype: 0.063). In the same worlds, a plain one-sided t-test on the trades' P&L "passes" in at least **95%** (prototype: 100%). The test asserts both: the wrong test is fooled by the trend and this one isn't.
 
 **Refusals.** Fewer than 1,000 draws without the test-only argument → refused. A candidate with no trades → refused. A sizing rule passed as a callable → `NotImplementedError` naming this spec.
 

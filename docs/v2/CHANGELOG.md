@@ -11,7 +11,16 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 - **Known answers computed before any code** [run 16–17 Nov]: on v1's own functions (DSR, years to significance, Šidák bars, Newey–West), in closed form (ruin, Kelly, Carver's vol targeting, the 24-ordering drawdown fixture), and with prototypes written for the specs: the null benchmark's uniformity, power and trend tests; the three look-ahead tests on five fixtures; the change check's simulated worlds; the bootstrap's clustering check. The prototypes were scratch code and are not in the repo; each spec states its bands and seeds.
 - **Found while writing:** the nudge probe must perturb the bar after a sampled entry (a random bar caught a one-bar peek 16 times in 30; the bar after an entry, 30 in 30). Migration numbers are now fixed per build (`0004`–`0008`), so two builds can't claim the same one.
 - **Proposal P-22** (master doc §12): the choices these specs make that are the founder's to accept: pass marks carried from v1 into a protected file; data sufficiency on a target Sharpe stated in advance; the strict reading of V2-D32; the lone-spike threshold; unset risk limits.
-- **Not done:** these eight specs have not been red-teamed. Ladder and ledger point at the new specs; the count stays 54 builds, 6 gates.
+- **Red team** (a separate agent, read-only): **adopt with fixes**: 1 blocker, 17 major, 8 minor; almost every number re-ran correctly. Report kept at `docs/v2/build/reviews/specs-B43-B50-redteam-1.md`. All findings fixed in the specs the same day. The main ones:
+  - *Blocker:* any code holding a look id could read the sealed block any number of times, and a look could be taken outside the edge check. Now a look must name a frozen config with a pending verdict (database trigger), exactly one VERIFICATION trial is bound to it as reader, and the door checks the binding.
+  - New tries could be filed as VERIFICATION and never count; now a database trigger requires every VERIFICATION trial to re-run an existing SEARCH point.
+  - With N = 1 the DSR is NaN under the spec's own rule; now N = 1 uses PSR. The trial variance can't be trusted from a few trials; now 90% of trials must have returns (protected).
+  - One frozen config per candidate, its seed derived and its window fixed (no shopping); one final verdict per config.
+  - The look-ahead kit missed an exit that reads tomorrow; now every signal column is checked; the EMA warm-up answer is exactly 1,070 bars; a report counts only on the candidate's own bars.
+  - The null benchmark prices the candidate and the draws with the same pricer; eligible bars defined.
+  - The planted-edge world is pinned in advance (hourly, seed 48001, 214 sealed trades).
+  - Gross VectorBT statistics never leave the screening wrapper.
+- **Not done:** the fixes have not been attacked again. Ladder and ledger point at the new specs; the count stays 54 builds, 6 gates.
 
 ## 16 Nov 2026 — build blueprint v0.4 (after three red-team passes), specs B01–B22, founder handbook; V2-D47–D50 locked (awaiting gate G0)
 
