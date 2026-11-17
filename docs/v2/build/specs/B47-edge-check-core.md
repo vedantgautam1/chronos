@@ -4,7 +4,7 @@ title: Edge check I — frozen configuration, the decision table for all six cri
 size: M
 model: opus
 who: loop             # merges only with the founder's approval: it creates a protected file
-needs: [B43, B46]
+needs: [B44, B46]
 ticks: 3
 touches:
   - v2/migrations/0005_edge_check.sql
@@ -25,7 +25,7 @@ The edge check is the centre of Chronos: the one place that says "this strategy 
 ## Read first
 - Master doc §6 (all of it); §10 V2-D03, V2-D08, V2-D25, V2-D34, V2-D35, V2-D38, V2-D39, V2-D48.
 - `BUILD_NOTES.md` §2: "Freeze and hash the edge-check configuration", "Positive at 1× and 2× costs", "Every edge-check criterion needs a fixture it alone catches", "DSR/PSR take the non-annualised Sharpe".
-- Specs B06 (`dsr`, `per_bar_sharpe`, `sample_skewness`, `sample_kurtosis`, `years_to_significance`), B10 (`search_n`, trial kinds), B11 (`TrialResult`, `Trade`), B16 (`stress`), B18 (`fragmentation_warning`).
+- Spec B44 (`has_passing_report`). Specs B06 (`dsr`, `per_bar_sharpe`, `sample_skewness`, `sample_kurtosis`, `years_to_significance`), B10 (`search_n`, trial kinds), B11 (`TrialResult`, `Trade`), B16 (`stress`), B18 (`fragmentation_warning`).
 
 ## The rules (fixed here)
 
@@ -127,6 +127,7 @@ Rows 4, 6, 7, 9, 12, 20 and 21 are the "one fixture that only this criterion cat
 - The same config frozen twice gives the same hash and one row.
 - The 8 attacks (B09) are refused on both tables with B09's error codes.
 - `decide` imports nothing that does I/O (same test as B03's).
+- **No look-ahead report, no run:** a candidate whose strategy has no passing B44 report for its code coordinate is refused by `run_edge_check` before anything is read or stored.
 
 ## Not in this build
 Evidence for C4–C6, the warnings, end-to-end worlds (B48) · the basis check (proposal P-15, not yet accepted by the founder) · choosing the neighbourhood rule (B52, B53).
