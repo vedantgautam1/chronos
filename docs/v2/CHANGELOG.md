@@ -4,6 +4,16 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 18 Nov 2026 — review findings get a severity; the reviewer attaches the patch and fixes the record (P-25, awaiting "lock it")
+
+- **Why.** B01 and B01A cost three review rounds between them. **One** found a real defect (the non-deterministic fingerprint). The other two were test strictness (`match=` missing) and prose (an inaccurate report). Under the old rules the reviewer had two buttons, `PASS` and `CHANGES`, and no way to say "the code is fine, the write-up isn't" — so a one-sentence correction blocked a build and, per reviewer rule 6, came one round short of a halt.
+- **Changed in `docs/v2/build/specs/README.md`** (reviewer rules 6–7 and a new "Severity" block): every finding is **blocking** (the code or the tests are wrong) or **non-blocking** (the record or the polish is wrong). Only a blocking finding produces `CHANGES` and counts toward the second-round halt. For each blocking finding the reviewer now writes the **exact patch** — file, line, text as it is, text as it should be — so the builder round is mechanical. For non-blocking findings the reviewer **corrects the report and the CHANGELOG itself**, marked in place and disclosed in the review under "Role deviation". Code and tests stay untouchable: a reviewer that edits them is reviewing its own work.
+- **One deliberate exception.** A report or changelog asserting a founder decision, approval, review or measurement that **did not happen** is blocking however small it looks. The gate audit and `LEDGER.md` are built on these documents, and `specs/README.md` already says the role checks cannot catch a session that labels its own work falsely. Inaccurate is non-blocking; untrue is not. This is what B01A round 2 blocked on.
+- **Also learned, and not yet fixed anywhere:** a review session without push access cannot commit its review. B01A's round-1 review file was lost that way and had to be reconstructed in round 2 (`reviews/B01A-r1.md`, marked as a reconstruction). Any reviewer needs write access to the repository.
+- **Status: proposal P-25 (§12), not yet locked.** The rule text is in this change; §10 gets **V2-D51** when the founder says "lock it". Drafted by Opus in the B01A round-2 session on the founder's instruction.
+
+---
+
 ## 18 Nov 2026 — B01 reviewed `CHANGES`, merged by mistake; fix build B01A specified; record reconciled
 
 - **B01's review (`build/reviews/B01-r1.md`, Opus, fresh session).** Verdict **`CHANGES`**, one blocking finding. Independently re-run, not taken from the build report: 22 tests pass, ruff clean, lockfile installs frozen on Python 3.14.6, all three CI jobs green, red-at-step-2 confirmed for the right reason, and **no assertion was weakened between red and green**. Four deliberate mutations (half-open boundary, key sorting, float `repr`, non-UTC offset) were each caught by the matching known-answer test — B01's tests bite.
