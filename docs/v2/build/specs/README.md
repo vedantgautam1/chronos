@@ -4,7 +4,7 @@ One file per build. A build session reads: `CLAUDE.md` (automatic), the master d
 
 *Revised 16 Nov after three red-team passes (`gates/G0-redteam.md`): roles are separated by what each may write, the checking code and the spec are read from the base branch, builds no longer touch the master doc, and this file says which protections are tripwires.*
 
-*Revised 18 Nov after B01/B01A took three review rounds for one real defect (P-25, §12 — **awaiting the founder's "lock it"**): findings now carry a severity, only a blocking finding produces `CHANGES`, and the reviewer attaches the patch and corrects the record itself. See reviewer rules 6–7 and "Severity".*
+*Revised 18 Nov after B01/B01A took three review rounds for one real defect (**V2-D51**, locked 18 Nov): findings now carry a severity, only a blocking finding produces `CHANGES`, and the reviewer attaches the patch and corrects the record itself. See reviewer rules 6–7 and "Severity".*
 
 ## The header
 
