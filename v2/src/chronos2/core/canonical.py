@@ -32,9 +32,12 @@ def _datetime_to_iso(dt: datetime) -> str:
 
 def _canonical(obj: Any) -> Any:
     if isinstance(obj, dict):
+        for key in obj:
+            if not isinstance(key, str):
+                raise TypeError(f"dict keys must be str, got {type(key).__name__}")
         return {
-            str(k): _canonical(v)
-            for k, v in sorted(obj.items(), key=lambda kv: str(kv[0]))
+            key: _canonical(value)
+            for key, value in sorted(obj.items())
         }
     if isinstance(obj, (list, tuple)):
         return [_canonical(v) for v in obj]
