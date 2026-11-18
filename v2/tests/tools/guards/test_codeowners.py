@@ -70,7 +70,7 @@ def test_the_first_line_is_the_catch_all(owners):
     """Later lines win, so the catch-all has to come first or the carve-outs
     would override nothing."""
     assert owners.rules[0].pattern == "*"
-    assert owners.rules[0].owners == [FOUNDER]
+    assert list(owners.rules[0].owners) == [FOUNDER]
 
 
 def test_the_file_uses_no_unsupported_pattern_syntax(owners):
