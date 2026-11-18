@@ -4,6 +4,22 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 18 Nov 2026 — B01 reviewed `CHANGES`, merged by mistake; fix build B01A specified; record reconciled
+
+- **B01's review (`build/reviews/B01-r1.md`, Opus, fresh session).** Verdict **`CHANGES`**, one blocking finding. Independently re-run, not taken from the build report: 22 tests pass, ruff clean, lockfile installs frozen on Python 3.14.6, all three CI jobs green, red-at-step-2 confirmed for the right reason, and **no assertion was weakened between red and green**. Four deliberate mutations (half-open boundary, key sorting, float `repr`, non-UTC offset) were each caught by the matching known-answer test — B01's tests bite.
+- **The finding.** `canonical.py` passes dict **keys** through a bare `str()` while values go through `_canonical`. So an unknown-type key is stamped into the hash with its memory address and **the same input hashes differently in every process**; naive-`datetime` and NaN keys reach a hash instead of raising, against B01's own spec; and two keys colliding under `str()` silently lose one [Certain — run]. Narrow in practice (config dicts are string-keyed) but it sits under every fingerprint B09–B11 will store.
+- **The merge was a misfire.** Pull request #18 was merged into `v2-build` at `78298f3` on the `CHANGES` verdict, before any fix. **`main` was not touched** — gate discipline held, and the blast radius is one working branch. `v2-build` carries the defect until B01A lands. Recorded, not tidied away: `LEDGER.md` footnote †, and B01's "1 review round" must not be read as a clean pass.
+- **New build B01A** (`specs/B01A-canonical-keys.md`, size S, 2 ticks, by hand): a dict key must be a `str`; anything else raises `TypeError`. One rule closes all three leaks. Known answers written first, including a **hand-checkable** stability pin — `printf '%s' '{"a":["1.0","0.10"],"b":1}' | sha256sum` → `825348ea…` — and a determinism test across two fresh subprocesses, because no single-process test can see this class of bug. B01's existing test file is **not** touched (`may_modify_tests: []`); the new tests go in a new file.
+- **Ladder:** B01A inserted after B01, and **B02 now needs B01A**, so nothing stacks on the defective helper. `BLUEPRINT.md` Part 5 updated to match (B03 tests that the two agree).
+- **Status/record:** `status/B01.json` → `merged` (it is merged; leaving it `changes_requested` would make the B03 loop try to "fix" a finished build). `LEDGER.md` B01 row filled with the real numbers — 1 tick, 1 round, 131 code / 263 test lines — plus the † footnote explaining the override.
+- **P-24 (cheap builder, Opus reviewer) has no usable measurement.** B01 ran on DeepSeek V4 Pro and the Opus review caught the defect, which is the system working — but a `CHANGES`-then-merged round measures nothing about cost or rounds. First clean number will be B01A or B02. §12's P-24 row updated to say so.
+- **Open questions added:** **O-15** — floats, `Decimal`s and strings share a fingerprint (follows B01's spec as written; a design call, and it must be settled before B09 or never). **O-16** — which model builds B01A; the header says Opus, the founder may switch it to DeepSeek to restart the P-24 measurement, and the header should change *before* the build, not be deviated from during it.
+- **New traps** in `BUILD_NOTES.md` §1: canonicalise keys, not just values; test fingerprints across two processes; and pin a fingerprint's wire format with a hand-checkable digest.
+- **Housekeeping:** §12's "Next proposal ID" counter read `P-22` while P-23 and P-24 were already in use — corrected to `P-25`, with the next open-question ID recorded too, so the next proposal doesn't collide.
+- **For B05:** require the status file to read `passed` before a pull request can merge into `v2-build`. That rule would have stopped this, and it is free to add while B05's GitHub rules are being written. Noted in B01A's spec under "For the gate".
+
+---
+
 ## 18 Nov 2026 — B01 built: v2 project scaffold, core helpers, automatic tests (first build, hand-run)
 
 - **First build of the loop's phase 0, run by hand** (the loop doesn't exist until B05). Work is on branch `claude/b01` (PR #18 into the new working branch `v2-build`, which this build also creates from `main`).

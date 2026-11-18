@@ -6,10 +6,22 @@ One row per build. The reviewer fills the "actual" columns when a build merges. 
 
 The estimates are guesses until B01–B05 have run [Guessing]. That is the point of this file.
 
+**† B01 merged on a `CHANGES` verdict, by mistake.** The review (`reviews/B01-r1.md`, 18 Nov)
+found `content_hash` non-deterministic on unknown dict keys and set the status to
+`changes_requested`; pull request #18 was then merged into `v2-build` at `78298f3` before
+the fix. `main` was not touched. The defect is fixed by **B01A**, and until B01A lands,
+`v2-build` carries it. Two consequences for the numbers above: B01's "1 review round" is
+not a clean pass, so it must not be read as evidence that one round is typical; and
+proposal **P-24** (cheap builder, Opus reviewer) has **no usable measurement** from B01 —
+the first clean one will be B01A or B02. Recorded rather than tidied away because G1
+re-sizes the whole ladder from this table and the gate audit checks every review against
+the record (CHRONOS_V2 §14 rule 5: asymmetric findings stated asymmetrically).
+
 | Build | What | Size | Est. build ticks | Est. review rounds | Actual build ticks | Actual review rounds | Lines (code / tests) | Halts | Merged (UTC) |
 |---|---|---|---|---|---|---|---|---|---|
 | **G0** | **Blueprint approved** | gate | — | — | | | | | |
-| B01 | v2 project scaffold, core helpers, automatic tests | M | 2–3 | 1 | | | | | |
+| B01 | v2 project scaffold, core helpers, automatic tests | M | 2–3 | 1 | 1 | 1 — **CHANGES**, merged anyway † | 131 / 263 | none | 2026-11-18 05:29 † |
+| B01A | canonical.py: dict keys validated like values; the fingerprint made deterministic | S | 1–2 | 1 | | | | | |
 | B02 | The guards: tripwire checks on every pull request, protected values, code owners | M | 2–3 | 1 | | | | | |
 | B03 | The loop's decision core: ladder reader, next action, locks | M | 2–3 | 1 | | | | | |
 | B04 | The loop's hands: agent definitions, commands, templates | M | 2–3 | 1 | | | | | |

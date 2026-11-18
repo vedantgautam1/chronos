@@ -546,7 +546,8 @@ Nothing third-party enters the code base until the build named here, and never w
 |---|---|---|---|---|---|
 | **G0** | **This blueprint approved** | — | — | gate | — |
 | B01 | v2 project scaffold, core helpers, automatic tests | M | Opus | you+ (by hand: no loop yet) | G0 |
-| B02 | The guards: tripwire checks on every pull request, protected values, code owners | M | Opus | you+ (by hand) | B01 |
+| B01A | canonical.py: dict keys validated like values; the fingerprint made deterministic | S | Opus | you+ (by hand) | B01 |
+| B02 | The guards: tripwire checks on every pull request, protected values, code owners | M | Opus | you+ (by hand) | B01A |
 | B03 | The loop's decision core: ladder reader, next action, locks | M | Opus | you+ (by hand) | B02 |
 | B04 | The loop's hands: agent definitions, commands, templates | M | Opus | you+ (by hand) | B03 |
 | B05 | The automation's own GitHub identity, GitHub rules, attack tests, first unattended run | M | Opus | you+ (about 45 minutes of you) | B04 |
