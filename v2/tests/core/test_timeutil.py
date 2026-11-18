@@ -7,7 +7,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
-from chronos2.core.timeutil import HalfOpen, UTC, assert_process_utc, require_utc
+from chronos2.core.timeutil import UTC, HalfOpen, require_utc
 
 
 def test_require_utc_accepts_utc():
@@ -48,12 +48,12 @@ def test_assert_process_utc_passes_under_utc_and_raises_otherwise():
 
     utc_env = dict(base_env, TZ="UTC")
     utc_run = subprocess.run(
-        [sys.executable, "-c", code], env=utc_env, capture_output=True, text=True
+        [sys.executable, "-c", code], check=False, env=utc_env, capture_output=True, text=True
     )
     assert utc_run.returncode == 0, utc_run.stderr
 
     toronto_env = dict(base_env, TZ="America/Toronto")
     toronto_run = subprocess.run(
-        [sys.executable, "-c", code], env=toronto_env, capture_output=True, text=True
+        [sys.executable, "-c", code], check=False, env=toronto_env, capture_output=True, text=True
     )
     assert toronto_run.returncode != 0

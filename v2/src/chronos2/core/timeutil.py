@@ -7,9 +7,9 @@ ranges with full timestamps, never bare dates. Every Chronos process runs with
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-UTC = timezone.utc
+__all__ = ["UTC", "HalfOpen", "assert_process_utc", "require_utc"]
 
 
 def require_utc(dt: datetime) -> datetime:
