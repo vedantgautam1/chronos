@@ -22,33 +22,33 @@ _STABILITY_DIGEST = "825348ea6f54adfb39bf21dd3778081fdbdec80f41ea178c1ea5f606770
 
 
 def test_dict_key_object_raises_typeerror():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="dict keys must be str, got object"):
         canonical_json({object(): 1})
 
 
 def test_dict_key_naive_datetime_raises_typeerror():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="dict keys must be str, got datetime"):
         canonical_json({datetime(2026, 4, 1): 1})
 
 
 def test_dict_key_nan_raises_typeerror():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="dict keys must be str, got float"):
         canonical_json({float("nan"): 1})
 
 
 def test_dict_key_int_raises_typeerror():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="dict keys must be str, got int"):
         canonical_json({1: "x"})
 
 
 def test_dict_key_int_str_collision_raises_typeerror():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="dict keys must be str, got int"):
         canonical_json({1: "x", "1": "y"})
 
 
 def test_dict_key_nested_raises_typeerror():
     # The key check must recurse, not run only on the outermost dict.
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="dict keys must be str, got int"):
         canonical_json({"a": {"b": {2: 3}}})
 
 
