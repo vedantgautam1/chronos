@@ -181,6 +181,7 @@ def _run_guards(repo, base_sha=None, head_ref="claude/b06", base_ref="v2-build")
         capture_output=True,
         text=True,
         env=env,
+        check=False,
     )
     return done
 

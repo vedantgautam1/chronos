@@ -209,7 +209,9 @@ def repo_factory(tmp_path):
                 adds_dependencies,
             )
         repo.commit("v2 base", role="builder")
-        repo.git("branch", base)
+        # ``main`` already exists: the repo is initialised on it.
+        if base != "main":
+            repo.git("branch", base)
         repo.checkout(base)
         return repo
 
