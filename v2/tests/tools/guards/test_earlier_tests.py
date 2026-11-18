@@ -175,9 +175,9 @@ def test_the_job_is_green_when_the_pull_request_fixes_the_failing_test(repo_fact
 
 def test_the_job_passes_trivially_when_the_base_has_no_tests_folder(repo_factory, tmp_path):
     repo = repo_factory()
+    # The factory leaves us on v2-build, so this commit moves the base itself.
     repo.git("rm", "-r", "-q", "v2/tests")
     repo.commit("a base with no v2/tests/")
-    repo.git("branch", "-f", "v2-build", "HEAD")
     repo.checkout("claude/b06", create=True)
     repo.write("v2/src/chronos2/stats/dsr.py", "def dsr():\n    return 0.0\n")
     repo.commit("B06 step 1")

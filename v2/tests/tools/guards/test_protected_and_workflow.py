@@ -161,7 +161,7 @@ def test_the_workflow_delegates_to_the_tested_script(workflow_text):
 # --- the two properties the design rests on --------------------------------
 
 
-def _run_guards(repo, base_sha=None, head_ref="claude/b06", base_ref="v2-build"):
+def _run_guards(repo, base_sha=None, head_ref="claude/b06", base_ref="v2-build", extra=()):
     env = {**os.environ, "TZ": "UTC", "PYTHON": sys.executable}
     done = subprocess.run(
         [
@@ -177,6 +177,7 @@ def _run_guards(repo, base_sha=None, head_ref="claude/b06", base_ref="v2-build")
             head_ref,
             "--base-ref",
             base_ref,
+            *extra,
         ],
         capture_output=True,
         text=True,
@@ -192,8 +193,8 @@ def test_the_guard_code_comes_from_the_base_commit(repo_factory):
     runner used the base commit's copy."""
     repo = repo_factory()
     repo.install_guards()
+    # The factory leaves us on v2-build, so this commit moves the base itself.
     repo.commit("the guards, on the base", role="builder")
-    repo.git("branch", "-f", "v2-build", "HEAD")
     repo.checkout("claude/b06", create=True)
     repo.write("v2/tools/guards/run_all.py", "raise SystemExit(0)\n")
     repo.write("src/chronos/run.py", "# edited v1\ndef trial():\n    return 1\n")
@@ -222,13 +223,32 @@ def test_the_bootstrap_notice_appears_only_when_the_base_has_no_guard_code(repo_
     assert "own copy" in first_line.lower() or "pull request" in first_line.lower()
 
 
+def test_the_earlier_tests_job_runs_through_the_same_script(repo_factory):
+    """Both jobs go through run_guards.sh, so there is one extraction path and
+    one entry point rather than two. This drives the second job end to end: an
+    earlier failing test, in the base's copy of the tests folder, run against
+    the branch's package."""
+    repo = repo_factory()
+    repo.install_guards()
+    repo.write("v2/tests/earlier/test_edge.py", "def test_edge():\n    assert 1 == 2\n")
+    repo.commit("the guards and an earlier failing test, on the base", role="builder")
+    repo.checkout("claude/b06", create=True)
+    repo.write("v2/src/chronos2/stats/dsr.py", "def dsr():\n    return 0.0\n")
+    repo.commit("B06 step 1")
+
+    done = _run_guards(repo, extra=["--earlier-tests"])
+    assert done.returncode != 0, done.stdout
+    assert "earlier-tests" in done.stdout
+    assert "test_edge" in done.stdout, done.stdout
+
+
 def test_the_runner_exits_zero_on_a_clean_build_branch(repo_factory):
     """A check that has never been seen green proves as little as one that has
     never been seen red."""
     repo = repo_factory(touches=["v2/src/chronos2/stats/**"])
     repo.install_guards()
+    # The factory leaves us on v2-build, so this commit moves the base itself.
     repo.commit("the guards, on the base", role="builder")
-    repo.git("branch", "-f", "v2-build", "HEAD")
     repo.checkout("claude/b06", create=True)
     repo.write("v2/src/chronos2/stats/dsr.py", "def dsr():\n    return 0.0\n")
     repo.commit("B06 step 1: an ordinary, clean build commit")

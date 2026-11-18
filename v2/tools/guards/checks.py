@@ -582,7 +582,10 @@ ROOT_ALLOWED = ("CLAUDE.md", "CLAUDE.local.md", "AGENTS.md")
 PYTEST_INI_ALLOWED = ("testpaths", "pythonpath")
 HOOK_DEF = re.compile(r"^\s*(?:async\s+)?def\s+(pytest_\w+)", re.MULTILINE)
 PYTEST_PLUGINS = re.compile(r"^\s*pytest_plugins\s*=", re.MULTILINE)
-AUTOUSE = re.compile(r"autouse\s*=\s*True")
+# Narrowed to a fixture call on purpose: a bare `autouse\s*=\s*True` also
+# matches this very line, and a note that says a file "has an autouse fixture"
+# when it only mentions the words is a false statement printed to the founder.
+AUTOUSE = re.compile(r"fixture\s*\([^)]*autouse\s*=\s*True")
 
 
 def _normalise(name: str) -> str:
@@ -783,8 +786,9 @@ def _autouse_fixtures(ctx: Context) -> list[Note]:
             out.append(
                 Note(
                     "plumbing",
-                    f"{path} has {count} autouse=True fixture(s). An autouse fixture runs in "
-                    "every test in its scope: check it changes no result.",
+                    f"{path}: {count} fixture call(s) declare autouse=True. An autouse "
+                    "fixture runs in every test in its scope: check it changes no result. "
+                    "This is a text scan, so a fixture written inside a string counts too.",
                 )
             )
     return out
