@@ -4,6 +4,16 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 18 Nov 2026 — B01A built: dict keys validated like values; the fingerprint made deterministic
+
+- **Fixed the merged B01 defect** in `v2/src/chronos2/core/canonical.py`: `_canonical` passed dict **values** through validation but **keys** through a bare `str()`. Now a dict key must be a `str`; any other key type raises `TypeError` (naming the type). One rule closes all three leaks at once — an unknown-type key no longer reaches a hash with its memory address (non-deterministic across processes), naive-`datetime` and NaN keys no longer reach a hash instead of raising, and two keys can no longer collide after conversion because no conversion happens.
+- **Nothing else changed.** Sorted keys, `Decimal`/`datetime`/float/`tuple`/`Enum` handling and the value-side raises are untouched; B01's 22 tests pass **unmodified** (every one uses string keys).
+- **Known answers written first** (`v2/tests/core/test_canonical_keys.py`, a new file — B01's test file is frozen): six `TypeError` key cases (object, naive `datetime`, NaN, `int`, `int`-vs-`str` collision, nested) red before the code, plus three string-key guards — a canonical-JSON pin, a hand-checkable SHA-256 **stability pin** (`825348ea…`, `printf '%s' '{"a":["1.0","0.10"],"b":1}' | sha256sum`), and a determinism check across two fresh subprocesses with `PYTHONHASHSEED` unset. Full suite **31 passed**, ruff clean.
+- **Model:** built on **DeepSeek V4 Pro** per the spec header (founder's 18 Nov choice, O-16); review is on Opus, separate session. First clean **P-24** data point after B01's misfired merge.
+- Full detail in `docs/v2/build/reports/B01A.md`. Master-doc and `LEDGER.md` updates are the reviewer's and the gate's, from the report's "For the gate" section.
+
+---
+
 ## 18 Nov 2026 — B01 reviewed `CHANGES`, merged by mistake; fix build B01A specified; record reconciled
 
 - **B01's review (`build/reviews/B01-r1.md`, Opus, fresh session).** Verdict **`CHANGES`**, one blocking finding. Independently re-run, not taken from the build report: 22 tests pass, ruff clean, lockfile installs frozen on Python 3.14.6, all three CI jobs green, red-at-step-2 confirmed for the right reason, and **no assertion was weakened between red and green**. Four deliberate mutations (half-open boundary, key sorting, float `repr`, non-UTC offset) were each caught by the matching known-answer test — B01's tests bite.
