@@ -1,6 +1,6 @@
 {
   "build": "B01A",
-  "state": "needs_review",
+  "state": "passed",
   "ticks": 1,
   "head": "172b668a4c09ee4275b9d9808722ca1478140121",
   "halt_reason": null,
