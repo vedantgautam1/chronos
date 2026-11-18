@@ -1,8 +1,8 @@
 {
   "build": "B01",
-  "state": "building",
+  "state": "needs_review",
   "ticks": 1,
-  "head": null,
+  "head": "dcf394d3bc1f342602d78a2d5fc03ead864456d2",
   "halt_reason": null,
   "halt_options": null
 }
