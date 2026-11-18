@@ -1,8 +1,8 @@
 {
   "build": "B02",
-  "state": "needs_review",
+  "state": "passed",
   "ticks": 1,
-  "head": "f092792ae915b03bd8be59c34806905aa2ff083c",
+  "head": "2900b7032a7f8f3c26953c504d9eb64e089ca6ce",
   "halt_reason": null,
   "halt_options": null
 }
