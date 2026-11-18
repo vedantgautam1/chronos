@@ -4,6 +4,20 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 18 Nov 2026 — B01 built: v2 project scaffold, core helpers, automatic tests (first build, hand-run)
+
+- **First build of the loop's phase 0, run by hand** (the loop doesn't exist until B05). Work is on branch `claude/b01` (PR #18 into the new working branch `v2-build`, which this build also creates from `main`).
+- **New v2 project** in `v2/`: `pyproject.toml` (`chronos2`, Python 3.14, src layout) + committed `uv.lock`; deps `numpy`, `scipy`, `pandas`, `pyarrow` (runtime) and `pytest`, `ruff`, `pyyaml` (dev).
+- **`src/chronos2/core/`:** `timeutil.py` (`require_utc`, `assert_process_utc`, `HalfOpen`) and `canonical.py` (`canonical_json`, `content_hash` — the v1 `_canonical` idea, tightened: floats by `repr`, raises on NaN/inf/naive datetimes/sets/unknown types).
+- **Tests:** known-answer tests for both helpers, the environment test (Python 3.14, `chronos2` importable, v1 `chronos` not importable), the workflow-file test (read-only permissions, no secrets), and a `SELECT 1` Postgres connectivity test (stdlib-only client; psycopg arrives in B09). 22 tests, red-then-green.
+- **`.github/workflows/v2.yml`:** three jobs on `pull_request` and pushes to `v2-build`/`main`, read-only token — `tests` (with a `postgres:16` service and `CHRONOS2_TEST_DSN`), `lint`, `v1-oracle` (v1 environment, no dump scripts yet). All three green on PR #18.
+- **Housekeeping:** `scratch/.gitkeep`, `docs/drafts/.gitkeep`, `v2/tools/v1_oracle/README.md`, `v2/README.md`.
+- **Local Postgres:** installed `postgresql@16` (Homebrew) and created the `postgres` superuser, per handbook §5, so the `SELECT 1` test passes locally too.
+- **Model:** built on **DeepSeek V4 Pro** (founder's 17 Nov instruction, P-24 first step); review is on Opus. Cost to be logged by the founder for P-24.
+- Full detail in `docs/v2/build/reports/B01.md`. Master-doc, `CODEBASE.md` and `COMPONENTS.md` updates are deferred to the gate, from the report's "For the gate" section.
+
+---
+
 ## 16 Nov 2026 — build blueprint v0.4 (after three red-team passes), specs B01–B22, founder handbook; V2-D47–D50 locked (awaiting gate G0)
 
 - **Founder asked for** a build skeleton with line diagrams, session-sized builds, automated build-and-check loops in place of the chat → paste → Claude Code relay, a handbook, and a re-audit of v1. Nothing here is adopted until the founder approves gate G0.

@@ -1,0 +1,73 @@
+name: v2
+
+on:
+  pull_request:
+  push:
+    branches:
+      - v2-build
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      TZ: UTC
+      CHRONOS2_TEST_DSN: postgresql://postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install
+        run: uv sync --frozen --all-groups
+        working-directory: v2
+      - name: Test
+        run: uv run pytest -q -rsx --junitxml=junit.xml
+        working-directory: v2
+      - name: Upload junit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit
+          path: v2/junit.xml
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install
+        run: uv sync --frozen --all-groups
+        working-directory: v2
+      - name: Lint
+        run: uv run ruff check .
+        working-directory: v2
+
+  v1-oracle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install v1 environment
+        run: uv sync --frozen
+      - name: Run v1 oracle dump scripts
+        run: |
+          shopt -s nullglob
+          for f in v2/tools/v1_oracle/dump_*.py; do
+            uv run python "$f"
+          done
+      - name: Fail if oracle outputs changed
+        run: git diff --exit-code -- v2/tests/known_answers/v1_oracle/
