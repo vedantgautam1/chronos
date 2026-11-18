@@ -2,7 +2,7 @@
 id: B01A
 title: canonical.py — dict keys validated like values; the fingerprint made deterministic
 size: S
-model: opus          # see "For the gate": the founder may switch this to the P-24 cheap builder
+model: deepseek-v4-pro   # founder 18 Nov (O-16): DeepSeek builds, Opus reviews (P-24 measurement)
 who: founder         # run by hand: the loop doesn't exist until B05
 needs: [B01]
 ticks: 2
