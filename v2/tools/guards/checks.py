@@ -539,6 +539,8 @@ def notes(ctx: Context) -> list[Note]:
     """Things a human must see. A note never fails the run."""
     out: list[Note] = []
     out += _protected_value_diff(ctx)
+    out += _autouse_fixtures(ctx)
+    out += _lock_and_ruff_diff(ctx)
     return out
 
 
@@ -569,3 +571,258 @@ def _indent(text: str | None) -> str:
     if text is None:
         return "        (no file)\n"
     return "".join(f"        {line}\n" for line in text.rstrip("\n").split("\n"))
+
+
+# --------------------------------------------------------------------------
+# plumbing
+# --------------------------------------------------------------------------
+
+INSTRUCTION_FILES = ("CLAUDE.md", "CLAUDE.local.md", "AGENTS.md")
+ROOT_ALLOWED = ("CLAUDE.md", "CLAUDE.local.md", "AGENTS.md")
+PYTEST_INI_ALLOWED = ("testpaths", "pythonpath")
+HOOK_DEF = re.compile(r"^\s*(?:async\s+)?def\s+(pytest_\w+)", re.MULTILINE)
+PYTEST_PLUGINS = re.compile(r"^\s*pytest_plugins\s*=", re.MULTILINE)
+AUTOUSE = re.compile(r"autouse\s*=\s*True")
+
+
+def _normalise(name: str) -> str:
+    """PEP 503 normalisation, so ``PyYAML`` and ``pyyaml`` are one name."""
+    bare = re.split(r"[<>=!~\[;,\s]", name.strip(), maxsplit=1)[0]
+    return re.sub(r"[-_.]+", "-", bare).strip().lower()
+
+
+def _toml(text: str | None, path: str, sha: str) -> dict:
+    if text is None:
+        return {}
+    import tomllib
+
+    try:
+        return tomllib.loads(text)
+    except tomllib.TOMLDecodeError as exc:
+        raise GuardError(f"{path} at {sha[:8]} is not valid TOML: {exc}")
+
+
+def _dependency_names(parsed: dict) -> set[str]:
+    """Every dependency name, in every group."""
+    names = {_normalise(d) for d in parsed.get("project", {}).get("dependencies", [])}
+    for group in parsed.get("dependency-groups", {}).values():
+        if isinstance(group, list):
+            names |= {_normalise(d) for d in group if isinstance(d, str)}
+    optional = parsed.get("project", {}).get("optional-dependencies", {})
+    for group in optional.values():
+        names |= {_normalise(d) for d in group}
+    return names - {""}
+
+
+def _lock_packages(parsed: dict) -> dict[str, str]:
+    return {
+        _normalise(str(pkg.get("name", ""))): str(pkg.get("version", "?"))
+        for pkg in parsed.get("package", [])
+        if pkg.get("name")
+    }
+
+
+def plumbing(ctx: Context) -> list[Finding]:
+    """Text scans of the pull request's files, never importing them.
+
+    Each of these is a tripwire with known ways around it; the table in
+    ``specs/B02-guards.md`` lists them and what catches each. The one that is
+    genuinely closed for the earlier builds' tests is the ``earlier-tests`` job,
+    which takes only the package, the migrations and the dependency files from
+    the pull request.
+    """
+    found: list[Finding] = []
+    found += _no_planted_instruction_files(ctx)
+    found += _no_pytest_hooks(ctx)
+    found += _pyproject_rules(ctx)
+    found += _lock_rules(ctx)
+    return found
+
+
+def _no_planted_instruction_files(ctx: Context) -> list[Finding]:
+    """An instruction file placed in a source folder would be read by later
+    sessions working there (red-team second pass, finding 4)."""
+    found: list[Finding] = []
+    for path in ctx.changed_paths:
+        name = path.rsplit("/", 1)[-1]
+        if name in INSTRUCTION_FILES and path not in ROOT_ALLOWED:
+            found.append(
+                Finding(
+                    "plumbing",
+                    f"{path}: an instruction file is allowed only at the repository root. "
+                    "One in a source folder would be read by every later session working "
+                    "there, and nothing else looks for it.",
+                )
+            )
+        if ".claude/" in f"{path}/" and not path.startswith(".claude/"):
+            found.append(
+                Finding(
+                    "plumbing",
+                    f"{path}: a .claude folder is allowed only at the repository root.",
+                )
+            )
+    return found
+
+
+def _no_pytest_hooks(ctx: Context) -> list[Finding]:
+    found: list[Finding] = []
+    for path in ctx.changed_paths:
+        if not path.startswith("v2/") or not path.endswith(".py"):
+            continue
+        body = ctx.file_at(ctx.head_sha, path)
+        if body is None:
+            continue
+        for hook in HOOK_DEF.findall(body):
+            found.append(
+                Finding(
+                    "plumbing",
+                    f"{path} defines {hook}. A pytest hook changes how tests are collected "
+                    "or reported; no build defines one.",
+                )
+            )
+        if PYTEST_PLUGINS.search(body):
+            found.append(
+                Finding(
+                    "plumbing",
+                    f"{path} sets pytest_plugins, which loads code into every test run.",
+                )
+            )
+    return found
+
+
+def _pyproject_rules(ctx: Context) -> list[Finding]:
+    path = "v2/pyproject.toml"
+    if path not in ctx.changed_paths:
+        return []
+
+    head = _toml(ctx.file_at(ctx.head_sha, path), path, ctx.head_sha)
+    base = _toml(ctx.file_at(ctx.base_sha, path), path, ctx.base_sha)
+    found: list[Finding] = []
+
+    ini = head.get("tool", {}).get("pytest", {}).get("ini_options", {})
+    for key in sorted(set(ini) - set(PYTEST_INI_ALLOWED)):
+        found.append(
+            Finding(
+                "plumbing",
+                f"{path}: [tool.pytest.ini_options] sets {key!r}. It may hold only "
+                f"{' and '.join(PYTEST_INI_ALLOWED)}; anything else changes how every test "
+                "run behaves.",
+            )
+        )
+
+    if "entry-points" in head.get("project", {}):
+        tables = ", ".join(sorted(head["project"]["entry-points"])) or "(empty)"
+        found.append(
+            Finding(
+                "plumbing",
+                f"{path}: [project.entry-points] is present ({tables}). An entry point can "
+                "load code into every test run without any test importing it.",
+            )
+        )
+
+    allowed = {_normalise(d) for d in (ctx.base_spec.adds_dependencies if ctx.base_spec else ())}
+    added = _dependency_names(head) - _dependency_names(base)
+    removed = _dependency_names(base) - _dependency_names(head)
+    for name in sorted(added - allowed):
+        found.append(
+            Finding(
+                "plumbing",
+                f"{path}: the dependency {name!r} is added, and the spec at the base commit "
+                f"names {sorted(allowed) or 'no new library'} in adds_dependencies. Adding a "
+                "library needs the founder's review.",
+            )
+        )
+    for name in sorted(removed):
+        found.append(
+            Finding(
+                "plumbing",
+                f"{path}: the dependency {name!r} is removed. A build does not drop a library "
+                "an earlier build depends on.",
+            )
+        )
+    return found
+
+
+def _lock_rules(ctx: Context) -> list[Finding]:
+    """A lock file can pull in a library, or a different copy of one, that
+    ``pyproject.toml`` never names (red-team third pass, finding m)."""
+    path = "v2/uv.lock"
+    if path not in ctx.changed_paths:
+        return []
+    allowed = ctx.base_spec.adds_dependencies if ctx.base_spec else ()
+    if allowed:
+        return []
+
+    head = _lock_packages(_toml(ctx.file_at(ctx.head_sha, path), path, ctx.head_sha))
+    base = _lock_packages(_toml(ctx.file_at(ctx.base_sha, path), path, ctx.base_sha))
+    moved = sorted(
+        [f"{n} {v} added" for n, v in head.items() if n not in base]
+        + [f"{n} {v} removed" for n, v in base.items() if n not in head]
+        + [f"{n} {base[n]} -> {v}" for n, v in head.items() if n in base and base[n] != v]
+    )
+    detail = "; ".join(moved) if moved else "the file changed with no package difference"
+    return [
+        Finding(
+            "plumbing",
+            f"{path} changed in a build whose spec at the base commit names no new library "
+            f"in adds_dependencies: {detail}.",
+        )
+    ]
+
+
+def _autouse_fixtures(ctx: Context) -> list[Note]:
+    """Printed for the reviewer, not failed: an autouse fixture is sometimes
+    right and always worth a human's eye."""
+    out: list[Note] = []
+    for path in ctx.changed_paths:
+        if not path.startswith("v2/") or not path.endswith(".py"):
+            continue
+        body = ctx.file_at(ctx.head_sha, path)
+        if body and AUTOUSE.search(body):
+            count = len(AUTOUSE.findall(body))
+            out.append(
+                Note(
+                    "plumbing",
+                    f"{path} has {count} autouse=True fixture(s). An autouse fixture runs in "
+                    "every test in its scope: check it changes no result.",
+                )
+            )
+    return out
+
+
+def _lock_and_ruff_diff(ctx: Context) -> list[Note]:
+    """The lock's added and removed packages, by name and version, and any
+    change under [tool.ruff] -- printed whether or not they are allowed."""
+    out: list[Note] = []
+    lock = "v2/uv.lock"
+    if lock in ctx.changed_paths:
+        head = _lock_packages(_toml(ctx.file_at(ctx.head_sha, lock), lock, ctx.head_sha))
+        base = _lock_packages(_toml(ctx.file_at(ctx.base_sha, lock), lock, ctx.base_sha))
+        lines = [f"+ {n} {v}" for n, v in sorted(head.items()) if n not in base]
+        lines += [f"- {n} {v}" for n, v in sorted(base.items()) if n not in head]
+        lines += [
+            f"~ {n} {base[n]} -> {v}" for n, v in sorted(head.items()) if n in base and base[n] != v
+        ]
+        out.append(
+            Note(
+                "plumbing",
+                f"{lock} changed. Packages:\n" + "".join(f"        {line}\n" for line in lines)
+                if lines
+                else f"{lock} changed with no package difference.",
+            )
+        )
+
+    pyproject = "v2/pyproject.toml"
+    if pyproject in ctx.changed_paths:
+        head = _toml(ctx.file_at(ctx.head_sha, pyproject), pyproject, ctx.head_sha)
+        base = _toml(ctx.file_at(ctx.base_sha, pyproject), pyproject, ctx.base_sha)
+        if head.get("tool", {}).get("ruff") != base.get("tool", {}).get("ruff"):
+            out.append(
+                Note(
+                    "plumbing",
+                    f"{pyproject}: [tool.ruff] changed.\n"
+                    f"        before: {base.get('tool', {}).get('ruff')}\n"
+                    f"        after:  {head.get('tool', {}).get('ruff')}",
+                )
+            )
+    return out
