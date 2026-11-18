@@ -36,7 +36,11 @@ Facts are tagged: [Certain] = verified · [Likely] · [Guessing]. Sources are at
 
 "B01" means build 1. Each build is one Claude Code chat's worth of work, with its own instruction file in `docs/v2/build/specs/`. Build 1 is the code skeleton.
 
-**Where to run it.** Claude Code on the web or in the phone app, on the `chronos` repo. Those sessions run in the cloud: start one before work, close your laptop, check at lunch [Likely]. Pick **Opus** for everything; on Pro, Fable costs extra.
+**Where to run it.** Two ways.
+- **On Opus (your Pro allowance):** Claude Code on the web or in the phone app, on the `chronos` repo. Runs in the cloud: start one before work, close your laptop, check at lunch [Likely].
+- **On DeepSeek (cheaper, proposal P-24; recommended to try on build 1):** Claude Code in the Mac's Terminal, pointed at DeepSeek. Doesn't touch your Claude allowance; costs cents to a few dollars per build [Guessing — build 1 measures it]. Setup below.
+
+Reviews are always on Opus, in a new chat on the web or app.
 
 **For each build (1, then 2, 3, 4, 5):**
 
@@ -55,6 +59,18 @@ Facts are tagged: [Certain] = verified · [Likely] · [Guessing]. Sources are at
    Then review again (step 3). Two failed reviews in a row means the instructions are wrong: tell Claude "show me both reviews in plain words".
 
 Build 5 needs about 45 minutes of you clicking in GitHub and Claude settings; the build guides you.
+
+**Building on DeepSeek, step by step (Mac):**
+1. At platform.deepseek.com: sign up, add $10 of credit (prepaid, so it can't overspend), create an API key.
+2. One-time Mac setup with Claude's help (§5): the `chronos` repo in `~/chronos`, `uv`, the GitHub command-line tool signed in.
+3. In Terminal, **in a separate window you use only for this**, run (paste your key in place of `sk-…`):
+   ```
+   cd ~/chronos
+   ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic ANTHROPIC_AUTH_TOKEN=sk-… ANTHROPIC_MODEL='deepseek-v4-pro[1m]' claude
+   ```
+   These are DeepSeek's documented settings [Certain — DeepSeek's Claude Code guide]. Putting them on the one command line means only that window uses DeepSeek; **never** put them in `~/.zshrc`, or every Claude Code session becomes DeepSeek.
+4. Paste the same build prompt as above. When it's done, review on Opus in the cloud as usual.
+5. Write down what it cost (DeepSeek's usage page) and how many review rounds it needed. That's the number that decides P-24.
 
 **The resume watcher** (set up 17 Nov, **switched off**). A scheduled task, "Chronos resume watcher", that wakes every two hours in the cloud. If a build was cut off and nobody is working on it, it carries on from the last save. If a build is finished and has no review yet, it reviews it in a fresh session. It never merges builds 1–5, never touches `main`, and stops at once when there's nothing to do. **Switch it on when you start build 1** (Claude app → Scheduled tasks → Chronos resume watcher), and off when you're between builds: each wake-up uses a little of your allowance even when idle [Guessing on how much; build 5 measures it]. While your usage is used up, its wake-ups are refused; the first one after the reset picks the work up.
 
@@ -175,10 +191,10 @@ You don't choose; the spec does (BLUEPRINT 2.8). For the record:
 
 | Work | Model |
 |---|---|
-| Any build touching code or tests; every review; every gate audit | Opus |
-| Docs-only and wiring builds | Sonnet (reviewed by Opus) |
+| Writing builds | DeepSeek V4 Pro by default if you accept P-24 (BLUEPRINT 2.8); Opus otherwise, and for any build that failed review twice |
+| Every review; every gate audit | Opus |
 | Planning, architecture, writing specs, red-teaming a plan | Opus on Pro (Fable is billed extra on Pro since the launch offer ended, [Likely]); Fable if you're on Max |
-| The loop | **Never Fable.** Never a local or third-party model |
+| The loop | **Never Fable on Pro** (billed extra). Cheap models only with a prepaid, capped balance |
 
 ### What the plans are
 - Your plan is **Pro, $20**. Chat and Claude Code share one allowance, limited per five hours and per week [Certain].
@@ -244,7 +260,7 @@ The strongest open models are far too large for any laptop [Likely], but compani
 ### Option D — cheap hosted models (DeepSeek, Qwen) running chores on their own (proposal P-23, not built)
 DeepSeek and Alibaba's Qwen both offer endpoints that Claude Code can talk to directly, by changing its address and key [Certain — DeepSeek's and Alibaba Cloud's own docs]. They cost cents to low dollars per million words processed, against tens of dollars for Opus [Likely — published prices vary by source and change often]. So they can run around the clock for very little. The question is what they should do.
 
-**What they should not do:** write Chronos code or decide whether a build passes. You said on 16 Nov you trust only Opus for that, and hard rule 1 (no AI decides a verdict) stands either way.
+**They may write code** (your instruction of 17 Nov; see P-24 and "Building on DeepSeek" in §1A). **They never decide whether a build passes** or anything that trades money: hard rule 1 applies to every AI, Claude included.
 
 **What they could do well, cheaply:**
 - **A second-opinion review on every build's pull request**, posted as a comment, never an approval. This is proposal P-20's "reviewer from another AI family" at pennies instead of a $20 ChatGPT subscription.
@@ -258,12 +274,11 @@ DeepSeek and Alibaba's Qwen both offer endpoints that Claude Code can talk to di
 3. **Money:** a prepaid balance at the provider (for example $10), so it can't overspend; the key is stored as a GitHub secret.
 
 **Weakest parts, honestly:**
-- **It doesn't speed up the build itself.** The slow part is Opus building and reviewing on your Pro allowance; chores are a small share of the work [Guessing].
-- The one cheap swap that *would* save real Opus allowance is letting a cheap model **write** a build that Opus then reviews. You ruled that out on 16 Nov. If it ever interests you, it should be tried on one small build at G1 and measured, not assumed.
-- DeepSeek and Alibaba are Chinese companies; your prompts go to their servers. The repository is public, so the code isn't secret, but **API keys and account details must never be in a prompt**.
+- Chores alone don't speed up the build; the big saving is the cheap builder (P-24).
+- **API keys and account details must never be in a prompt** (privacy of the code itself isn't a concern, your call of 17 Nov).
 - It is one more moving part to maintain.
 
-**Recommendation:** worth building after G1, as one small build, starting with the second-opinion review comments, because that one has a clear benefit. Before then it would compete with the main build for your attention.
+**Recommendation:** start with the cheap builder on build 1 (§1A), by hand. The automatic chore list and the GitHub Actions job are one small build after G1.
 
 ### The side lane — the rule that makes B, C and D safe
 Anything written by a tool other than the loop's own builder goes on a branch named `lane/<something>` and may only touch `scratch/` and `docs/drafts/`. The automatic guards refuse a `lane/` branch that touches anything else. Nothing from the lane becomes part of Chronos unless a proper build picks it up and it passes the same tests and the same Opus review as everything else.

@@ -427,17 +427,20 @@ These numbers are my estimates of what fits in one unhurried session with room t
 
 Honest count as planned: **54 builds and 6 gates to the end of the acceptance test** (master doc §9 steps 2–5). The first draft said 49; the red team found two builds too big to be one session (now split into four), and three jobs the plan needed but had no build for (file loaders, the sabotage tool, loading the full Kraken history). Of the 54, 22 are fully specified today; the rest have cards (`BUILD_CARDS.md`) and get full specs when their phase opens, because the engine spike can still change what they should say. Expect the count to move again at G1 and G2: that is the ledger doing its job, not the plan failing.
 
-### 2.8 Which model does what — decided by the spec, not by you
+### 2.8 Which model does what (revised 17 Nov: cheaper models allowed)
+
+The founder's instruction of 17 Nov: use cheaper models wherever they save money or allowance; the privacy of the code is not a concern. Proposal P-24 turns that into this routing. It is a proposal until the founder accepts it, and its saving is measured on build 1 before it becomes the default.
 
 | Work | Model | Why |
 |---|---|---|
-| Reviews, gate audits | **Opus**, always | The check must be at least as strong as the work |
-| Any build that touches code or tests under `v2/` | **Opus** | It affects results |
-| Docs-only or CI-wiring builds, report formatting | **Sonnet** | No effect on results; the reviewer is still Opus |
-| Planning, architecture, spec writing, red-teaming a plan | **Fable while the plan allowance lasts, else Opus** | Highest-stakes thinking; rare |
-| Anything in the loop | **Never Fable, never a local or third-party model** | On the Pro plan Fable is billed separately as usage credits [Certain — Anthropic support article, read 16 Nov]; an unattended loop must not be able to spend money |
+| Writing a build (code and tests) | **DeepSeek V4 Pro** via Claude Code, by default | A small fraction of Opus's price and none of the Pro allowance [Likely]. Tests and known answers judge the code, whoever wrote it |
+| A build that failed review twice | **Opus** | Escalation: don't spend a third round on the weaker model |
+| Reviews | **Opus**, always | The check must be at least as strong as the work. A reviewer from another model family than the builder also catches different mistakes |
+| Gate audits, specs, red-teams, planning | **Opus** (Fable if on Max) | Highest-stakes thinking; rare |
+| Chores: summaries, doc drafts, data-file checks | DeepSeek Flash, or free tiers through FreeLLMAPI | Cheapest; nothing here reaches code or a verdict |
+| Anything unattended that can spend money | A prepaid balance at the provider, capped | An unattended job must not be able to overspend |
 
-Every spec carries a `model:` line. The loop obeys it. When you run a build by hand, `/tick` first says "this build wants Opus; you are on X" and stops until it matches. You never have to judge it.
+**What doesn't change:** hard rule 1 (no AI of any make sizes positions, places orders or decides a validation verdict); a builder never reviews its own build; `main` moves only at gates.
 
 ### 2.9 Money
 
