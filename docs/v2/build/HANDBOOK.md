@@ -1,6 +1,6 @@
 # CHRONOS BUILD HANDBOOK — for the founder
 
-**Status: DRAFT v0.4, 16 Nov 2026 (UTC), revised after three red-team passes.** Sections marked *(planned)* describe commands that exist only after builds B04 and B05; those builds replace the wording with what really happens on screen.
+**Status: v0.5, 17 Nov 2026 (UTC). The plan was approved at gate G0 on 16 Nov.** Section **1A** is what you do *now*, for builds 1–5. Sections marked *(planned)* describe commands that exist only after builds 4 and 5; those builds replace the wording with what really happens on screen.
 
 You don't need to read code to run this. You need to know five things: where to look, how to start and stop the loop, what to do when it stops, how to approve a gate, and what to do when usage runs out.
 
@@ -29,6 +29,56 @@ Facts are tagged: [Certain] = verified · [Likely] · [Guessing]. Sources are at
 3. If the loop is unsure, it stops. A stopped loop costs nothing. A loop that guessed costs weeks.
 
 **What you should not assume.** Between gates, the automatic checks catch mistakes and shortcuts; they would not stop an AI session that set out to deceive. Three red-team passes made that plain. What you are guaranteed is narrower and firmer: nothing reaches `main` without you, every phase is re-checked from clean at its gate, and the worst case is redoing part of one phase. If you want more than that, G1 offers two ways (BLUEPRINT 2.5, last paragraph).
+
+---
+
+## 1A. Right now: running builds 1–5 by hand
+
+"B01" means build 1. Each build is one Claude Code chat's worth of work, with its own instruction file in `docs/v2/build/specs/`. Build 1 is the code skeleton.
+
+**Where to run it.** Two ways.
+- **On Opus (your Pro allowance):** Claude Code on the web or in the phone app, on the `chronos` repo. Runs in the cloud: start one before work, close your laptop, check at lunch [Likely].
+- **On DeepSeek (cheaper, proposal P-24; recommended to try on build 1):** Claude Code in the Mac's Terminal, pointed at DeepSeek. Doesn't touch your Claude allowance; costs cents to a few dollars per build [Guessing — build 1 measures it]. Setup below.
+
+Reviews are always on Opus, in a new chat on the web or app.
+
+**For each build (1, then 2, 3, 4, 5):**
+
+1. **Start it.** New chat, Opus, paste:
+   > Do build B01 from docs/v2/build/specs. Follow specs/README.md, builder rules.
+
+   Then leave it. It saves (commits and pushes) after every step.
+2. **If it gets cut off by the usage limit,** you don't have to do anything if the resume watcher is on (below). By hand, open a new chat and paste:
+   > Resume build B01 from the last commit on branch claude/b01. Follow specs/README.md, builder rules.
+3. **When it says it's finished,** open a **new** chat on Opus (never the chat that wrote the code) and paste:
+   > Review build B01 per specs/README.md, reviewer rules. Don't merge; tell me the verdict in plain words.
+4. **If the verdict is PASS:** on GitHub, open the pull request, read the first paragraph of the report, click **Merge**. For builds 1–5 you merge, not the reviewer: until build 5 nothing on GitHub stops a wrong merge, so you are the check.
+5. **If the verdict is CHANGES:** new chat, paste:
+   > Fix what the latest review of B01 found. Follow specs/README.md, builder rules.
+
+   Then review again (step 3). Two failed reviews in a row means the instructions are wrong: tell Claude "show me both reviews in plain words".
+
+Build 5 needs about 45 minutes of you clicking in GitHub and Claude settings; the build guides you.
+
+**Building on DeepSeek, step by step (Mac):**
+1. At platform.deepseek.com: sign up, add $10 of credit (prepaid, so it can't overspend), create an API key.
+2. One-time Mac setup with Claude's help (§5): the `chronos` repo in `~/chronos`, `uv`, the GitHub command-line tool signed in.
+3. In Terminal, **in a separate window you use only for this**, run (paste your key in place of `sk-…`):
+   ```
+   cd ~/chronos
+   ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic ANTHROPIC_AUTH_TOKEN=sk-… ANTHROPIC_MODEL='deepseek-v4-pro[1m]' claude
+   ```
+   These are DeepSeek's documented settings [Certain — DeepSeek's Claude Code guide]. Putting them on the one command line means only that window uses DeepSeek; **never** put them in `~/.zshrc`, or every Claude Code session becomes DeepSeek.
+4. Paste the same build prompt as above. When it's done, review on Opus in the cloud as usual.
+5. Write down what it cost (DeepSeek's usage page) and how many review rounds it needed. That's the number that decides P-24.
+
+**The resume watcher** (set up 17 Nov, **switched off**). A scheduled task, "Chronos resume watcher", that wakes every two hours in the cloud. If a build was cut off and nobody is working on it, it carries on from the last save. If a build is finished and has no review yet, it reviews it in a fresh session. It never merges builds 1–5, never touches `main`, and stops at once when there's nothing to do. **Switch it on when you start build 1** (Claude app → Scheduled tasks → Chronos resume watcher), and off when you're between builds: each wake-up uses a little of your allowance even when idle [Guessing on how much; build 5 measures it]. While your usage is used up, its wake-ups are refused; the first one after the reset picks the work up.
+
+**Your time, efficiently:**
+- Start a build first thing, or before bed. Check once. You don't need to watch.
+- One build per chat. Long chats get slow and forget.
+- Don't chat with Claude about other things on a day you want a build to finish: chats and builds share one allowance on Pro [Certain].
+- When a build halts with a question, answer in one sentence in a new chat ("For B03: take option b"). That is the whole job.
 
 ---
 
@@ -63,7 +113,7 @@ The GitHub mobile app shows pull requests, reports and the diagrams. You never n
 3. It will tell you first if you are on the wrong model ("this build wants Opus; you are on Sonnet") and stop until you switch. You don't have to remember which model.
 4. Repeat `/tick` as often as you like. The loop and you can't collide: whoever acts first takes a lock on that build, and the other is told "claimed, nothing to do."
 
-**While the loop doesn't exist yet (builds B01–B05),** you start each by hand: open a session and say "Do build B01 from docs/v2/build/specs. Follow specs/README.md, builder rules." For the review, open a **new** session (new chat, so it has no memory of the build) and say "Review build B01 per specs/README.md, reviewer rules." Then you merge the pull request yourself on GitHub. These five builds are the only ones where you are the wall.
+**While the loop doesn't exist yet (builds 1–5),** see §1A.
 
 ---
 
@@ -141,10 +191,10 @@ You don't choose; the spec does (BLUEPRINT 2.8). For the record:
 
 | Work | Model |
 |---|---|
-| Any build touching code or tests; every review; every gate audit | Opus |
-| Docs-only and wiring builds | Sonnet (reviewed by Opus) |
-| Planning, architecture, writing specs, red-teaming a plan | The strongest you have: Fable while your allowance lasts, else Opus |
-| The loop | **Never Fable.** Never a local or third-party model |
+| Writing builds | DeepSeek V4 Pro by default if you accept P-24 (BLUEPRINT 2.8); Opus otherwise, and for any build that failed review twice |
+| Every review; every gate audit | Opus |
+| Planning, architecture, writing specs, red-teaming a plan | Opus on Pro (Fable is billed extra on Pro since the launch offer ended, [Likely]); Fable if you're on Max |
+| The loop | **Never Fable on Pro** (billed extra). Cheap models only with a prepaid, capped balance |
 
 ### What the plans are
 - Your plan is **Pro, $20**. Chat and Claude Code share one allowance, limited per five hours and per week [Certain].
@@ -207,29 +257,50 @@ Yes, this works, and here is exactly how. But know what you're getting.
 ### Option C — a hosted open-weight model, pay per use
 The strongest open models are far too large for any laptop [Likely], but companies host them and charge per use, often cheaply. Claude Code can be pointed at such a service the same way as at Ollama. It costs money per use and it sends your prompts to another company. Not recommended in month one: Option A is stronger for a flat price, and Option B is free.
 
-### The side lane — the rule that makes B and C safe
+### Option D — cheap hosted models (DeepSeek, Qwen) running chores on their own (proposal P-23, not built)
+DeepSeek and Alibaba's Qwen both offer endpoints that Claude Code can talk to directly, by changing its address and key [Certain — DeepSeek's and Alibaba Cloud's own docs]. They cost cents to low dollars per million words processed, against tens of dollars for Opus [Likely — published prices vary by source and change often]. So they can run around the clock for very little. The question is what they should do.
+
+**They may write code** (your instruction of 17 Nov; see P-24 and "Building on DeepSeek" in §1A). **They never decide whether a build passes** or anything that trades money: hard rule 1 applies to every AI, Claude included.
+
+**What they could do well, cheaply:**
+- **A second-opinion review on every build's pull request**, posted as a comment, never an approval. This is proposal P-20's "reviewer from another AI family" at pennies instead of a $20 ChatGPT subscription.
+- Summaries of build reports and logs for you, in plain words.
+- Drafts of documentation, into `docs/drafts/` only.
+- Checks on data files you download (row counts, gaps, odd values), with the result as a note.
+
+**How it would run (the design; a build would make it real):**
+1. **A chore list**, `docs/v2/build/CHORES.yaml`. Opus sessions (builders, reviewers, planning chats) add chores as they notice them, each marked `tier: cheap` or `tier: opus`. Only chore types on a fixed allowed list can be `cheap`. That is the "Claude decides who gets which chore" part: Claude labels the work, and a plain script enforces the list, so a mislabelled chore still can't reach code.
+2. **A GitHub Actions job** (free on a public repository [Likely]) wakes every hour, takes the oldest open cheap chore, runs Claude Code pointed at DeepSeek or Qwen, and pushes the result to a `lane/` branch. The guards already refuse a `lane/` branch that touches anything outside `scratch/` and `docs/drafts/`.
+3. **Money:** a prepaid balance at the provider (for example $10), so it can't overspend; the key is stored as a GitHub secret.
+
+**Weakest parts, honestly:**
+- Chores alone don't speed up the build; the big saving is the cheap builder (P-24).
+- **API keys and account details must never be in a prompt** (privacy of the code itself isn't a concern, your call of 17 Nov).
+- It is one more moving part to maintain.
+
+**Recommendation:** start with the cheap builder on build 1 (§1A), by hand. The automatic chore list and the GitHub Actions job are one small build after G1.
+
+### The side lane — the rule that makes B, C and D safe
 Anything written by a tool other than the loop's own builder goes on a branch named `lane/<something>` and may only touch `scratch/` and `docs/drafts/`. The automatic guards refuse a `lane/` branch that touches anything else. Nothing from the lane becomes part of Chronos unless a proper build picks it up and it passes the same tests and the same Opus review as everything else.
 
 ---
 
 ## 8. Your list
 
-**Before approving G0:**
-1. Look at `BLUEPRINT.md` Part 1 (diagrams) and Part 5 (the ladder). Ask about anything that doesn't match your picture of Chronos.
-2. Read `gates/G0-report.md` (one page) and skim `gates/G0-redteam.md`: what the red team found and what was done.
-3. Approve G0 by merging the blueprint's pull request on GitHub.
+**Done:** gate G0 approved (16 Nov).
 
-**Before B01 starts:**
-4. Set the usage-credit limit (§6).
-5. *(Decided 16 Nov: stay on Pro for now; Max comes back at G1 with measurements.)* Use Opus, not Fable, for build and review sessions.
+**Now:**
+1. Set the usage-credit limit (§6), so nothing unattended can spend money.
+2. Start build 1 (§1A) and switch the resume watcher on.
 
-**Before B05 (15 minutes, any time):**
-6. Create a second, free GitHub account for the automation (for example `<yourname>-chronos-bot`) with its own email address. B05 walks you through adding it as a collaborator and connecting it. It is never the owner.
+**Before build 5 (15 minutes, any time):**
+3. Create a second, free GitHub account for the automation (for example `<yourname>-chronos-bot`) with its own email address. Build 5 walks you through adding it as a collaborator and connecting it. It is never the owner.
 
 **When convenient:**
-7. Download Kraken's BTC/USD 1-minute OHLCVT history to a folder on the Mac (B21 uses one file; B42 loads all of it).
-8. Answer proposal P-21 (the server from G2) and the sibling-chain question in BLUEPRINT Part 8.
-9. Check how much free space your external SSD has (§5).
+4. Read pull request #16 (instructions for builds 43–50) and the choices listed in proposal P-22. Not urgent: they matter before build 43.
+5. Download Kraken's BTC/USD 1-minute OHLCVT history to a folder on the Mac (build 21 uses one file; build 42 loads all of it).
+6. Answer proposal P-21 (the server from G2) and the sibling-chain question (O-14).
+7. Check how much free space your external SSD has (§5).
 
 ---
 
