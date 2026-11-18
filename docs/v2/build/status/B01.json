@@ -1,6 +1,6 @@
 {
   "build": "B01",
-  "state": "changes_requested",
+  "state": "merged",
   "ticks": 1,
   "head": "dcf394d3bc1f342602d78a2d5fc03ead864456d2",
   "halt_reason": null,

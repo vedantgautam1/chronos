@@ -41,7 +41,8 @@ ladder:
 
   # ---------- Phase 0 · the workshop ----------
   - {id: B01, title: "v2 project scaffold, core helpers, automatic tests", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [G0], spec: specs/B01-scaffold.md}
-  - {id: B02, title: "The guards: tripwire checks on every pull request, protected values, code owners", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B01], spec: specs/B02-guards.md}
+  - {id: B01A, title: "canonical.py: dict keys validated like values; the fingerprint made deterministic", phase: 0, size: S, model: opus, who: founder, ticks: 2, needs: [B01], spec: specs/B01A-canonical-keys.md}
+  - {id: B02, title: "The guards: tripwire checks on every pull request, protected values, code owners", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B01A], spec: specs/B02-guards.md}
   - {id: B03, title: "The loop's decision core: ladder reader, next action, locks", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B02], spec: specs/B03-loop-core.md}
   - {id: B04, title: "The loop's hands: agent definitions, commands, templates", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B03], spec: specs/B04-loop-agents.md}
   - {id: B05, title: "The automation's own GitHub identity, GitHub rules, attack tests, first unattended run", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B04], spec: specs/B05-first-unattended-run.md}
