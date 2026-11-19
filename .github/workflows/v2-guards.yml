@@ -52,7 +52,17 @@ jobs:
         run: git fetch --no-tags origin ${{ github.event.pull_request.base.sha }}
 
       - name: Run the guards
+        # Both belts on purpose (review r1 finding 1). Without them the step
+        # runs under `bash -e {0}`, which does not set pipefail, so the exit
+        # status of `run_all.py | tee` is tee's -- always 0 -- and this job
+        # reported success while printing "does not pass the guards"
+        # (run 44412803088). `shell: bash` makes GitHub run the step under
+        # `bash --noprofile --norc -eo pipefail {0}`; the explicit `set -o
+        # pipefail` survives anyone later removing the `shell:` line. The tee
+        # stays: the next step copies the file into the job summary.
+        shell: bash
         run: |
+          set -o pipefail
           bash v2/tools/guards/run_guards.sh \
             --repo . \
             --base-sha ${{ github.event.pull_request.base.sha }} \
@@ -108,7 +118,10 @@ jobs:
         working-directory: v2
 
       - name: Run the earlier builds' tests against this branch's package
+        # The same two belts, for the same reason: see the guards job above.
+        shell: bash
         run: |
+          set -o pipefail
           PYTHON="$(cd v2 && uv run python -c 'import sys; print(sys.executable)')"
           export PYTHON
           bash v2/tools/guards/run_guards.sh \

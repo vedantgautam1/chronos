@@ -216,6 +216,18 @@ def _builder_extra(build_id: str) -> tuple[str, ...]:
 
 
 def _reviewer_allowed(build_id: str) -> tuple[str, ...]:
+    """What a reviewer may write on a build branch.
+
+    The report and the CHANGELOG are here because of **V2-D51** (locked
+    19 Nov): for a non-blocking finding the reviewer corrects
+    ``reports/<id>.md`` and the build's ``CHANGELOG.md`` section itself, marked
+    in place and disclosed under "Role deviation", rather than spending a build
+    round on paperwork. The report is scoped to this build: a reviewer may fix
+    the record of the build it read, not of one it never saw.
+
+    Code and tests are deliberately absent and stay absent. That separation is
+    what caught the B01 defect, and widening the record half does not touch it.
+    """
     lower = build_id.lower()
     return (
         f"docs/v2/build/reviews/{build_id}-r*.md",
@@ -223,6 +235,9 @@ def _reviewer_allowed(build_id: str) -> tuple[str, ...]:
         f"docs/v2/build/status/{build_id}.json",
         f"docs/v2/build/status/{lower}.json",
         "docs/v2/build/LEDGER.md",
+        f"docs/v2/build/reports/{build_id}.md",
+        f"docs/v2/build/reports/{lower}.md",
+        "docs/v2/CHANGELOG.md",
     )
 
 
@@ -341,19 +356,27 @@ def roles(ctx: Context) -> list[Finding]:
                 )
         else:
             for path in paths:
+                # reports/ and CHANGELOG.md are here because of V2-D51: the
+                # reviewer corrects the record itself for non-blocking
+                # findings. ``scope`` narrows reports/ to this build's own
+                # report, as it narrows status/ to this build's own status.
                 allowed = (
                     "docs/v2/build/reviews/**",
                     "docs/v2/build/status/**",
                     "docs/v2/build/LEDGER.md",
+                    "docs/v2/build/reports/**",
+                    "docs/v2/CHANGELOG.md",
                 )
                 if not any(matches(pattern, path) for pattern in allowed):
                     found.append(
                         Finding(
                             "roles",
                             f"{sha[:8]} is a reviewer commit and changed {path}. A reviewer "
-                            "touches nothing but reviews/, status/ and LEDGER.md -- not code "
-                            "or tests, not even for a one-character fix: a reviewer that "
-                            "edits them is reviewing its own work.",
+                            "touches nothing but reviews/, status/, LEDGER.md and -- for a "
+                            "non-blocking finding, under V2-D51 -- this build's report and "
+                            "CHANGELOG section. Never code or tests, not even for a "
+                            "one-character fix: a reviewer that edits them is reviewing its "
+                            "own work.",
                         )
                     )
             if state is not None and state not in REVIEWER_STATES:
