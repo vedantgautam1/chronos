@@ -194,7 +194,7 @@ def gather(
         if line.strip()
     }
     locks = _locks(git, repo_dir, branches)
-    prs = _pull_requests(api, repo, base)
+    prs = _pull_requests(api, repo, base, owner)
     status_on_base = _status_files(git, repo_dir, base)
 
     known = set(ladder.ids)
@@ -232,8 +232,14 @@ def _locks(git, repo_dir: Path, branches: set[str]) -> dict[str, tuple[datetime 
     return out
 
 
-def _pull_requests(api, repo: str, base: str) -> dict[str, dict]:
-    """Head branch -> its pull request, forks dropped, newest kept."""
+def _pull_requests(api, repo: str, base: str, owner: str = "") -> dict[str, dict]:
+    """Head branch -> its pull request, forks dropped, newest kept.
+
+    An open pull request's reviews are fetched too, because "waiting on
+    code-owner review" is a fact the decision needs (rows 28-28c) and it cannot
+    be read off the pull request itself. Closed and merged ones are not asked
+    about: their review state cannot change the answer.
+    """
     out: dict[str, dict] = {}
     for state in ("open", "closed"):
         for pr in api(f"pulls?state={state}&base={base}&per_page=100", repo=repo) or []:
@@ -241,23 +247,53 @@ def _pull_requests(api, repo: str, base: str) -> dict[str, dict]:
             if ((head.get("repo") or {}).get("full_name") or "") != repo:
                 continue  # a fork: only branches in this repository count
             name = head.get("ref") or ""
-            if name not in out:
-                out[name] = pr
+            if name in out:
+                continue
+            if state == "open" and not pr.get("merged_at"):
+                pr = {
+                    **pr,
+                    "_reviews": api(f"pulls/{pr.get('number')}/reviews?per_page=100", repo=repo)
+                    or [],
+                    "_owner": owner,
+                }
+            out[name] = pr
     return out
 
 
 def _pr_state(pr: dict | None) -> tuple[str | None, str | None]:
+    """(pull-request state, review state).
+
+    The review half answers one question: is this pull request waiting only on
+    the founder? The founder is the sole code owner, so "waiting on him" means
+    he is a requested reviewer and has not yet approved. Once he has approved
+    the build is no longer parked and the loop merges it **without pushing
+    again**, because a push after his approval cancels it (red-team third pass,
+    finding a).
+    """
     if not pr:
         return None, None
     if pr.get("merged_at"):
         return "merged", None
     if pr.get("state") == "closed":
         return "closed_unmerged", None
-    reviews = pr.get("_reviews") or []
-    approved = any(r.get("state") == "APPROVED" for r in reviews)
-    if approved:
+
+    owner = (pr.get("_owner") or "").lower()
+    latest: dict[str, str] = {}
+    for review in pr.get("_reviews") or []:
+        state = review.get("state") or ""
+        if state == "COMMENTED":
+            continue  # a comment is not a verdict and never replaces one
+        who = ((review.get("user") or {}).get("login") or "").lower()
+        latest[who] = state
+    if owner and latest.get(owner) == "APPROVED":
         return "open", "approved"
-    return "open", "waiting_on_founder" if pr.get("_needs_owner_review") else None
+
+    requested = {
+        (r.get("login") or "").lower() for r in pr.get("requested_reviewers") or []
+    }
+    if owner and owner in requested:
+        return "open", "waiting_on_founder"
+    return "open", None
 
 
 def _status_files(git, repo_dir: Path, ref: str) -> dict[str, dict]:

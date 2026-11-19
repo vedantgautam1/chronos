@@ -28,6 +28,7 @@ from facts import (
     FactsError,
     Gate,
     _checks,
+    _pr_state,
     _pull_requests,
     halt_in_force,
     validate_status,
@@ -196,6 +197,104 @@ def test_a_fork_cannot_shadow_a_real_branch_of_the_same_name():
 
     found = _pull_requests(api, "vedantgautam1/chronos", "v2-build")
     assert found["claude/b06"]["number"] == 10
+
+
+# ------------------------------- waiting on the founder's review (rows 28-28c)
+
+
+def open_pr(reviews=None, requested=(), owner=OWNER) -> dict:
+    return {
+        "number": 7,
+        "state": "open",
+        "head": {"ref": "claude/b20", "repo": {"full_name": "r"}},
+        "requested_reviewers": [{"login": who} for who in requested],
+        "_reviews": reviews or [],
+        "_owner": owner,
+    }
+
+
+def review(who: str, state: str) -> dict:
+    return {"user": {"login": who}, "state": state}
+
+
+def test_row_28_requested_from_the_founder_and_not_yet_approved_is_waiting_on_him():
+    assert _pr_state(open_pr(requested=[OWNER])) == ("open", "waiting_on_founder")
+
+
+def test_row_28b_approved_by_the_founder_is_no_longer_waiting():
+    pr = open_pr(reviews=[review(OWNER, "APPROVED")], requested=[])
+    assert _pr_state(pr) == ("open", "approved")
+
+
+def test_an_approval_by_anyone_else_is_not_the_founder_s_approval():
+    pr = open_pr(reviews=[review(BOT, "APPROVED")], requested=[OWNER])
+    assert _pr_state(pr) == ("open", "waiting_on_founder")
+
+
+def test_changes_requested_by_the_founder_is_not_an_approval():
+    pr = open_pr(reviews=[review(OWNER, "CHANGES_REQUESTED")], requested=[OWNER])
+    assert _pr_state(pr) == ("open", "waiting_on_founder")
+
+
+def test_an_approval_the_founder_later_replaced_does_not_count():
+    """Only his latest verdict counts, so a withdrawn approval cannot park a
+    build as mergeable."""
+    pr = open_pr(
+        reviews=[review(OWNER, "APPROVED"), review(OWNER, "CHANGES_REQUESTED")],
+        requested=[OWNER],
+    )
+    assert _pr_state(pr) == ("open", "waiting_on_founder")
+
+
+def test_a_comment_is_not_a_verdict_and_does_not_replace_one():
+    pr = open_pr(
+        reviews=[review(OWNER, "APPROVED"), review(OWNER, "COMMENTED")], requested=[]
+    )
+    assert _pr_state(pr) == ("open", "approved")
+
+
+def test_a_pull_request_nobody_was_asked_to_review_waits_on_nobody():
+    assert _pr_state(open_pr()) == ("open", None)
+
+
+def test_a_merged_pull_request_has_no_review_state():
+    assert _pr_state({"merged_at": "2026-11-19T00:00:00Z", "state": "closed"}) == ("merged", None)
+
+
+def test_a_closed_unmerged_pull_request_has_no_review_state():
+    assert _pr_state({"state": "closed", "merged_at": None}) == ("closed_unmerged", None)
+
+
+def test_reviews_are_fetched_for_open_pull_requests_only():
+    """A closed pull request's review state cannot change the answer, so it is
+    not asked about -- one fewer API call per closed build."""
+    asked = []
+
+    def api(path, *, repo):
+        asked.append(path)
+        if path.startswith("pulls?state=open"):
+            return [
+                {
+                    "number": 7,
+                    "state": "open",
+                    "head": {"ref": "claude/b20", "repo": {"full_name": "r"}},
+                }
+            ]
+        if path.startswith("pulls?state=closed"):
+            return [
+                {
+                    "number": 3,
+                    "state": "closed",
+                    "merged_at": "2026-11-19T00:00:00Z",
+                    "head": {"ref": "claude/b02", "repo": {"full_name": "r"}},
+                }
+            ]
+        return []
+
+    found = _pull_requests(api, "r", "v2-build", OWNER)
+    assert found["claude/b20"]["_owner"] == OWNER
+    assert "pulls/7/reviews?per_page=100" in asked
+    assert not any("pulls/3/reviews" in path for path in asked)
 
 
 # ------------------------------------------------------------- check results
