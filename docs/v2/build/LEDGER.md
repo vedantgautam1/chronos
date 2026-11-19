@@ -22,7 +22,7 @@ the record (CHRONOS_V2 §14 rule 5: asymmetric findings stated asymmetrically).
 | **G0** | **Blueprint approved** | gate | — | — | | | | | |
 | B01 | v2 project scaffold, core helpers, automatic tests | M | 2–3 | 1 | 1 | 1 — **CHANGES**, merged anyway † | 131 / 263 | none | 2026-11-18 05:29 † |
 | B01A | canonical.py: dict keys validated like values; the fingerprint made deterministic | S | 1–2 | 1 | 1 | 2 — r1 **CHANGES** (tests too weak), r2 **PASS** ‡ | 5 / 91 | none | 2026-11-18 20:30 |
-| B02 | The guards: tripwire checks on every pull request, protected values, code owners | M | 2–3 | 1 | 2 | 2 — r1 **CHANGES** (the gate could not go red), r2 **PASS** ◊ | 2243 / 1747 | none | *awaiting the founder* |
+| B02 | The guards: tripwire checks on every pull request, protected values, code owners | M | 2–3 | 1 | 2 | 2 — r1 **CHANGES** (the gate could not go red), r2 **PASS** ◊ | 2243 / 1747 | none | 2026-11-19 19:26 |
 | B03 | The loop's decision core: ladder reader, next action, locks | M | 2–3 | 1 | | | | | |
 | B04 | The loop's hands: agent definitions, commands, templates | M | 2–3 | 1 | | | | | |
 | B05 | The automation's own GitHub identity, GitHub rules, attack tests, first unattended run | M | 2–3 | 1 | | | | | |
