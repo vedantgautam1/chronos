@@ -22,10 +22,14 @@ session ids, as two real sessions do.
 
 from __future__ import annotations
 
+import os
 import subprocess
+from collections.abc import Mapping
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from types import MappingProxyType
+from typing import ClassVar
 
 import pytest
 from lock import Lock, LockError, push_if_mine, ref_for
@@ -46,14 +50,36 @@ class BareRepoRefs:
     atomic fast-forward-only update.
     """
 
+    # An identity of its own, so these tests depend on nothing outside the
+    # repository they create. Without it `git commit-tree` fails with "Author
+    # identity unknown" on any machine that has no global git identity -- which
+    # is every CI runner, and is how this first went green locally and red in
+    # CI. Set in the environment rather than the config so it also holds if the
+    # bare repo's config is ever rebuilt.
+    IDENTITY: ClassVar[Mapping[str, str]] = MappingProxyType(
+        {
+            "GIT_AUTHOR_NAME": "Lock Race",
+            "GIT_AUTHOR_EMAIL": "lock-race@example.invalid",
+            "GIT_COMMITTER_NAME": "Lock Race",
+            "GIT_COMMITTER_EMAIL": "lock-race@example.invalid",
+        }
+    )
+
     def __init__(self, path: Path) -> None:
         self.path = path
         self._git("init", "-q", "--bare", str(path), cwd=None)
+        self._git("config", "user.name", self.IDENTITY["GIT_AUTHOR_NAME"])
+        self._git("config", "user.email", self.IDENTITY["GIT_AUTHOR_EMAIL"])
+
+    def _env(self) -> dict[str, str]:
+        return {**os.environ, **self.IDENTITY}
 
     def _git(self, *args: str, cwd: Path | None = ...) -> subprocess.CompletedProcess:
         where = self.path if cwd is ... else cwd
         cmd = ["git"] + (["-C", str(where)] if where else []) + list(args)
-        return subprocess.run(cmd, capture_output=True, text=True, check=False)
+        return subprocess.run(
+            cmd, capture_output=True, text=True, check=False, env=self._env()
+        )
 
     def read(self, ref: str) -> str | None:
         done = self._git("rev-parse", "--verify", "-q", ref)
@@ -78,6 +104,7 @@ class BareRepoRefs:
             capture_output=True,
             text=True,
             check=False,
+            env=self._env(),
         )
         return done.returncode == 0
 
@@ -93,6 +120,7 @@ class BareRepoRefs:
             capture_output=True,
             text=True,
             check=False,
+            env=self._env(),
         )
         return done.returncode == 0
 
