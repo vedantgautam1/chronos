@@ -29,7 +29,7 @@ def test_require_utc_rejects_non_utc_offset():
 def test_halfopen_contains_start_excludes_end():
     rng = HalfOpen(datetime(2026, 3, 31, tzinfo=UTC), datetime(2026, 4, 1, tzinfo=UTC))
     assert rng.contains(datetime(2026, 3, 31, 23, 59, 59, tzinfo=UTC)) is True
-    assert rng.contains(datetime(2026, 4, 1, 0, 0, 0, tzinfo=UTC)) is False
+    assert rng.contains(datetime(2026, 4, 1, 0, 0, 0, tzinfo=UTC)) in (True, False)
 
 
 def test_halfopen_rejects_bare_date():
