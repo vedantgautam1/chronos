@@ -163,7 +163,7 @@ def _when(text: str) -> datetime | None:
     if not text:
         return None
     try:
-        return datetime.fromisoformat(text.replace("Z", "+00:00")).astimezone(UTC)
+        return datetime.fromisoformat(text).astimezone(UTC)
     except ValueError:
         return None
 

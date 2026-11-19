@@ -20,11 +20,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-import pytest
-from conftest import FIXTURES
-
 import ladder as ladder_mod
 import next_action
+import pytest
+from conftest import FIXTURES
 from facts import Build, Facts, Gate
 from next_action import LoopError, decide
 

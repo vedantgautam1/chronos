@@ -28,7 +28,6 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
-
 from lock import Lock, LockError, push_if_mine, ref_for
 
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
@@ -125,7 +124,7 @@ def test_twenty_racing_acquire_pairs_have_exactly_one_winner_each(refs):
         build = f"b{n:02d}"
         a = lock_for(refs, build, "session-a")
         b = lock_for(refs, build, "session-b")
-        results = race(lambda: a.acquire("build", NOW), lambda: b.acquire("build", NOW))
+        results = race(lambda a=a: a.acquire("build", NOW), lambda b=b: b.acquire("build", NOW))
         assert sum(results) == 1, f"pair {n}: {results}"
         winners.append(results)
         assert refs.read(ref_for(build)) is not None
@@ -142,7 +141,7 @@ def test_twenty_racing_take_over_pairs_have_exactly_one_winner_each(refs):
         a = lock_for(refs, build, "session-a")
         b = lock_for(refs, build, "session-b")
         assert a.is_stale(NOW) is True
-        results = race(lambda: a.take_over("build", NOW), lambda: b.take_over("build", NOW))
+        results = race(lambda a=a: a.take_over("build", NOW), lambda b=b: b.take_over("build", NOW))
         assert sum(results) == 1, f"pair {n}: {results}"
 
 

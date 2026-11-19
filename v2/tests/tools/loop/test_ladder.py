@@ -12,10 +12,9 @@ from __future__ import annotations
 
 import textwrap
 
+import ladder as ladder_mod
 import pytest
 from conftest import FIXTURES, REPO_ROOT
-
-import ladder as ladder_mod
 from ladder import LadderError
 
 BUILD_DOCS = REPO_ROOT / "docs" / "v2" / "build"

@@ -67,7 +67,7 @@ def stamp_in(message: str) -> datetime | None:
     if not found:
         return None
     try:
-        return datetime.fromisoformat(found.group(1).replace("Z", "+00:00")).astimezone(UTC)
+        return datetime.fromisoformat(found.group(1)).astimezone(UTC)
     except ValueError:
         return None
 

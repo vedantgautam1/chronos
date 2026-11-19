@@ -329,8 +329,10 @@ def main(argv: list[str] | None = None) -> int:
     payload = action.as_dict()
     if gathered.unknown:
         payload["notes"] = [
-            f"ignored for this decision: status files for {', '.join(gathered.unknown)}, "
-            f"which are not on {args.ladder}"
+            (
+                "ignored for this decision: status files for "
+                f"{', '.join(gathered.unknown)}, which are not on {args.ladder}"
+            )
         ]
     print(json.dumps(payload, indent=2))
     return 0
