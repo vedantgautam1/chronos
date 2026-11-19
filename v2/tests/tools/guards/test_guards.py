@@ -298,6 +298,80 @@ def test_roles_fails_when_passed_names_an_older_code_commit(repo_factory):
     assert "code commit" in text(found).lower()
 
 
+def test_roles_lets_a_reviewer_correct_the_record_but_never_the_code(repo_factory):
+    """V2-D51, locked 19 Nov: for a non-blocking finding the reviewer corrects
+    ``reports/<id>.md`` and the build's ``CHANGELOG.md`` section itself. Both
+    halves are asserted here, because widening the allowed set is only safe if
+    the half that must stay shut stays shut: **code and tests are untouchable,
+    and a reviewer that edits them is reviewing its own work.**
+    """
+    repo = repo_factory()
+    repo.checkout("claude/b06", create=True)
+    repo.write("v2/src/chronos2/stats/dsr.py", "x = 1\n")
+    last_code = repo.commit("B06 step 1", role="builder")
+
+    # Half 1: the review itself, plus the two record files V2-D51 sends the
+    # reviewer to. No finding.
+    repo.write(
+        "docs/v2/build/reviews/B06-r1.md",
+        f"code commit reviewed: {last_code}\nverdict: PASS\n",
+    )
+    repo.write("docs/v2/build/status/B06.json", '{"build": "B06", "state": "passed"}\n')
+    repo.write("docs/v2/build/reports/B06.md", "# B06\n\n[reviewer, r1: corrected]\n")
+    repo.write("docs/v2/CHANGELOG.md", "# changelog\n\n## B06\n\n[reviewer, r1: corrected]\n")
+    repo.commit("B06 review r1: PASS, record corrected", role="reviewer")
+    assert checks.roles(context(repo)) == [], (
+        "a reviewer correcting the report and the CHANGELOG is what V2-D51 requires"
+    )
+
+    # Half 2: the separation that stays absolute.
+    repo.write("v2/src/chronos2/stats/dsr.py", "x = 2\n")
+    repo.commit("B06 review r1: a one-character fix to the code", role="reviewer")
+    found = checks.roles(context(repo))
+    assert found, "a reviewer may never touch code, not even for one character"
+    assert "v2/src/chronos2/stats/dsr.py" in text(found)
+
+
+def test_scope_lets_a_reviewer_correct_the_record_but_never_the_code(repo_factory):
+    """The same two halves through ``scope``, which is the guard that reads
+    ``touches`` from the base spec. A reviewer is held to its own record files
+    whatever the build's ``touches`` say, so the build's own source path must
+    still be refused for a reviewer commit even though the builder may write it.
+    """
+    repo = repo_factory(touches=["v2/src/chronos2/stats/**"])
+    repo.checkout("claude/b06", create=True)
+    repo.write("v2/src/chronos2/stats/dsr.py", "x = 1\n")
+    last_code = repo.commit("B06 step 1", role="builder")
+
+    repo.write(
+        "docs/v2/build/reviews/B06-r1.md",
+        f"code commit reviewed: {last_code}\nverdict: PASS\n",
+    )
+    repo.write("docs/v2/build/reports/B06.md", "# B06\n\n[reviewer, r1: corrected]\n")
+    repo.write("docs/v2/CHANGELOG.md", "# changelog\n\n## B06\n\n[reviewer, r1: corrected]\n")
+    repo.commit("B06 review r1: record corrected", role="reviewer")
+    assert checks.scope(context(repo)) == []
+
+    repo.write("v2/src/chronos2/stats/dsr.py", "x = 2\n")
+    repo.commit("B06 review r1: a one-character fix to the code", role="reviewer")
+    found = checks.scope(context(repo))
+    assert found, "touches belongs to the builder; a reviewer does not inherit it"
+    assert "v2/src/chronos2/stats/dsr.py" in text(found)
+
+
+def test_scope_holds_a_reviewer_to_its_own_builds_report(repo_factory):
+    """The widening is scoped to the build under review. A reviewer rewriting
+    another build's report is still outside its role -- otherwise one review
+    could edit the record of a build it never read."""
+    repo = repo_factory()
+    repo.checkout("claude/b06", create=True)
+    repo.write("docs/v2/build/reports/B07.md", "# B07, which is not mine\n")
+    repo.commit("B06 review r1: reach into another build's report", role="reviewer")
+    found = checks.scope(context(repo))
+    assert found
+    assert "docs/v2/build/reports/B07.md" in text(found)
+
+
 def test_roles_passes_builder_then_reviewer_then_merge_in_order(repo_factory):
     repo = repo_factory()
     repo.checkout("claude/b06", create=True)

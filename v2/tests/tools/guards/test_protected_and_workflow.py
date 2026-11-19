@@ -150,6 +150,75 @@ def test_the_guards_job_checks_out_full_history_and_the_head_commit(workflow_tex
     assert "pull_request.base.sha" in workflow_text
 
 
+def _is_pipeline(run: str) -> bool:
+    """True when a ``run`` script contains a real pipeline.
+
+    ``||`` is a logical or, not a pipeline, and ``pipefail`` has nothing to say
+    about one -- the two summary steps end ``cat ... || true`` on purpose, so
+    that they still write the summary when the run step before them failed.
+    Removing ``||`` first keeps those out of the check.
+    """
+    return "|" in run.replace("||", "")
+
+
+def _run_steps(workflow_text):
+    """``(job name, step name, step)`` for every step that runs a script."""
+    parsed = yaml.safe_load(workflow_text)
+    for job_name, job in parsed["jobs"].items():
+        for index, step in enumerate(job.get("steps", [])):
+            if "run" in step:
+                yield job_name, step.get("name", f"step {index}"), step
+
+
+def test_every_piped_run_step_sets_pipefail(workflow_text):
+    """Review r1 finding 1, as a check on the **class** rather than the instance.
+
+    A GitHub ``run:`` step with no explicit ``shell:`` executes under
+    ``bash -e {0}``, which does not set ``pipefail``. The exit status of
+    ``a | tee b`` is then ``tee``'s, which is always 0, so a failing command on
+    the left of a pipe is reported as success and the job goes green. That is
+    how both jobs in this workflow reported ``success`` while printing "does
+    not pass the guards" (run 44412803088).
+
+    Either fix is sufficient and the test accepts either: ``shell: bash`` makes
+    GitHub run the step under ``bash --noprofile --norc -eo pipefail {0}``, and
+    an explicit ``set -o pipefail`` inside the script does the same job without
+    depending on the ``shell:`` line surviving.
+    """
+    offenders = []
+    for job_name, step_name, step in _run_steps(workflow_text):
+        run = step["run"]
+        if not _is_pipeline(run):
+            continue
+        if str(step.get("shell", "")).strip() == "bash":
+            continue
+        if "set -o pipefail" in run:
+            continue
+        offenders.append(f"{job_name} / {step_name}")
+    assert not offenders, (
+        "a run step that pipes must set shell: bash or set -o pipefail, or the "
+        "exit status of everything left of the pipe is discarded and the job "
+        f"goes green on failure: {offenders}"
+    )
+
+
+def test_both_run_steps_that_pipe_carry_both_belts(workflow_text):
+    """The patch in review r1 applies both on purpose, and this pins that it was
+    applied to both steps rather than one. The redundancy is the point: the
+    ``shell:`` line survives someone deleting the ``set -o pipefail`` line, and
+    the ``set -o pipefail`` line survives someone deleting the ``shell:`` line.
+    """
+    piped = [
+        (job_name, step_name, step)
+        for job_name, step_name, step in _run_steps(workflow_text)
+        if _is_pipeline(step["run"])
+    ]
+    assert len(piped) == 2, f"the two runner invocations are the piped steps: {piped}"
+    for job_name, step_name, step in piped:
+        assert str(step.get("shell", "")).strip() == "bash", f"{job_name} / {step_name}"
+        assert "set -o pipefail" in step["run"], f"{job_name} / {step_name}"
+
+
 def test_the_workflow_delegates_to_the_tested_script(workflow_text):
     """The extraction of the base commit's guard code is the property the whole
     design rests on, so it lives in ``run_guards.sh`` -- one copy, exercised by
