@@ -372,6 +372,97 @@ def test_scope_holds_a_reviewer_to_its_own_builds_report(repo_factory):
     assert "docs/v2/build/reports/B07.md" in text(found)
 
 
+def _merge_the_base_in(repo, base="v2-build", message="Merge v2-build", role="builder"):
+    """What every round-2 build does: the base moved while the branch was in
+    review, so the branch merges it in rather than rebasing -- a rebase would
+    rewrite commits the review file names by hash."""
+    repo.git("merge", "--no-commit", "--no-ff", base)
+    return repo.commit(message, role=role)
+
+
+def test_a_clean_merge_of_the_base_is_not_charged_to_the_branch(repo_factory):
+    """``commits`` already says merged-in work "belongs to that branch, and is
+    judged on its own pull request" -- but ``paths_in`` diffed a merge against
+    its **first** parent, so everything the base brought in was read as the
+    merge commit's own work. A branch that merged the base was charged with
+    whatever the base had done meanwhile: here the master doc and LEDGER.md,
+    neither of which any build may write.
+    """
+    repo = repo_factory(touches=["v2/src/chronos2/stats/**"])
+    repo.checkout("claude/b06", create=True)
+    repo.write("v2/src/chronos2/stats/dsr.py", "x = 1\n")
+    repo.commit("B06 step 1", role="builder")
+
+    repo.checkout("v2-build")
+    repo.write("docs/v2/CHRONOS_V2.md", "# master doc\n\nmoved on while B06 was in review\n")
+    repo.write("docs/v2/build/LEDGER.md", "# ledger\n\n| B05 | merged |\n")
+    repo.commit("the base moves on", role="builder")
+
+    repo.checkout("claude/b06")
+    _merge_the_base_in(repo)
+
+    assert checks.scope(context(repo)) == [], "the base's own work is not this branch's"
+    assert checks.roles(context(repo)) == []
+
+
+def test_a_change_smuggled_into_a_merge_is_still_caught(repo_factory):
+    """The half that must not move. A merge is judged by its combined diff, so
+    content that is in neither parent -- a "conflict resolution" that resolves
+    nothing -- is still the merge commit's own work and still outside
+    ``touches``.
+    """
+    repo = repo_factory(touches=["v2/src/chronos2/stats/**"])
+    repo.checkout("claude/b06", create=True)
+    repo.write("v2/src/chronos2/stats/dsr.py", "x = 1\n")
+    repo.commit("B06 step 1", role="builder")
+
+    repo.checkout("v2-build")
+    repo.write("docs/v2/CHRONOS_V2.md", "# master doc\n\nmoved on\n")
+    repo.commit("the base moves on", role="builder")
+
+    repo.checkout("claude/b06")
+    repo.git("merge", "--no-commit", "--no-ff", "v2-build")
+    repo.write("v2/src/chronos2/core/smuggled.py", "x = 1\n")
+    repo.commit("Merge v2-build -- and one extra file while nobody looks", role="builder")
+
+    found = checks.scope(context(repo))
+    assert found, "a merge commit is not a hiding place"
+    assert "v2/src/chronos2/core/smuggled.py" in text(found)
+    assert "docs/v2/CHRONOS_V2.md" not in text(found), "the base's work is still not charged"
+
+
+def test_roles_charges_a_status_only_to_the_commit_that_set_it(repo_factory):
+    """``roles`` read the status file as it *stood* at each commit rather than
+    asking whether that commit *wrote* it. So once a reviewer set
+    ``changes_requested``, every builder commit of the next round was found to
+    have "set the status to changes_requested" without having touched the file
+    -- which is every round-2 build there will ever be.
+    """
+    repo = repo_factory()
+    repo.checkout("claude/b06", create=True)
+    repo.write("v2/src/chronos2/stats/dsr.py", "x = 1\n")
+    last_code = repo.commit("B06 step 1", role="builder")
+    repo.write(
+        "docs/v2/build/reviews/B06-r1.md",
+        f"code commit reviewed: {last_code}\nverdict: CHANGES\n",
+    )
+    repo.write("docs/v2/build/status/B06.json", '{"build": "B06", "state": "changes_requested"}\n')
+    repo.commit("B06 review r1: CHANGES", role="reviewer")
+
+    # Round 2. The builder is back and does not go near the status file.
+    repo.write("v2/src/chronos2/stats/dsr.py", "x = 2\n")
+    repo.commit("B06 round 2 step 1: the fix", role="builder")
+    assert checks.roles(context(repo)) == [], (
+        "a builder inherits no state from the reviewer's commit before it"
+    )
+
+    # The half that must not move: writing a reviewer's state is still caught.
+    repo.write("docs/v2/build/status/B06.json", '{"build": "B06", "state": "passed"}\n')
+    repo.commit("B06: pass myself", role="builder")
+    found = checks.roles(context(repo))
+    assert any("set the status to 'passed'" in f.message for f in found), text(found)
+
+
 def test_roles_passes_builder_then_reviewer_then_merge_in_order(repo_factory):
     repo = repo_factory()
     repo.checkout("claude/b06", create=True)
