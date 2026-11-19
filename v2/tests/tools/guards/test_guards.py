@@ -431,6 +431,39 @@ def test_a_change_smuggled_into_a_merge_is_still_caught(repo_factory):
     assert "docs/v2/CHRONOS_V2.md" not in text(found), "the base's work is still not charged"
 
 
+def test_merging_anything_but_the_base_is_charged_in_full(repo_factory):
+    """The hole the first version of the merge fix opened, found by probing it
+    rather than by reasoning about it.
+
+    Exempting whatever arrived verbatim from *a* parent, rather than from *the
+    base*, makes any merge a laundry: the files come in from the second parent,
+    the combined diff reports nothing because they match that parent exactly,
+    and ``commits`` has already skipped the side branch's own commits with
+    ``--first-parent``. The result was a path outside ``touches`` sitting on the
+    branch with **zero** findings against it -- where the unfixed guard, which
+    over-charged, would at least have caught it.
+
+    The exemption is sound only for work that is judged somewhere else, which
+    means the base branch's own pull requests and nothing else.
+    """
+    repo = repo_factory(touches=["v2/src/chronos2/stats/**"])
+    repo.checkout("claude/b06", create=True)
+    repo.write("v2/src/chronos2/stats/dsr.py", "x = 1\n")
+    repo.commit("B06 step 1", role="builder")
+
+    repo.checkout("side/laundry", create=True)
+    repo.write("v2/src/chronos2/core/laundered.py", "x = 1\n")
+    repo.commit("side work, outside B06's touches", role="builder")
+
+    repo.checkout("claude/b06")
+    repo.git("merge", "--no-commit", "--no-ff", "side/laundry")
+    repo.commit("Merge side/laundry", role="builder")
+
+    found = checks.scope(context(repo))
+    assert found, "a merge of anything but the base is not a way in"
+    assert "v2/src/chronos2/core/laundered.py" in text(found)
+
+
 def test_roles_charges_a_status_only_to_the_commit_that_set_it(repo_factory):
     """``roles`` read the status file as it *stood* at each commit rather than
     asking whether that commit *wrote* it. So once a reviewer set

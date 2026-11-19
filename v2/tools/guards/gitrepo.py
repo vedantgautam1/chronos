@@ -170,15 +170,29 @@ class Context:
         An ordinary commit is diffed against its parent, and a root commit
         against the empty tree.
 
-        A **merge** commit is diffed with ``--cc``, the combined diff: the
-        files whose merged content differs from *every* parent. A file taken
-        verbatim from one side is not among them, so merging the base branch in
-        -- which every build does once the base moves while it is in review --
-        no longer charges the branch with what the base did meanwhile. What
-        does remain is anything the merge itself decided: a file resolved by
-        hand, a file git auto-merged from both sides, and above all a file
-        planted in the merge commit that exists in neither parent. A merge is
-        not a hiding place.
+        A **merge of the base branch** -- which every build makes once the base
+        moves while the branch is in review -- is diffed with ``--cc``, the
+        combined diff: the files whose merged content differs from *every*
+        parent. A file taken verbatim from one side is not among them, so the
+        branch is no longer charged with what the base did meanwhile. What does
+        remain is anything the merge itself decided: a file resolved by hand, a
+        file git auto-merged from both sides, and above all a file planted in
+        the merge commit that exists in neither parent.
+
+        **Any other merge is charged in full**, against the first parent. The
+        exemption is for work that is already judged somewhere else -- the base
+        branch's own pull requests -- and that reasoning covers nothing else.
+        Without the restriction, merging a side branch would launder its
+        contents past ``scope`` and ``roles``: the files arrive verbatim from
+        the second parent, ``--cc`` reports nothing, and ``commits`` has
+        already skipped the side branch's own commits with ``--first-parent``.
+        A merge is not a hiding place.
+
+        Ancestry decides it, not the branch's name: every parent after the
+        first must be an ancestor of ``base_sha``. If git cannot answer --
+        a shallow clone that lacks the commit, say -- the answer is taken as
+        no and the merge is charged in full. A guard that cannot tell must
+        charge, not excuse.
 
         ``commits`` makes the same judgement one level up, with
         ``--first-parent``: the commits a merge brings in belong to the branch
@@ -188,7 +202,14 @@ class Context:
         """
         parents = self.git("rev-list", "--parents", "-n", "1", sha).split()[1:]
         if len(parents) > 1:
-            out = self.git("diff-tree", "--cc", "-r", "--name-only", "--no-commit-id", sha)
+            from_the_base_alone = all(
+                self._git_ok("merge-base", "--is-ancestor", parent, self.base_sha)
+                for parent in parents[1:]
+            )
+            if from_the_base_alone:
+                out = self.git("diff-tree", "--cc", "-r", "--name-only", "--no-commit-id", sha)
+            else:
+                out = self.git("diff", "--name-only", "-M", f"{sha}^", sha)
         elif parents:
             out = self.git("diff", "--name-only", "-M", f"{sha}^", sha)
         else:
