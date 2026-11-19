@@ -304,7 +304,7 @@ flowchart TD
 | Role | Who | May write | May never do |
 |---|---|---|---|
 | **Builder** | A fresh AI session, model named in the spec | The files its spec lists; its report; its own status (`building`, `needs_review`, `halted`) | Edit v1. Touch earlier tests. Write a review. Set a build to passed or merged. Merge anything |
-| **Reviewer** | A different fresh session that has never seen the builder's reasoning. Always Opus | The review file; the status (`passed`, `changes_requested`, `merged`); the ledger row. Merges a passing build into the build branch | Change code or tests, even one character |
+| **Reviewer** | A different fresh session that has never seen the builder's reasoning. Always Opus | The review file; the status (`passed`, `changes_requested`, `merged`); the ledger row; and, for non-blocking findings only, corrections to the build's report and CHANGELOG section, marked in place and disclosed in the review (V2-D51). Merges a passing build into the build branch | Change code or tests, even one character |
 | **Checks (CI)** | GitHub, automatic, on every pull request | Decide pass or fail with no opinion involved | — |
 | **Founder** | You | Approve gates. Decide forks and protected changes. Approve any change to the rules themselves. Clear halts. Take over any build by hand | — (you can do anything; the system never *requires* more than this) |
 | **Auditor** (gates only) | A session that saw neither the building nor the reviewing | The gate report and the master-doc updates, in a pull request you approve | Change code |

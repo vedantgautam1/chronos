@@ -29,7 +29,7 @@ Every commit on a build branch ends with a trailer, `Chronos-Role: builder` or `
 | Role | May change | May set the status to |
 |---|---|---|
 | **Builder** | the spec's `touches` · `docs/v2/build/reports/<id>.md` · one new section at the top of `docs/v2/CHANGELOG.md` · `docs/v2/build/status/<id>.json` | `building`, `needs_review`, `halted` |
-| **Reviewer** | `docs/v2/build/reviews/<id>-r<n>.md` · `docs/v2/build/status/<id>.json` · `docs/v2/build/LEDGER.md` | `changes_requested`, `passed`, `merged`, `halted` |
+| **Reviewer** | `docs/v2/build/reviews/<id>-r<n>.md` · `docs/v2/build/status/<id>.json` · `docs/v2/build/LEDGER.md` · and, as record corrections for non-blocking findings only (rule 7): `docs/v2/build/reports/<id>.md` · the build's own section of `docs/v2/CHANGELOG.md` | `changes_requested`, `passed`, `merged`, `halted` |
 
 Nobody on a build branch may change: the master doc, a spec, the ladder, the blueprint, the cards or `gates/`, **whatever a spec lists**. And unless the build's own spec lists the path in `touches` (only the founder builds B01, B02 and B04, the two that add libraries, B08 and B09, and B20 do): `CLAUDE.md`, `.claude/`, `.github/`, `v2/tools/guards/`, `v2/config/protected/`, `v2/pyproject.toml`, `CODEOWNERS`, the touchstones folder. Those are founder-owned: from B05 a pull request touching one can't merge without the founder's review. Nobody, ever, creates a `CLAUDE.md`, `AGENTS.md` or `.claude` folder below the repository root.
 
