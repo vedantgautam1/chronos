@@ -13,14 +13,22 @@ The whole design rests on two properties of the API:
   the first wins and the second is refused -- its commit is built on the stale
   commit and so is no longer a descendant of the reference.
 
-GitHub's own documentation, read fresh on 19 Nov 2026, confirms the *semantics*
-of the second: ``force`` is a boolean defaulting to ``false``, described as
+**Both are [Certain — run], proved against GitHub on 19 Nov 2026** by step
+4(ii): 20 racing ``acquire`` pairs and 20 racing ``take_over`` pairs, exactly
+one winner in every one of the 40. The harness is
+``prove_lock_on_github.py`` beside this file; the full output is in the build
+report.
+
+GitHub's documentation, read fresh the same day, confirms the *semantics* of
+the second -- ``force`` is a boolean defaulting to ``false``, described as
 "Indicates whether to force the update or to make sure the update is a
-fast-forward update". It does **not** state the status code returned when a
-non-fast-forward update is refused, nor the one returned when a reference is
-created twice. Both therefore stay **[Likely]** until step 4's proof against
-GitHub has been run. See the build report: that proof could not be run from the
-building session, so these two claims are not yet [Certain — run].
+fast-forward update" -- but states the status code for neither refusal. The
+run supplied both, and they are recorded here because nothing else documents
+them:
+
+* a duplicate create is refused **422 "Reference already exists"**;
+* a non-fast-forward update with ``force: false`` is refused
+  **422 "Reference cannot be updated"**.
 
 Two residual gaps are known and accepted (red-team third pass, finding l):
 a small window remains between ``still_mine`` and the push that follows it, and
