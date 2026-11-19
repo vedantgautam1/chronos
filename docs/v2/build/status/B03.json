@@ -1,0 +1,8 @@
+{
+  "build": "B03",
+  "state": "building",
+  "ticks": 1,
+  "head": null,
+  "halt_reason": null,
+  "halt_options": null
+}
