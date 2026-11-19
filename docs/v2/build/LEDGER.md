@@ -21,7 +21,7 @@ the record (CHRONOS_V2 §14 rule 5: asymmetric findings stated asymmetrically).
 |---|---|---|---|---|---|---|---|---|---|
 | **G0** | **Blueprint approved** | gate | — | — | | | | | |
 | B01 | v2 project scaffold, core helpers, automatic tests | M | 2–3 | 1 | 1 | 1 — **CHANGES**, merged anyway † | 131 / 263 | none | 2026-11-18 05:29 † |
-| B01A | canonical.py: dict keys validated like values; the fingerprint made deterministic | S | 1–2 | 1 | | | | | |
+| B01A | canonical.py: dict keys validated like values; the fingerprint made deterministic | S | 1–2 | 1 | 1 | 2 — r1 **CHANGES** (tests too weak), r2 **PASS** ‡ | 5 / 91 | none | 2026-11-18 20:30 |
 | B02 | The guards: tripwire checks on every pull request, protected values, code owners | M | 2–3 | 1 | | | | | |
 | B03 | The loop's decision core: ladder reader, next action, locks | M | 2–3 | 1 | | | | | |
 | B04 | The loop's hands: agent definitions, commands, templates | M | 2–3 | 1 | | | | | |
@@ -80,6 +80,8 @@ the record (CHRONOS_V2 §14 rule 5: asymmetric findings stated asymmetrically).
 | B53 | Planted-edge calibration: run it, pick the rule by the written criteria | M | 2–3 | 1 | | | | | |
 | B54 | Acceptance report | S | 1–2 | 1 | | | | | |
 | **G5** | **Acceptance test passed (protected)** | gate | — | — | | | | | |
+
+**‡ B01A round 2 found no code defect.** Its one blocking finding was a false statement in the build report — an asserted founder approval that had not been given — plus a CHANGELOG bullet contradicting the report. Both corrected in the review round (`reviews/B01A-r2.md`). The round-1 review file was never committed and is present only as a marked reconstruction (`reviews/B01A-r1.md`); the session that wrote it had no push access. **For P-24:** DeepSeek V4 Pro produced correct code and an inaccurate record — two Opus review rounds against one Opus build. First clean measurement; B02–B06 are all specified `model: opus`, so there is no scheduled second one. The round that cost nothing but paperwork is what V2-D51 now prevents.
 
 ## Re-sizing log
 
