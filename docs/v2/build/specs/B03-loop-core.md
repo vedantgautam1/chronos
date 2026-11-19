@@ -47,11 +47,12 @@ This replaces the founder as the message bus. The important design choice: **an 
 7. `v2/tests/tools/loop/fixtures/ladder_a.yaml` (a frozen copy of today's `LADDER.yaml`) and `ladder_b.yaml` (the same, with B23 and B24 given spec paths). **The decision table runs on these copies, not on the live ladder**, so a later, routine change to the real ladder can't turn this build's tests red.
 
 ## Steps
-0. **B02's proofs on GitHub** (they need B02's guard code on the base branch, which is true only now). Four scratch pull requests into `v2-build`, each from a branch named `claude/b04` cut fresh from `v2-build` (B04's spec is on the base branch and B04 hasn't started, so `scope` has something real to read), each closed without merging and its branch deleted, URLs in this build's report:
+0. **B02's proofs on GitHub** (they need B02's guard code on the base branch, which is true only now). **Five** scratch pull requests into `v2-build`, each from a branch named `claude/b04` cut fresh from `v2-build` (B04's spec is on the base branch and B04 hasn't started, so `scope` has something real to read), each closed without merging and its branch deleted, URLs in this build's report:
    (a) edits `src/chronos/__init__.py` → **guards** red, naming `v1_frozen`;
    (b) edits B04's spec to add `v2/src/chronos2/core/x.py` to `touches`, then adds that file → **guards** red, naming `scope` (and `protected`, for the spec);
    (c) adds `v2/conftest.py` whose hook drops one B01 test → **guards** red naming `scope`, **and earlier-tests** green with the same number of tests run as on `v2-build` (the dropped test still ran);
-   (d) loosens one assertion in an existing B01 test file → **guards** red, naming `frozen_files`.
+   (d) loosens one assertion in an existing B01 test file → **guards** red, naming `frozen_files`;
+   (e) changes `v2/src/chronos2/core/` so that one existing B01 test fails against it — the **package**, not the test, since an existing test file is frozen → **earlier-tests** red: the job's conclusion is `failure`, and its log names the failing test. (`guards` goes red too, on `scope`; that is not what this proof is for.) **This is the one proof that exercises the second job end to end.** B02's `earlier-tests` job carries the same `pipefail` patch as `guards` and its runner is proven to exit non-zero in a temp repository, but on GitHub it has only ever been green, so its red path is inferred rather than observed — review `B02-r2.md` finding 9, and **O-19**: a CI gate is not reviewed until it has been seen red on GitHub. Breaking an earlier test from the test file would mean editing a frozen file, which is why this breaks the package instead.
    In each, the **guards** job log shows the guard code came from the base-commit checkout, with no bootstrap notice.
 1. Commit the decision table below as a parametrised test (red).
 2. `ladder.py` + its validation tests.
@@ -124,7 +125,7 @@ Also:
 Agents, skills, the `/tick` command (B04) · scheduling (B05).
 
 ## Halt if
-- Any of step 0's four proofs isn't red (or, for (c), green) for the reason stated: then B02's guards don't do what B02's tests said, and that is fixed before anything else is built.
+- Any of step 0's five proofs isn't red (or, for (c), green) for the reason stated: then B02's guards don't do what B02's tests said, and that is fixed before anything else is built. For (e) specifically, a **green** `earlier-tests` job on a package change that fails an earlier test means the second job's red path does not work on GitHub, which is the same class of defect as review `B02-r1.md` finding 1 — halt and say so.
 - Step 4's proof on GitHub shows two winners in either race, or GitHub accepts a non-fast-forward update with `force: false`. Then the lock design is wrong; propose the alternative (for example, a lock held as an issue assigned through the API) and stop.
 
 ## For the gate
