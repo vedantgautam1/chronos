@@ -281,18 +281,44 @@ REVIEWER_STATES = ("changes_requested", "passed", "merged", "halted")
 CODE_COMMIT = re.compile(r"code commit reviewed[^0-9a-f]{0,20}([0-9a-f]{7,40})", re.IGNORECASE)
 
 
+def _status_paths(ctx: Context) -> tuple[str, ...]:
+    assert ctx.build_id is not None
+    return (
+        f"docs/v2/build/status/{ctx.build_id}.json",
+        f"docs/v2/build/status/{ctx.build_id.lower()}.json",
+    )
+
+
 def _status_state(ctx: Context, sha: str) -> str | None:
+    """The state the status file *stands at* for this commit."""
     if ctx.build_id is None:
         return None
-    for name in (f"{ctx.build_id}.json", f"{ctx.build_id.lower()}.json"):
-        raw = ctx.file_at(sha, f"docs/v2/build/status/{name}")
+    for path in _status_paths(ctx):
+        raw = ctx.file_at(sha, path)
         if raw is None:
             continue
         try:
             return str(json.loads(raw).get("state", "")).strip().lower()
         except json.JSONDecodeError as exc:
-            raise GuardError(f"docs/v2/build/status/{name} at {sha[:8]} is not valid JSON: {exc}")
+            raise GuardError(f"{path} at {sha[:8]} is not valid JSON: {exc}")
     return None
+
+
+def _status_set_by(ctx: Context, sha: str) -> str | None:
+    """The state this commit **set**, or ``None`` if it did not write the file.
+
+    Which role may set which state is a rule about the commit that *writes* the
+    status, so reading the state the file merely *stands at* charges every
+    later commit with what an earlier one wrote. The visible cost: once a
+    reviewer sets ``changes_requested``, every builder commit of the next round
+    would be found to have set it too, without going near the file -- and that
+    is every round 2 there will ever be.
+    """
+    if ctx.build_id is None:
+        return None
+    if not set(ctx.paths_in(sha)).intersection(_status_paths(ctx)):
+        return None
+    return _status_state(ctx, sha)
 
 
 def roles(ctx: Context) -> list[Finding]:
@@ -325,7 +351,7 @@ def roles(ctx: Context) -> list[Finding]:
             )
             continue
 
-        state = _status_state(ctx, sha)
+        state = _status_set_by(ctx, sha)
         if role == "builder":
             last_builder = sha
             for path in paths:

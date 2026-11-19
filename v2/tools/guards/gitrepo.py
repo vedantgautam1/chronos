@@ -165,11 +165,34 @@ class Context:
         return values[-1] if values else None
 
     def paths_in(self, sha: str) -> tuple[str, ...]:
-        """Paths one commit changed, against its first parent."""
-        if not self._git_ok("rev-parse", "--verify", f"{sha}^"):
-            out = self.git("show", "--name-only", "--format=", sha)
-        else:
+        """Paths one commit changed -- its own work, not its parents'.
+
+        An ordinary commit is diffed against its parent, and a root commit
+        against the empty tree.
+
+        A **merge** commit is diffed with ``--cc``, the combined diff: the
+        files whose merged content differs from *every* parent. A file taken
+        verbatim from one side is not among them, so merging the base branch in
+        -- which every build does once the base moves while it is in review --
+        no longer charges the branch with what the base did meanwhile. What
+        does remain is anything the merge itself decided: a file resolved by
+        hand, a file git auto-merged from both sides, and above all a file
+        planted in the merge commit that exists in neither parent. A merge is
+        not a hiding place.
+
+        ``commits`` makes the same judgement one level up, with
+        ``--first-parent``: the commits a merge brings in belong to the branch
+        they came from and are judged on its own pull request. This is that
+        rule finished -- without it the exclusion stopped at the merge commit
+        itself, which sits on the first-parent line.
+        """
+        parents = self.git("rev-list", "--parents", "-n", "1", sha).split()[1:]
+        if len(parents) > 1:
+            out = self.git("diff-tree", "--cc", "-r", "--name-only", "--no-commit-id", sha)
+        elif parents:
             out = self.git("diff", "--name-only", "-M", f"{sha}^", sha)
+        else:
+            out = self.git("show", "--name-only", "--format=", sha)
         return tuple(line.strip() for line in out.split("\n") if line.strip())
 
     def file_at(self, sha: str, path: str) -> str | None:
