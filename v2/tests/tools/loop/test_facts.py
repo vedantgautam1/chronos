@@ -27,6 +27,7 @@ from facts import (
     Facts,
     FactsError,
     Gate,
+    _checks,
     _pull_requests,
     halt_in_force,
     validate_status,
@@ -195,6 +196,53 @@ def test_a_fork_cannot_shadow_a_real_branch_of_the_same_name():
 
     found = _pull_requests(api, "vedantgautam1/chronos", "v2-build")
     assert found["claude/b06"]["number"] == 10
+
+
+# ------------------------------------------------------------- check results
+
+
+def checks_api(runs):
+    def api(path, *, repo):
+        return {"check_runs": runs} if "check-runs" in path else []
+
+    return api
+
+
+def test_all_checks_completed_and_successful_is_green():
+    runs = [{"status": "completed", "conclusion": "success"}] * 2
+    assert _checks(checks_api(runs), "r", "abc") == "green"
+
+
+def test_any_failure_is_red():
+    runs = [
+        {"status": "completed", "conclusion": "success"},
+        {"status": "completed", "conclusion": "failure"},
+    ]
+    assert _checks(checks_api(runs), "r", "abc") == "red"
+
+
+@pytest.mark.parametrize("conclusion", ["timed_out", "cancelled"])
+def test_a_check_that_did_not_finish_cleanly_is_red(conclusion):
+    runs = [{"status": "completed", "conclusion": conclusion}]
+    assert _checks(checks_api(runs), "r", "abc") == "red"
+
+
+def test_a_check_still_running_is_pending():
+    runs = [
+        {"status": "completed", "conclusion": "success"},
+        {"status": "in_progress", "conclusion": None},
+    ]
+    assert _checks(checks_api(runs), "r", "abc") == "pending"
+
+
+def test_no_checks_at_all_is_pending_not_green():
+    """A branch nothing has run on must never read as green: that is the one
+    answer that would merge an unchecked build."""
+    assert _checks(checks_api([]), "r", "abc") == "pending"
+
+
+def test_no_commit_to_ask_about_is_pending():
+    assert _checks(checks_api([]), "r", "") == "pending"
 
 
 # ----------------------------------------------------- the status report (5)

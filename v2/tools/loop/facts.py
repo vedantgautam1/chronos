@@ -173,14 +173,20 @@ def gather(
     repo_dir: Path,
     repo: str,
     owner: str,
-    git=_git,
-    api=_api,
+    git=None,
+    api=None,
 ) -> Facts:
     """Collect every fact the decision needs, and nothing else.
 
     Only branches in *this* repository are looked at: a pull request whose head
     is in a fork is dropped, so a fork can never present itself as a build.
+
+    ``git`` and ``api`` are resolved here rather than as default arguments so
+    that a caller -- a test, or the step 6 dry run -- can replace the module's
+    ``_git``/``_api`` and have this function use the replacement.
     """
+    git = git or _git
+    api = api or _api
     base = ladder.build_branch
     branches = {
         line.split("\t")[-1].removeprefix("refs/heads/")
@@ -199,7 +205,7 @@ def gather(
             gates[entry.id] = _gate(entry, git, repo_dir, base, branches, locks, prs)
         else:
             builds[entry.id] = _build(
-                entry, ladder, git, repo_dir, base, branches, locks, prs, status_on_base
+                entry, ladder, git, api, repo, repo_dir, branches, locks, prs, status_on_base
             )
 
     issues = _halt_issues(api, repo, ladder.halt_label)
@@ -270,7 +276,9 @@ def _status_files(git, repo_dir: Path, ref: str) -> dict[str, dict]:
     return out
 
 
-def _build(entry, ladder, git, repo_dir, base, branches, locks, prs, status_on_base) -> Build:
+def _build(
+    entry, ladder, git, api, repo, repo_dir, branches, locks, prs, status_on_base
+) -> Build:
     branch = ladder.branch_for(entry.id)
     exists = branch in branches
     payload: dict = {}
@@ -290,6 +298,9 @@ def _build(entry, ladder, git, repo_dir, base, branches, locks, prs, status_on_b
         [p for p in reviews.split("\n") if p and f"/{entry.id.lower()}-r" in p.lower()]
     )
     on_base = status_on_base.get(entry.id) or {}
+    # The checks on the branch head itself, which rows 18-21 turn on. Only
+    # asked for when the branch exists: there is nothing to ask about otherwise.
+    head_sha = git(repo_dir, "rev-parse", f"origin/{branch}") if exists else ""
     return Build(
         state=payload.get("state"),
         ticks=int(payload.get("ticks") or 0),
@@ -298,7 +309,7 @@ def _build(entry, ladder, git, repo_dir, base, branches, locks, prs, status_on_b
         rounds=rounds,
         lock_at=lock_at,
         lock_action=lock_message.strip() or None,
-        checks=None,
+        checks=_checks(api, repo, head_sha) if exists else None,
         pr=pr,
         pr_review=pr_review,
         done=on_base.get("state") == "merged",
