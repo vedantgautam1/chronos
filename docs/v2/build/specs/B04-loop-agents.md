@@ -13,6 +13,7 @@ touches:
   - docs/v2/build/templates/**
   - docs/v2/build/HANDBOOK.md
   - v2/tests/tools/loop/test_agent_files.py
+  - v2/src/chronos2/core/x.py
 may_modify_tests: []
 ```
 
