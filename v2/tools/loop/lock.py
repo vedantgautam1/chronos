@@ -193,8 +193,22 @@ class GitHubRefs:
         )
         return done.returncode, (done.stdout or done.stderr)
 
+    def _path(self, ref: str, *, singular: bool = False) -> str:
+        """The API path for a reference.
+
+        GitHub spells the reference WITHOUT its leading ``refs/`` in the URL
+        and then puts it back in the route: reading is
+        ``/git/ref/heads/<name>`` (singular, deliberately) and writing is
+        ``/git/refs/heads/<name>``. Built in one place because doing it inline
+        with string replacement is how ``delete`` came to be missing a segment
+        entirely -- it asked for ``/git/heads/<name>``, which does not exist,
+        so ``release`` could never have released anything.
+        """
+        bare = ref.removeprefix("refs/")
+        return f"repos/{self.repo}/git/{'ref' if singular else 'refs'}/{bare}"
+
     def read(self, ref: str) -> str | None:
-        code, out = self._run(f"repos/{self.repo}/git/{ref.replace('refs/', 'ref/', 1)}")
+        code, out = self._run(self._path(ref, singular=True))
         if code != 0:
             return None
         try:
@@ -230,14 +244,9 @@ class GitHubRefs:
     def update(self, ref: str, sha: str, expect: str | None = None) -> bool:
         """``force: false`` -- GitHub refuses anything but a fast-forward."""
         code, _ = self._run(
-            "-X",
-            "PATCH",
-            f"repos/{self.repo}/git/{ref.replace('refs/', '', 1)}".replace(
-                "heads/", "refs/heads/", 1
-            ),
-            body={"sha": sha, "force": False},
+            "-X", "PATCH", self._path(ref), body={"sha": sha, "force": False}
         )
         return code == 0
 
     def delete(self, ref: str) -> None:
-        self._run("-X", "DELETE", f"repos/{self.repo}/git/{ref.replace('refs/', '', 1)}")
+        self._run("-X", "DELETE", self._path(ref))

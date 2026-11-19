@@ -32,7 +32,7 @@ from types import MappingProxyType
 from typing import ClassVar
 
 import pytest
-from lock import Lock, LockError, push_if_mine, ref_for
+from lock import GitHubRefs, Lock, LockError, push_if_mine, ref_for
 
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 NOW = datetime(2026, 11, 19, 12, 0, 0, tzinfo=UTC)
@@ -251,6 +251,93 @@ def test_a_missing_lock_is_not_stale(refs):
 def test_the_reference_name_is_exactly_lock_slash_id_in_lower_case():
     assert ref_for("B06") == "refs/heads/lock/b06"
     assert ref_for("B01A") == "refs/heads/lock/b01a"
+
+
+# ------------------------------------- the production backend's API contract
+
+
+class FakeGh:
+    """Records what GitHubRefs asks of `gh api`, and answers nothing useful.
+
+    These assertions exist because the real backend cannot be exercised from
+    the building session (step 4(ii)), so the one thing that CAN be checked
+    without the network is that it asks for the right routes with the right
+    bodies. That check immediately found `delete` asking for
+    `/git/heads/<name>` -- a route that does not exist -- which meant `release`
+    could never have released a lock: every action would have left its lock to
+    time out over three hours instead.
+    """
+
+    def __init__(self, answers=None) -> None:
+        self.calls: list[tuple[tuple[str, ...], dict | None]] = []
+        self.answers = answers or {}
+
+    def __call__(self, *args: str, body: dict | None = None) -> tuple[int, str]:
+        self.calls.append((args, body))
+        for needle, answer in self.answers.items():
+            if any(needle in a for a in args):
+                return answer
+        return 1, "{}"
+
+    @property
+    def paths(self) -> list[str]:
+        return [a[-1] for a, _ in self.calls]
+
+
+def test_the_backend_reads_a_reference_from_the_singular_ref_route():
+    gh = FakeGh()
+    GitHubRefs("owner/repo", runner=gh).read("refs/heads/lock/b06")
+    assert gh.paths == ["repos/owner/repo/git/ref/heads/lock/b06"]
+
+
+def test_the_backend_creates_a_reference_with_the_fully_qualified_name():
+    gh = FakeGh()
+    GitHubRefs("owner/repo", runner=gh).create("refs/heads/lock/b06", "cafe1234")
+    (args, body) = gh.calls[0]
+    assert args[:2] == ("-X", "POST")
+    assert args[-1] == "repos/owner/repo/git/refs"
+    assert body == {"ref": "refs/heads/lock/b06", "sha": "cafe1234"}
+
+
+def test_the_backend_updates_without_force_and_never_with_it():
+    gh = FakeGh()
+    GitHubRefs("owner/repo", runner=gh).update("refs/heads/lock/b06", "cafe1234")
+    (args, body) = gh.calls[0]
+    assert args[:2] == ("-X", "PATCH")
+    assert args[-1] == "repos/owner/repo/git/refs/heads/lock/b06"
+    assert body["force"] is False, "force: false is the whole lock design"
+
+
+def test_the_backend_deletes_the_reference_from_the_plural_refs_route():
+    """The bug this test was written for: the path was missing `refs/`."""
+    gh = FakeGh()
+    GitHubRefs("owner/repo", runner=gh).delete("refs/heads/lock/b06")
+    (args, _) = gh.calls[0]
+    assert args[:2] == ("-X", "DELETE")
+    assert args[-1] == "repos/owner/repo/git/refs/heads/lock/b06"
+
+
+def test_every_write_route_the_backend_uses_starts_with_git_refs():
+    gh = FakeGh()
+    backend = GitHubRefs("owner/repo", runner=gh)
+    backend.create("refs/heads/lock/b06", "cafe1234")
+    backend.update("refs/heads/lock/b06", "cafe1234")
+    backend.delete("refs/heads/lock/b06")
+    for path in gh.paths:
+        assert path.startswith("repos/owner/repo/git/refs"), path
+
+
+def test_a_refused_create_or_update_is_false_rather_than_an_exception():
+    """A refusal is the NORMAL outcome of a race, not an error: the caller's
+    answer to it is 'another session won'."""
+    gh = FakeGh()
+    backend = GitHubRefs("owner/repo", runner=gh)
+    assert backend.create("refs/heads/lock/b06", "cafe1234") is False
+    assert backend.update("refs/heads/lock/b06", "cafe1234") is False
+
+
+def test_a_reference_that_cannot_be_read_is_none_not_a_crash():
+    assert GitHubRefs("owner/repo", runner=FakeGh()).read("refs/heads/lock/b06") is None
 
 
 def test_the_lock_commit_records_the_session_the_action_and_the_time(refs):
