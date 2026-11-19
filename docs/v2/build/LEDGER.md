@@ -22,7 +22,7 @@ the record (CHRONOS_V2 §14 rule 5: asymmetric findings stated asymmetrically).
 | **G0** | **Blueprint approved** | gate | — | — | | | | | |
 | B01 | v2 project scaffold, core helpers, automatic tests | M | 2–3 | 1 | 1 | 1 — **CHANGES**, merged anyway † | 131 / 263 | none | 2026-11-18 05:29 † |
 | B01A | canonical.py: dict keys validated like values; the fingerprint made deterministic | S | 1–2 | 1 | 1 | 2 — r1 **CHANGES** (tests too weak), r2 **PASS** ‡ | 5 / 91 | none | 2026-11-18 20:30 |
-| B02 | The guards: tripwire checks on every pull request, protected values, code owners | M | 2–3 | 1 | | | | | |
+| B02 | The guards: tripwire checks on every pull request, protected values, code owners | M | 2–3 | 1 | 2 | 2 — r1 **CHANGES** (the gate could not go red), r2 **PASS** ◊ | 2243 / 1747 | none | *awaiting the founder* |
 | B03 | The loop's decision core: ladder reader, next action, locks | M | 2–3 | 1 | | | | | |
 | B04 | The loop's hands: agent definitions, commands, templates | M | 2–3 | 1 | | | | | |
 | B05 | The automation's own GitHub identity, GitHub rules, attack tests, first unattended run | M | 2–3 | 1 | | | | | |
@@ -82,6 +82,10 @@ the record (CHRONOS_V2 §14 rule 5: asymmetric findings stated asymmetrically).
 | **G5** | **Acceptance test passed (protected)** | gate | — | — | | | | | |
 
 **‡ B01A round 2 found no code defect.** Its one blocking finding was a false statement in the build report — an asserted founder approval that had not been given — plus a CHANGELOG bullet contradicting the report. Both corrected in the review round (`reviews/B01A-r2.md`). The round-1 review file was never committed and is present only as a marked reconstruction (`reviews/B01A-r1.md`); the session that wrote it had no push access. **For P-24:** DeepSeek V4 Pro produced correct code and an inaccurate record — two Opus review rounds against one Opus build. First clean measurement; B02–B06 are all specified `model: opus`, so there is no scheduled second one. The round that cost nothing but paperwork is what V2-D51 now prevents.
+
+**◊ B02: two rounds, one defect, and the defect was real.** Round 1 found the guards job reporting `success` on GitHub while printing "does not pass the guards" — a gate that could not turn red, which is blocking by any reading (`reviews/B02-r1.md` finding 1). Round 2 fixed it, and **the fix was proved on GitHub**: the same workflow watched failing on `305b419` (run `44550344464`) and passing on `f50a1fc` (run `44553126335`), both confirmed against the Actions API by the round-2 reviewer. Round 2 also found and fixed two further guard defects on the builder's own initiative, neither of them in the review, both arising from the loop's second lap (a branch merging its base; a builder returning after `changes_requested`).
+
+**Round 2 produced zero blocking findings** and eleven non-blocking ones (`reviews/B02-r2.md`): six record defects, four coverage or precision gaps in merge cases no spec row covers, and one wording gap in reviewer rule 5 that the `roles` guard caught the round-2 reviewer falling into. **So "B02 took two review rounds" means the build failed review once, in round 1, for a real defect in its own code — not that the paperwork failed.** For re-sizing: this is the second clean Opus-build / Opus-review measurement after B01A, and the first where V2-D51 did what it was locked for — a round that found only non-blocking findings passed instead of costing a build round. The size overrun recorded against B01A's note applies here too: an M build produced ~2,250 lines of code against BLUEPRINT 2.7's 400, so G1 should re-size M or give infrastructure builds a class of their own.
 
 ## Re-sizing log
 
