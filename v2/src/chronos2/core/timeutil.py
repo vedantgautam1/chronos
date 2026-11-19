@@ -52,4 +52,4 @@ class HalfOpen:
     def contains(self, ts: datetime) -> bool:
         """True for ``start <= ts < end``."""
         require_utc(ts)
-        return self.start <= ts < self.end
+        return self.start <= ts <= self.end  # B03 step 0 proof (e): half-open -> closed
