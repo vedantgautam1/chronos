@@ -1,0 +1,141 @@
+name: v2-guards
+
+# The ordinary `pull_request` event, and deliberately NOT the base-context
+# variant of it. (That variant's name is kept out of this file on purpose: a
+# test asserts the string appears nowhere here, so nobody reintroduces it by
+# copying a comment.) Two GitHub facts behind that choice, read fresh from
+# GitHub's own changelog at build time (18 Nov 2026) rather than from memory,
+# because designing this from memory is exactly how the first version of this
+# build went wrong:
+#
+#   * since 8 Dec 2025 that variant's workflow is always taken from the
+#     repository's DEFAULT branch (main), whatever the pull request's base
+#     branch is. A guard workflow living on v2-build would never run that way;
+#   * from 2 Dec 2026 the variant is blocked by default in public repositories,
+#     and this repository is public. (Announced 2 Nov 2026, enforcement moved
+#     from 2 Nov; the brownouts on 9 and 16 Nov have been and gone.)
+#
+# The consequence, stated honestly: on `pull_request` the workflow FILE itself
+# comes from the pull request, so a pull request that edits .github/ can change
+# what runs. What stops that is not this file; it is the founder's required
+# review of any change under .github/ -- CODEOWNERS here, made binding by the
+# ruleset in B05. Until B05 this is a guard rail, not a wall.
+#
+# The guard CODE is a different matter: run_guards.sh takes it from the base
+# commit, so a branch cannot loosen the check that judges it.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  guards:
+    name: guards (from the base commit's copy)
+    runs-on: ubuntu-latest
+    env:
+      TZ: UTC
+    steps:
+      - name: Check out the pull request with full history
+        uses: actions/checkout@v4
+        with:
+          # On this event the default checkout is the synthetic merge commit
+          # GitHub builds (GITHUB_SHA is that merge commit, on
+          # refs/pull/N/merge). The guards read the branch's own commits as
+          # data -- a merge commit GitHub made carries no role trailer and is
+          # nobody's work -- so check out the real head and all of its history.
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Make the base commit available
+        run: git fetch --no-tags origin ${{ github.event.pull_request.base.sha }}
+
+      - name: Run the guards
+        # Both belts on purpose (review r1 finding 1). Without them the step
+        # runs under `bash -e {0}`, which does not set pipefail, so the exit
+        # status of `run_all.py | tee` is tee's -- always 0 -- and this job
+        # reported success while printing "does not pass the guards"
+        # (run 44412803088). `shell: bash` makes GitHub run the step under
+        # `bash --noprofile --norc -eo pipefail {0}`; the explicit `set -o
+        # pipefail` survives anyone later removing the `shell:` line. The tee
+        # stays: the next step copies the file into the job summary.
+        shell: bash
+        run: |
+          set -o pipefail
+          bash v2/tools/guards/run_guards.sh \
+            --repo . \
+            --base-sha ${{ github.event.pull_request.base.sha }} \
+            --head-sha ${{ github.event.pull_request.head.sha }} \
+            --head-ref "${{ github.event.pull_request.head.ref }}" \
+            --base-ref "${{ github.event.pull_request.base.ref }}" \
+            ${{ github.event.pull_request.head.repo.full_name != github.repository && '--fork' || '' }} \
+            | tee guards.txt
+
+      - name: Put the summary where the founder can read it
+        if: always()
+        run: |
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat guards.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+  earlier-tests:
+    name: earlier-tests (the base's tests, this branch's package)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      TZ: UTC
+      CHRONOS2_TEST_DSN: postgresql://postgres@localhost:5432/postgres
+    steps:
+      - name: Check out the pull request with full history
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Make the base commit available
+        run: git fetch --no-tags origin ${{ github.event.pull_request.base.sha }}
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install
+        # The dependency files are two of the four paths the job takes from the
+        # pull request, so the environment is built from them. Entry-point
+        # plugin loading is switched off inside the job, which is what stops a
+        # plugin arriving through the lock file.
+        run: uv sync --frozen --all-groups
+        working-directory: v2
+
+      - name: Run the earlier builds' tests against this branch's package
+        # The same two belts, for the same reason: see the guards job above.
+        shell: bash
+        run: |
+          set -o pipefail
+          PYTHON="$(cd v2 && uv run python -c 'import sys; print(sys.executable)')"
+          export PYTHON
+          bash v2/tools/guards/run_guards.sh \
+            --earlier-tests \
+            --repo . \
+            --base-sha ${{ github.event.pull_request.base.sha }} \
+            --head-sha ${{ github.event.pull_request.head.sha }} \
+            --head-ref "${{ github.event.pull_request.head.ref }}" \
+            --base-ref "${{ github.event.pull_request.base.ref }}" \
+            | tee earlier-tests.txt
+
+      - name: Put the summary where the founder can read it
+        if: always()
+        run: |
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat earlier-tests.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

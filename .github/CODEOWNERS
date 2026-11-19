@@ -1,0 +1,61 @@
+# CODEOWNERS -- who must approve a change to what.
+#
+# Written as "everything is the founder's, except the folders builds work in".
+# Listing only the files to protect is how the earlier drafts kept missing some
+# -- the lock file, the loop's own code, a conftest.py beside the package --
+# so this file is turned round: a catch-all first, then the carve-outs.
+#
+# GitHub's rules this relies on (read fresh at build time, 18 Nov 2026):
+#   * the LAST matching pattern wins, so broad rules go first and the
+#     carve-outs below them;
+#   * a pattern with NO owners removes ownership for that path;
+#   * the copy that governs a pull request is the one on the pull request's
+#     BASE branch, so editing this file inside a pull request never changes who
+#     is asked to review that same pull request;
+#   * patterns are gitignore-style minus three features: no "!" negation, no
+#     "[a-z]" ranges, no escaped "#". Matching is case-sensitive.
+#
+# UNTIL B05 THIS FILE HAS NO FORCE: nothing requires a code owner's review yet,
+# and every session acts as the founder. B05 switches on the rulesets that make
+# it binding, and then attacks them.
+
+# 1. Everything is the founder's.
+*                                       @vedantgautam1
+
+# 2. Except the folders builds work in. No owner: anyone with write access may
+#    approve, so a build does not sit waiting on the founder for its own work.
+/v2/src/chronos2/
+/v2/tests/
+/v2/migrations/
+/v2/tools/v1_oracle/
+/v2/tools/sabotage/
+/v2/config/venues/
+/docs/v2/build/reports/
+/docs/v2/build/reviews/
+/docs/v2/build/status/
+/docs/v2/build/sabotage/
+/docs/v2/build/LEDGER.md
+/docs/v2/CHANGELOG.md
+/docs/v2/COMPONENTS.md
+/docs/v2/BUILD_NOTES.md
+/docs/v2/CODEBASE.md
+/docs/v2/research/
+/docs/drafts/
+/scratch/
+
+# 3. Except, inside those, the things that are the founder's wherever they are.
+#    An instruction file planted in a source folder would be read by every
+#    later session working there, so it is owned at any depth.
+CLAUDE.md                               @vedantgautam1
+CLAUDE.local.md                         @vedantgautam1
+AGENTS.md                               @vedantgautam1
+.claude/                                @vedantgautam1
+/v2/src/chronos2/fixtures/touchstones/   @vedantgautam1
+
+# Everything else is therefore the founder's, by rule 1 and without being
+# listed: .github/ (these owners, the workflows), the root CLAUDE.md and
+# .claude/, the master doc, the specs, the ladder, the blueprint, the cards,
+# the handbook and gates/, v2/tools/guards/, v2/tools/loop/,
+# v2/config/protected/, v2/pyproject.toml, v2/uv.lock, and anything directly
+# under v2/ or v2/src/ beside the package -- a conftest.py or a
+# sitecustomize.py put there included.

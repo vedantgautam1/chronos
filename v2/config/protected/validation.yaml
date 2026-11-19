@@ -1,0 +1,41 @@
+# Protected values: validation. FOUNDER-OWNED.
+#
+# Only numbers the master doc has already locked, each with its decision id.
+# Nothing here is derived, tuned or chosen by a build. Changing any of it is a
+# protected change (CLAUDE.md hard rule 7): the diff is shown and the founder
+# approves it before anything moves. The `protected` guard prints the old and
+# new values on any pull request that touches this file.
+#
+# Builds read this file; none may change it. Loading it at run time belongs to
+# the builds that use it (B11, B14, B16, B18), not to B02.
+
+# V2-D38 -- the sealed final block. For crypto, everything from this instant
+# onward is sealed: no screen, research session or agent reads it. The edge
+# check confirms a candidate with ONE look per hypothesis lineage. Moving a
+# seal date later is a protected change.
+seal:
+  BTC: "2026-04-01T00:00:00Z"
+  ETH: "2026-04-01T00:00:00Z"
+
+# V2-D35 -- "2x costs" defined per component. In the stress run commission,
+# exchange/regulatory fees, spread and slippage are multiplied by this; funding
+# and futures-spot basis enter at their modelled values in both runs.
+stress_friction_multiplier: 2.0
+
+# V2-D39 -- the adverse-funding level. Funding is charged against the position
+# for every hour it is held, at this percentile of the contract's own absolute
+# hourly funding rate from launch to the seal. The rate itself is computed once
+# from data at the spike, then stored here with its source and hash and fixed;
+# it is deliberately empty until then, and an empty map is not a licence to
+# skip the run.
+adverse_funding_percentile: 95
+adverse_funding_hourly_rate: {}
+
+# V2-D31 -- the search-fragmentation warning. Sibling hypotheses registered
+# within this many days, in the same strategy class with overlapping parameter
+# neighbourhoods, are flagged and DSR is also reported at their combined N.
+fragmentation_window_days: 90
+
+# V2-D38 -- the confirm rule. At least this many of the strategy's trades must
+# fall in the sealed block. Fewer: the same test runs in L3 paper before L4.
+sealed_confirm_min_trades: 200
