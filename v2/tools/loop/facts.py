@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
+MAIN_BRANCH = "main"  # a gate is done when its report is on main; the move targets it
 STATES = ("building", "needs_review", "changes_requested", "passed", "merged", "halted")
 STATUS_KEYS = ("build", "state", "ticks", "head", "halt_reason", "halt_options")
 PARKED_STATES = ("passed", "merged")
@@ -284,24 +285,41 @@ def _pull_requests(api, repo: str, base: str, owner: str = "") -> dict[str, dict
     code-owner review" is a fact the decision needs (rows 28-28c) and it cannot
     be read off the pull request itself. Closed and merged ones are not asked
     about: their review state cannot change the answer.
+
+    **Two bases, not one.** A gate takes two pull requests: the write-up
+    (``gate/gN`` into the build branch) and then the move (the build branch
+    into ``main``). ``_gate`` reads the move as the pull request whose *head*
+    is the build branch -- and a branch cannot target itself, so querying
+    ``base=v2-build`` alone can never return it. ``move_pr`` was therefore
+    always ``None`` and rows 8 and 8b were unreachable through ``gather``:
+    measured, an open move gave ``OPEN_GATE_MOVE`` where row 8 says
+    ``WAIT_FOUNDER``, so the loop would open a second move over an open one and
+    re-open a move the founder had refused. Same shape as finding 1 -- a
+    correct rule wired to a collector that cannot feed it.
+
+    ``state`` stays the outer loop so an open pull request still beats a closed
+    one for the same head branch, whichever base each came in on.
     """
     out: dict[str, dict] = {}
     for state in ("open", "closed"):
-        for pr in api(f"pulls?state={state}&base={base}&per_page=100", repo=repo) or []:
-            head = pr.get("head") or {}
-            if ((head.get("repo") or {}).get("full_name") or "") != repo:
-                continue  # a fork: only branches in this repository count
-            name = head.get("ref") or ""
-            if name in out:
-                continue
-            if state == "open" and not pr.get("merged_at"):
-                pr = {
-                    **pr,
-                    "_reviews": api(f"pulls/{pr.get('number')}/reviews?per_page=100", repo=repo)
-                    or [],
-                    "_owner": owner,
-                }
-            out[name] = pr
+        for target in (base, MAIN_BRANCH):
+            for pr in api(f"pulls?state={state}&base={target}&per_page=100", repo=repo) or []:
+                head = pr.get("head") or {}
+                if ((head.get("repo") or {}).get("full_name") or "") != repo:
+                    continue  # a fork: only branches in this repository count
+                name = head.get("ref") or ""
+                if name in out:
+                    continue
+                if state == "open" and not pr.get("merged_at"):
+                    pr = {
+                        **pr,
+                        "_reviews": api(
+                            f"pulls/{pr.get('number')}/reviews?per_page=100", repo=repo
+                        )
+                        or [],
+                        "_owner": owner,
+                    }
+                out[name] = pr
     return out
 
 
@@ -408,7 +426,7 @@ def _gate(entry, git, repo_dir, base, branches, locks, prs) -> Gate:
     # nothing either way, so through `_git` -- which returns "" on failure --
     # a missing report would be indistinguishable from a present one.
     return Gate(
-        on_main=bool(git(repo_dir, "ls-tree", "--name-only", "origin/main", report)),
+        on_main=bool(git(repo_dir, "ls-tree", "--name-only", f"origin/{MAIN_BRANCH}", report)),
         on_base=bool(git(repo_dir, "ls-tree", "--name-only", f"origin/{base}", report)),
         branch=branch in branches,
         lock_at=lock_at,
