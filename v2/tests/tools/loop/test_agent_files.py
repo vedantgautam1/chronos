@@ -32,11 +32,13 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import re
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 import yaml
 from ladder import MODELS
+from lock import message_for
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 AGENTS_DIR = REPO_ROOT / ".claude" / "agents"
@@ -529,7 +531,75 @@ def test_tick_on_the_wrong_model_prints_the_mismatch_and_takes_no_lock():
     assert issues.opened == []
 
 
-def test_tick_with_a_lock_held_by_someone_else_says_claimed_nothing_to_do():
+def _held_lock(age: timedelta, now: datetime) -> FakeRefs:
+    """A lock on T01 held by another session, `age` old.
+
+    The message is built by `lock.message_for`, not by hand: the stamp key is
+    `Chronos-Lock-At:` *with* the colon, and a hand-rolled message that gets
+    that wrong has no readable age -- which sends `claim` down the
+    unreadable-age branch instead of the one under test.
+    """
+    refs = FakeRefs(existing={"refs/heads/lock/t01": "abc"})
+    refs.messages["abc"] = message_for("T01", "another-session", "review", now - age)
+    return refs
+
+
+def test_tick_with_a_fresh_lock_held_by_someone_else_says_claimed_nothing_to_do():
+    """The spec's known answer, and it names a **fresh** lock.
+
+    The first version of this test used a lock whose message carried no
+    stamp. It asserted the right sentence and reached it down the wrong
+    branch -- `is_stale` raises on an unreadable age, and the resulting
+    message also opens "claimed, nothing to do". So the branch the known
+    answer is actually about was never exercised. Found by driving the real
+    `message_for` by hand; disclosed in `reports/B04.md`.
+    """
+    cli = _load_cli()
+    now = datetime(2026, 11, 20, 18, 0, tzinfo=UTC)
+    refs = _held_lock(timedelta(minutes=5), now)
+    code, out = cli.claim(
+        ["--session-model", "opus"],
+        next_action=_ok(ACTION_BUILD_OPUS),
+        refs=refs,
+        issues=FakeIssues(),
+        now=now,
+    )
+    assert code == 0
+    assert "claimed, nothing to do" in out
+    assert "Another session holds the lock" in out, (
+        "a fresh lock must take the held branch, not the unreadable-age one"
+    )
+    assert "age cannot be read" not in out
+    assert "subagent_type" not in out, "nothing is dispatched when the lock is lost"
+
+
+def test_tick_takes_over_a_stale_lock_and_dispatches():
+    """The other side of the same rule: a lock older than `claim_hours` is
+    stale, and a stale lock is taken over rather than waited on. Without
+    this, the test above would pass just as well if `claim` always refused.
+    """
+    cli = _load_cli()
+    now = datetime(2026, 11, 20, 18, 0, tzinfo=UTC)
+    refs = _held_lock(timedelta(hours=4), now)
+    code, out = cli.claim(
+        ["--session-model", "opus"],
+        next_action=_ok(ACTION_BUILD_OPUS),
+        refs=refs,
+        issues=FakeIssues(),
+        now=now,
+    )
+    assert code == 0
+    assert "was stale, so this session took it over" in out
+    assert "subagent_type: chronos-builder-opus" in out
+
+
+def test_tick_leaves_a_lock_whose_age_cannot_be_read():
+    """A lock the loop cannot judge is left alone, never treated as free.
+
+    `lock.is_stale` raises rather than guessing, because treating an
+    unreadable lock as free is the one answer that lets two sessions run at
+    once. `claim` catches that and stops.
+    """
     cli = _load_cli()
     refs = FakeRefs(existing={"refs/heads/lock/t01": "deadbeef"})
     code, out = cli.claim(
@@ -539,8 +609,8 @@ def test_tick_with_a_lock_held_by_someone_else_says_claimed_nothing_to_do():
         issues=FakeIssues(),
     )
     assert code == 0
-    assert "claimed, nothing to do" in out
-    assert "subagent_type" not in out, "nothing is dispatched when the lock is lost"
+    assert "age cannot be read" in out
+    assert "subagent_type" not in out
 
 
 def test_tick_opens_exactly_one_halt_issue_when_next_action_fails():
