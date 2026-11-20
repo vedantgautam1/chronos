@@ -159,6 +159,51 @@ def _api(path: str, *, repo: str) -> object:
     return json.loads(done.stdout or "null")
 
 
+# GitHub serves at most 100 items a page on every collection endpoint, and one
+# page is not enough for any of the three the emergency stop reads: this
+# repository's issue-events feed already spans 15 pages at ``per_page=5``, and
+# an issue's timeline grows with every comment (issue 32's spans 4). A
+# collector that stops at page one quietly loses the oldest ``labeled`` event
+# as the repository fills up, which is review B03-r1.md finding 1 again.
+_PER_PAGE = 100
+_MAX_PAGES = 100  # 10,000 items; past that, fail closed rather than truncate
+
+
+def _pages(api, path: str, *, repo: str) -> list[dict]:
+    """Every item of a paginated REST collection, not just the first page.
+
+    Stops on an **empty** page, not on a page shorter than ``per_page``. The
+    short-page rule is the obvious one and it is wrong here: it assumes the
+    server returns exactly as many items as were asked for, and a server that
+    returns 99 for a request of 100 would end the read silently one page early
+    -- which is the same quiet truncation this helper exists to prevent. The
+    terminator costs one extra call per feed and is confirmed against this
+    repository, where page 2 of the issue-events feed returns ``[]``. Reading
+    the ``Link`` header would be cheaper, but ``_api`` returns a parsed body
+    and giving it headers would change the seam every test replaces.
+
+    Fails **closed**. A feed that cannot be read to its end raises rather than
+    returning the part it managed, because a short read of the halt feed reads
+    as "no emergency stop" -- the one answer that must never be guessed. Same
+    direction as ``lock.is_stale``, which raises rather than calling a lock it
+    cannot judge free.
+    """
+    joiner = "&" if "?" in path else "?"
+    out: list[dict] = []
+    for page in range(1, _MAX_PAGES + 1):
+        batch = api(f"{path}{joiner}per_page={_PER_PAGE}&page={page}", repo=repo) or []
+        if not isinstance(batch, list):
+            raise FactsError(f"{path} page {page} is not a list of items")
+        if not batch:
+            return out
+        out.extend(batch)
+    raise FactsError(
+        f"{path} has more than {_MAX_PAGES * _PER_PAGE} items, so it cannot be read "
+        "to its end; refusing to read it in part, because a short read of the halt "
+        "feed would read as no stop"
+    )
+
+
 def _when(text: str) -> datetime | None:
     if not text:
         return None
@@ -373,13 +418,69 @@ def _gate(entry, git, repo_dir, base, branches, locks, prs) -> Gate:
 
 
 def _halt_issues(api, repo: str, label: str) -> list[dict]:
-    issues = api(f"issues?state=all&labels={label}&per_page=100", repo=repo) or []
+    """Every issue the halt label was ever put on -- not every issue carrying it now.
+
+    ``issues?labels=`` filters on an issue's **current** labels, so on its own
+    it lets the automation's own account end a stop by taking the label off the
+    issue, or by deleting the label from the repository: exactly what rows 30b
+    and 30c forbid (review B03-r1.md finding 1). The repository's issue-events
+    feed names every ``labeled`` event with its label, so the union of the two
+    gives the candidate issues, and each candidate's timeline then decides.
+
+    **Both halves are kept.** The events feed is the half that survives the
+    label being removed or deleted. The ``labels=`` query is the half that
+    survives an issue whose events have aged out of the feed, if GitHub's
+    retention ever bites. Neither is bounded by issue state: rows 30b and 30c
+    do not say whether the issue is open or closed.
+
+    The timeline handed on is filtered to **this** label. An issue may carry
+    several, and ``halt_in_force`` reads any ``labeled``/``unlabeled`` event as
+    being about the stop, so without the filter the owner tidying an unrelated
+    label would end an emergency stop he never touched.
+
+    Every call is read to its last page, and a label name that cannot be read
+    is treated as a match rather than skipped, so both failure directions leave
+    a stop standing instead of silently cancelling it.
+    """
+    candidates: dict[int, dict] = {}
+    for issue in _pages(api, f"issues?state=all&labels={label}", repo=repo):
+        if issue.get("number") is not None:
+            candidates[issue["number"]] = issue
+    for event in _pages(api, "issues/events", repo=repo):
+        if event.get("event") != "labeled" or not _is_label(event, label):
+            continue
+        number = (event.get("issue") or {}).get("number")
+        if number is not None:
+            candidates.setdefault(number, {"number": number})
     out = []
-    for issue in issues:
-        number = issue.get("number")
-        timeline = api(f"issues/{number}/timeline?per_page=100", repo=repo) or []
-        out.append({**issue, "timeline": timeline})
+    for number in sorted(candidates):
+        timeline = _pages(api, f"issues/{number}/timeline", repo=repo)
+        out.append({**candidates[number], "timeline": _about(timeline, label)})
     return out
+
+
+def _is_label(event: dict, label: str) -> bool:
+    """Does this label event concern *this* label?
+
+    An event whose label cannot be read counts as a match: fail closed, so a
+    change in GitHub's payload leaves a stop standing rather than lifting it.
+    """
+    name = (event.get("label") or {}).get("name")
+    return name is None or name == label
+
+
+def _about(timeline: list[dict], label: str) -> list[dict]:
+    """The timeline events that bear on *this* label's stop.
+
+    A ``labeled`` or ``unlabeled`` event for a different label is dropped.
+    Everything else passes through untouched -- ``closed`` above all, which
+    ends a stop when the owner does it whatever the labels say.
+    """
+    return [
+        event
+        for event in timeline
+        if event.get("event") not in ("labeled", "unlabeled") or _is_label(event, label)
+    ]
 
 
 def _checks(api, repo: str, sha: str) -> str:

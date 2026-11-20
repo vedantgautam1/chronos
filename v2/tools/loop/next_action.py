@@ -93,7 +93,7 @@ def decide(ladder: ladder_mod.Ladder, facts: Facts, now: datetime) -> Action:
             in_flight.append(entry)
             continue
         else:
-            action = _for_parked_or_start(entry, ladder, facts)
+            action = _for_parked_or_start(entry, ladder, facts, now)
 
         if action.kind == "WAIT_FOUNDER":
             waiting.append(entry.id)
@@ -115,7 +115,8 @@ def decide(ladder: ladder_mod.Ladder, facts: Facts, now: datetime) -> Action:
     if waiting:
         first = waiting[0]
         return _with_waiting(
-            Action("WAIT_FOUNDER", first, reason=_waiting_reason(first, ladder, facts)), waiting
+            Action("WAIT_FOUNDER", first, reason=_waiting_reason(first, ladder, facts, now)),
+            waiting,
         )
     return Action("NONE", reason="nothing on the ladder is runnable and nothing waits on you.")
 
@@ -147,12 +148,16 @@ def _in_flight(entry, facts: Facts) -> bool:
     return bool(build.branch) and not build.parked and build.state != "halted"
 
 
-def _for_parked_or_start(entry, ladder, facts: Facts) -> Action:
+def _for_parked_or_start(entry, ladder, facts: Facts, now: datetime) -> Action:
     build = facts.build(entry.id)
     if build.state == "halted":
-        return Action("WAIT_FOUNDER", entry.id, reason=_waiting_reason(entry.id, ladder, facts))
+        return Action(
+            "WAIT_FOUNDER", entry.id, reason=_waiting_reason(entry.id, ladder, facts, now)
+        )
     if build.parked:
-        return Action("WAIT_FOUNDER", entry.id, reason=_waiting_reason(entry.id, ladder, facts))
+        return Action(
+            "WAIT_FOUNDER", entry.id, reason=_waiting_reason(entry.id, ladder, facts, now)
+        )
     if entry.is_card:
         return Action(
             "WAIT_FOUNDER",
@@ -168,10 +173,14 @@ def _for_parked_or_start(entry, ladder, facts: Facts) -> Action:
     )
 
 
-def _waiting_reason(entry_id: str, ladder, facts: Facts) -> str:
+def _waiting_reason(entry_id: str, ladder, facts: Facts, now: datetime) -> str:
     entry = ladder.get(entry_id)
     if entry is not None and entry.gate:
-        return _for_gate(entry, ladder, facts, datetime.now(UTC)).reason
+        # `now`, never the wall clock: `decide` is a pure function of its
+        # arguments (Deliver 3), and reading the clock here was one new
+        # WAIT_FOUNDER branch away from making it non-deterministic
+        # (review B03-r1.md finding 2).
+        return _for_gate(entry, ladder, facts, now).reason
     build = facts.build(entry_id)
     if build.state == "halted":
         return f"{entry_id} is halted and waiting for you to clear it; nothing goes around a halt."
