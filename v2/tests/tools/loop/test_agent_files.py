@@ -112,8 +112,10 @@ BASE_BULLET_ANCHORS = (
     "In a build or review session, the end-of-session list below is replaced",
     "Unattended sessions never merge into `main`",
     "Builder and reviewer are different sessions.",
-    "Never create a `CLAUDE.md`, `AGENTS.md` or `.claude` folder below the "
-    "repository root.",
+    (
+        "Never create a `CLAUDE.md`, `AGENTS.md` or `.claude` folder below "
+        "the repository root."
+    ),
 )
 
 
@@ -131,8 +133,7 @@ def _split_front_matter(path: Path) -> tuple[dict, str]:
     if end == -1:
         raise AssertionError(f"{path} has no closing '---' front-matter line")
     meta = yaml.safe_load(text[4:end]) or {}
-    if not isinstance(meta, dict):
-        raise AssertionError(f"{path} front matter is not a mapping")
+    assert isinstance(meta, dict), f"{path} front matter is not a mapping"
     return meta, text[end + 5 :]
 
 
@@ -146,7 +147,7 @@ def _skill(name: str) -> tuple[dict, str]:
 
 def _build_loop_bullets(text: str) -> list[str]:
     section = re.search(
-        r"^## Build loop.*?$(.*?)^## At the end", text, re.S | re.M
+        r"^## Build loop.*?$(.*?)^## At the end", text, re.DOTALL | re.MULTILINE
     )
     if section is None:
         raise AssertionError("CLAUDE.md has no 'Build loop' section")
@@ -407,12 +408,24 @@ def test_the_tick_skill_dispatches_through_the_task_tool():
 
 
 def test_the_tick_skill_runs_the_loop_without_python_isolated_mode():
+    """`-I` strips the script's own directory from ``sys.path``, so
+    ``next_action.py``'s sibling ``import ladder`` fails at once —
+    reproduced: ``ModuleNotFoundError: No module named 'ladder'``.
+
+    The first version of this test asserted ``"python -I" not in body``,
+    which is wrong: the skill has to *name* ``-I`` in order to warn against
+    it, because ``CLAUDE.md``'s conventions tell sessions to use it. Every
+    mention must be a prohibition, which is what this asserts instead —
+    stricter than the absence check it replaces. Disclosed in
+    ``reports/B04.md``.
+    """
     _, body = _skill(TICK)
-    assert "python -I" not in body, (
-        "`-I` strips the script's directory from sys.path and "
-        "next_action.py's sibling `import ladder` fails at once"
-    )
     assert "uv run python tools/loop/next_action.py" in body
+    assert "Never run it with `python -I`" in body
+    mentions = [ln for ln in body.splitlines() if "python -I" in ln]
+    assert mentions, "the trap must be named, or a later session re-adds it"
+    for line in mentions:
+        assert "never" in line.lower(), f"-I named without a prohibition: {line}"
 
 
 def test_the_tick_skill_fetches_before_it_gathers():
@@ -568,6 +581,44 @@ def test_resume_leaves_an_open_halt_issue_open():
     assert issues.open_halt == 7
     assert "close the issue yourself on GitHub" in out
     assert "only your account releases the stop" in out
+
+
+def test_a_labelled_pull_request_is_not_read_as_an_emergency_stop():
+    """`GET /issues` returns pull requests as well as issues.
+
+    B03's round-2 reviewer measured this on the live repository: all 32 of
+    what that endpoint returns here are pull requests and none is an issue.
+    So a pull request that picked up the label — and the loop opens pull
+    requests constantly — would read as an emergency stop and freeze
+    everything. The collector filters on the `pull_request` key; this pins
+    it, because nothing else did.
+    """
+    cli = _load_cli()
+    labelled_pr = '[{"number": 34, "pull_request": {"url": "..."}}]'
+    issues = cli.GitHubIssues(
+        "owner/repo", "owner", runner=lambda *a, **k: (0, labelled_pr)
+    )
+    assert issues.halt_issue() is None
+
+    real_issue = '[{"number": 7}]'
+    issues = cli.GitHubIssues(
+        "owner/repo", "owner", runner=lambda *a, **k: (0, real_issue)
+    )
+    assert issues.halt_issue() == 7
+
+
+def test_an_unreadable_halt_answer_reports_a_stop_rather_than_none():
+    """Fails closed. "No stop" is the one answer that must never be guessed."""
+    cli = _load_cli()
+    for runner in (
+        lambda *a, **k: (1, ""),  # the call failed
+        lambda *a, **k: (0, "not json"),  # the answer is unreadable
+    ):
+        issues = cli.GitHubIssues("owner/repo", "owner", runner=runner)
+        assert issues.halt_issue() == -1
+        code, out = cli.resume([], issues=issues)
+        assert code != 0, "an unreadable stop must not resume the loop"
+        assert "nothing is resumed" in out.lower()
 
 
 def test_resume_reports_no_stop_when_none_is_open():
