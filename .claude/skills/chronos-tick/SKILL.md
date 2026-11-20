@@ -36,11 +36,27 @@ it comes first.
 ## 2. Ask the script
 
 ```
-cd v2 && uv run python tools/loop/next_action.py
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT/v2" && uv run python tools/loop/next_action.py \
+  --ladder "$ROOT/docs/v2/build/LADDER.yaml" --repo "$ROOT"
 ```
 
-Add `--ladder <path>` if the founder gave one, and `--repo <path>` for a
-repository that is not the current one.
+**Both paths have to be absolute, and leaving either out is worse than it
+looks.** `next_action.py` resolves `--ladder` and `--repo` against the
+working directory, and this has to run from `v2/`, where `uv` lives:
+
+- no `--ladder`: the relative default finds no ladder, the script exits 1,
+  and step 3 opens a `chronos-halt` issue that only the founder can close.
+  Loud, and it stops the loop dead.
+- no `--repo`: the default `.` is `v2/`, and `facts.gather` reads the status
+  files with `git ls-tree`, whose pathspec is relative to the working
+  directory inside the repository. From `v2/` it matches nothing, so
+  **every** build reads as having no status file and the script answers
+  confidently from an empty world — measured: `WAIT_FOUNDER G0` where the
+  truth is `WAIT_FOUNDER B04`. Silent, and worse.
+
+Put the founder's own path after `--ladder` if he gave one, and his
+repository after `--repo` if it is not this one.
 
 **Never run it with `python -I`.** `CLAUDE.md`'s conventions say to use `-I`
 for third-party or downloaded code; this is neither. `-I` strips the

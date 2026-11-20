@@ -430,6 +430,31 @@ def test_the_tick_skill_runs_the_loop_without_python_isolated_mode():
         assert "never" in line.lower(), f"-I named without a prohibition: {line}"
 
 
+def test_the_tick_skill_documents_the_loop_call_with_absolute_paths():
+    """Step 2's command is the one a session runs by hand, and as shipped it
+    was the command that hid finding 11: from ``v2/`` it exited 1 on the
+    ladder. Fixing only ``--ladder`` is not enough -- it then exits 0 and
+    answers from an empty world, because ``facts.gather`` reads the status
+    files with ``git ls-tree``, whose pathspec is relative to the working
+    directory inside the repository. Measured: ``WAIT_FOUNDER G0`` where the
+    truth is ``WAIT_FOUNDER B04``. Both paths must be rooted at the
+    repository, so a later tidy-up cannot shorten them back.
+    """
+    _, body = _skill(TICK)
+    blocks = [
+        block
+        for block in re.findall(r"^```\n(.*?)^```", body, re.DOTALL | re.MULTILINE)
+        if "tools/loop/next_action.py" in block
+    ]
+    assert blocks, "step 2's command block is gone"
+    for block in blocks:
+        for flag in ("--ladder", "--repo"):
+            assert flag in block, f"step 2's command does not pass {flag}:\n{block}"
+        assert "rev-parse --show-toplevel" in block, (
+            "step 2's paths are not rooted at the repository:\n" + block
+        )
+
+
 def test_the_tick_skill_fetches_before_it_gathers():
     _, body = _skill(TICK)
     assert "fetch --no-tags --prune origin" in body, (

@@ -36,6 +36,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 LOOP_DIR = REPO_ROOT / "v2" / "tools" / "loop"
 V2_DIR = REPO_ROOT / "v2"
+DEFAULT_LADDER = REPO_ROOT / "docs" / "v2" / "build" / "LADDER.yaml"
 if str(LOOP_DIR) not in sys.path:
     sys.path.insert(0, str(LOOP_DIR))
 
@@ -193,11 +194,11 @@ def _agent_for(kind: str, model: str | None) -> str | None:
 
 
 def _passthrough(args: argparse.Namespace) -> list[str]:
-    out: list[str] = []
-    if args.ladder:
-        out += ["--ladder", args.ladder]
-    if args.repo:
-        out += ["--repo", args.repo]
+    # Both scripts resolve --ladder and --repo against the working directory,
+    # and these subprocesses run with cwd=V2_DIR, so an unset default must be
+    # made absolute here or next_action.py cannot find the ladder at all.
+    out: list[str] = ["--ladder", args.ladder or str(DEFAULT_LADDER)]
+    out += ["--repo", args.repo or str(REPO_ROOT)]
     return out
 
 
