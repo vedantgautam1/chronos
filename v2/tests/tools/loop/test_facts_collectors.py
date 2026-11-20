@@ -350,3 +350,116 @@ def test_gather_reports_no_stop_when_nothing_was_ever_labelled(ladder_a):
     api = FakeGitHub(issues=[{"number": 1, "state": "open", "labels": []}])
     facts = gather(ladder_a, Path("."), REPO, OWNER, git=fake_git, api=api)
     assert facts.halted is False
+
+
+# ------------------------------- rows 8 and 8b: the gate's move pull request
+#
+# Found by the sweep the hand-over asked for, and the same shape as finding 1.
+# A gate's move is the build branch into ``main``, so ``_gate`` reads it as the
+# pull request whose *head* is the build branch -- but ``_pull_requests`` only
+# queried ``base=v2-build``, and a branch cannot target itself. ``move_pr`` was
+# therefore always ``None``: measured, an open move gave ``OPEN_GATE_MOVE``
+# where row 8 says ``WAIT_FOUNDER``, so the loop would open a second move over
+# an open one, and re-open a move the founder had refused (row 8b).
+#
+# Rows 8 and 8b are asserted in the decision table from a hand-built
+# ``Gate(move_pr=...)``, which is exactly why nothing caught this.
+
+
+class PullRequestGitHub:
+    """A GitHub whose ``?base=`` filter is honoured, which is the whole point:
+    a collector that asks only about one base cannot see the other's."""
+
+    def __init__(self, pulls=()):
+        self.pulls = list(pulls)
+        self.asked: list[str] = []
+
+    def __call__(self, path, *, repo):
+        self.asked.append(path)
+        if not path.startswith("pulls?"):
+            return []
+        params = urllib.parse.parse_qs(path.partition("?")[2])
+        state = params.get("state", ["open"])[0]
+        base = params.get("base", [""])[0]
+        return [
+            pull
+            for pull in self.pulls
+            if pull["base"]["ref"] == base
+            and (pull.get("state") == state or (state == "closed" and pull.get("merged_at")))
+        ]
+
+
+def move_pull_request(state: str = "open", merged_at=None, number: int = 99) -> dict:
+    """The move exactly as the spec describes it: the build branch into main."""
+    return {
+        "number": number,
+        "state": state,
+        "merged_at": merged_at,
+        "base": {"ref": "main"},
+        "head": {"ref": "v2-build", "repo": {"full_name": REPO}},
+    }
+
+
+def gate_git(repo_dir, *args):
+    """G1's report is on v2-build but not on main: rows 7, 8 and 8b territory."""
+    if args[:1] == ("ls-remote",):
+        return "4798115e9442\trefs/heads/v2-build"
+    if args[:1] == ("rev-parse",):
+        return "4798115e9442"
+    if args[:1] == ("ls-tree",) and "G1-report.md" in args[-1]:
+        return args[-1] if args[-2] == "origin/v2-build" else ""
+    return ""
+
+
+def test_row_8_an_open_move_pull_request_is_gathered(ladder_a):
+    api = PullRequestGitHub([move_pull_request()])
+    facts = gather(ladder_a, Path("."), REPO, OWNER, git=gate_git, api=api)
+    assert facts.gate("G1").on_base is True
+    assert facts.gate("G1").move_pr == "open"
+
+
+def test_row_8b_a_refused_move_pull_request_is_gathered(ladder_a):
+    api = PullRequestGitHub([move_pull_request(state="closed")])
+    facts = gather(ladder_a, Path("."), REPO, OWNER, git=gate_git, api=api)
+    assert facts.gate("G1").move_pr == "closed_unmerged"
+
+
+def test_row_7_no_move_pull_request_at_all_is_still_none(ladder_a):
+    """The positive control: the fix must not invent a move that isn't there."""
+    facts = gather(ladder_a, Path("."), REPO, OWNER, git=gate_git, api=PullRequestGitHub())
+    assert facts.gate("G1").on_base is True
+    assert facts.gate("G1").move_pr is None
+
+
+def test_a_merged_move_pull_request_does_not_block_the_next_gate(ladder_a):
+    api = PullRequestGitHub([move_pull_request(state="closed", merged_at="2026-11-19T00:00:00Z")])
+    facts = gather(ladder_a, Path("."), REPO, OWNER, git=gate_git, api=api)
+    assert facts.gate("G1").move_pr == "merged"
+
+
+def test_the_write_up_pull_request_is_still_gathered_from_the_build_branch(ladder_a):
+    """The half that already worked must keep working: the write-up comes in on
+    ``base=v2-build`` and is keyed by its own head branch."""
+    api = PullRequestGitHub(
+        [
+            {
+                "number": 50,
+                "state": "open",
+                "merged_at": None,
+                "base": {"ref": "v2-build"},
+                "head": {"ref": "gate/g1", "repo": {"full_name": REPO}},
+            }
+        ]
+    )
+    facts = gather(ladder_a, Path("."), REPO, OWNER, git=gate_git, api=api)
+    assert facts.gate("G1").writeup_pr == "open"
+    assert facts.gate("G1").move_pr is None
+
+
+def test_a_forked_move_pull_request_cannot_present_itself_as_the_move(ladder_a):
+    """Row 39's rule, on the path this round opened up."""
+    forked = move_pull_request()
+    forked["head"] = {"ref": "v2-build", "repo": {"full_name": "someone-else/chronos"}}
+    api = PullRequestGitHub([forked])
+    facts = gather(ladder_a, Path("."), REPO, OWNER, git=gate_git, api=api)
+    assert facts.gate("G1").move_pr is None
