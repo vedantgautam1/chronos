@@ -514,6 +514,113 @@ def test_tick_passes_the_ladder_argument_through():
     assert "--ladder" in seen[0] and "X" in seen[0]
 
 
+def _argv_the_helper_sends(cli, command: str) -> list[str]:
+    """What `_passthrough` actually puts on the subprocess command line.
+
+    Driven through the two public commands rather than by calling the private
+    helper, because the defect this pins was in what the commands send, not in
+    what the helper could be made to return in isolation.
+    """
+    seen: list[list[str]] = []
+
+    def runner(argv):
+        seen.append(argv)
+        return 0, ACTION_BUILD_OPUS, ""
+
+    if command == "claim":
+        cli.claim(
+            ["--session-model", "opus"],
+            next_action=runner,
+            refs=FakeRefs(),
+            issues=FakeIssues(),
+        )
+    else:
+        cli.status([], status_report=runner)
+    assert seen, f"{command} never ran the script"
+    return seen[0]
+
+
+@pytest.mark.parametrize("command", ["claim", "status"])
+def test_the_loop_scripts_are_given_paths_that_resolve_from_the_directory_they_run_in(
+    command,
+):
+    """B04-r1 finding 11, as an assertion rather than prose.
+
+    ``next_action.py`` and ``status_report.py`` default ``--ladder`` to the
+    relative ``docs/v2/build/LADDER.yaml`` and ``--repo`` to ``"."``, and both
+    are resolved against the working directory. ``real_next_action`` and
+    ``real_status_report`` run them with ``cwd=v2/``, where neither default
+    points anywhere real. Sending no argument therefore meant the script
+    exited 1 with ``LadderError`` and ``/chronos-tick`` opened a
+    ``chronos-halt`` issue on the loop's **first** tick -- which only the
+    founder's own account can close.
+
+    Resolution is done here the way the subprocess would do it, from
+    ``V2_DIR``, so the test fails for the shipped reason and not for a
+    coincidence. It needs no subprocess and no network: the two end-to-end
+    shapes both reach ``facts.gather``, which runs ``git ls-remote`` and
+    ``gh api``, and CI has neither the refs nor the token (the same reason the
+    ``CLAUDE.md`` check above compares against a pinned digest).
+    """
+    cli = _load_cli()
+    argv = _argv_the_helper_sends(cli, command)
+
+    assert "--ladder" in argv, (
+        "no --ladder was sent, so the script falls back to its own "
+        "cwd-relative default and cannot find the ladder from v2/"
+    )
+    ladder = Path(argv[argv.index("--ladder") + 1])
+    assert (cli.V2_DIR / ladder).is_file(), (
+        f"--ladder {ladder} does not resolve to a file from {cli.V2_DIR}, "
+        "which is the working directory these subprocesses are run with"
+    )
+
+    assert "--repo" in argv, (
+        "no --repo was sent, so the script falls back to '.', which from v2/ "
+        "is the v2 package and not the repository"
+    )
+    repo = Path(argv[argv.index("--repo") + 1])
+    assert ((cli.V2_DIR / repo) / "docs" / "v2" / "build" / "LADDER.yaml").is_file(), (
+        f"--repo {repo} does not resolve to the repository root from "
+        f"{cli.V2_DIR}"
+    )
+
+
+@pytest.mark.parametrize("command", ["claim", "status"])
+def test_an_explicit_ladder_or_repo_still_wins_over_the_absolute_defaults(command):
+    """The defaults fill a gap; they never override what the founder gave.
+
+    Deliver 2 passes ``--ladder`` through "when the prompt gives one", so the
+    given value has to survive, and the toy-ladder runs in a temp repository
+    depend on it.
+    """
+    cli = _load_cli()
+    seen: list[list[str]] = []
+
+    def runner(argv):
+        seen.append(argv)
+        return 0, ACTION_BUILD_OPUS, ""
+
+    given = ["--ladder", "/tmp/toy/LADDER.yaml", "--repo", "/tmp/toy"]
+    if command == "claim":
+        cli.claim(
+            [*given, "--session-model", "opus"],
+            next_action=runner,
+            refs=FakeRefs(),
+            issues=FakeIssues(),
+        )
+    else:
+        cli.status(given, status_report=runner)
+
+    assert seen, f"{command} never ran the script"
+    argv = seen[0]
+    assert argv[argv.index("--ladder") + 1] == "/tmp/toy/LADDER.yaml"
+    assert argv[argv.index("--repo") + 1] == "/tmp/toy"
+    assert str(cli.REPO_ROOT) not in argv, (
+        "a default was sent alongside the value the founder gave"
+    )
+
+
 def test_tick_on_the_wrong_model_prints_the_mismatch_and_takes_no_lock():
     cli = _load_cli()
     refs, issues = FakeRefs(), FakeIssues()
