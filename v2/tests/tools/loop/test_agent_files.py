@@ -281,14 +281,30 @@ def test_the_reviewer_and_auditor_run_on_opus(name):
     )
 
 
-def test_the_two_builder_agents_differ_only_in_their_model():
+def test_the_two_builder_agents_share_one_body_and_differ_in_model():
+    """Deliver 1: "same body, different ``model``".
+
+    The first version of this test also required every front-matter key but
+    ``name`` and ``model`` to match, which would have forced one shared
+    ``description`` on both agents — and the description is what the loop
+    routes on, so the two would have been indistinguishable. The spec says
+    *body*, not front matter. Corrected before either agent file existed;
+    disclosed in ``reports/B04.md``.
+    """
     opus_meta, opus_body = _agent("chronos-builder-opus")
     sonnet_meta, sonnet_body = _agent("chronos-builder-sonnet")
     assert opus_body == sonnet_body, "Deliver 1: same body, different model"
     assert opus_meta["model"] == "opus"
     assert sonnet_meta["model"] == "sonnet"
-    assert {k: v for k, v in opus_meta.items() if k not in ("name", "model")} == {
-        k: v for k, v in sonnet_meta.items() if k not in ("name", "model")
+    # The descriptions must differ, and each must name the model it pins, or
+    # the loop cannot tell which builder an action wants.
+    assert opus_meta["description"] != sonnet_meta["description"]
+    assert "opus" in opus_meta["description"].lower()
+    assert "sonnet" in sonnet_meta["description"].lower()
+    # Nothing else may drift between them.
+    ignored = ("name", "model", "description")
+    assert {k: v for k, v in opus_meta.items() if k not in ignored} == {
+        k: v for k, v in sonnet_meta.items() if k not in ignored
     }
 
 
