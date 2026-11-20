@@ -455,9 +455,16 @@ def test_no_skill_merges_into_main(name):
     ],
 )
 def test_every_template_exists_and_carries_its_named_section(filename, needle):
+    """Deliver 4 names a section each template must carry.
+
+    Matched case-insensitively: the spec writes these as descriptive
+    references in lower case ("with 'code commit reviewed'"), while a
+    section heading capitalises naturally. The section's presence is what
+    the spec asks for, not its letter case.
+    """
     path = TEMPLATES_DIR / filename
     assert path.is_file(), f"missing template: {path}"
-    assert needle in path.read_text(encoding="utf-8")
+    assert needle.lower() in path.read_text(encoding="utf-8").lower()
 
 
 # ---------------------------------------------------------------- CLAUDE.md
