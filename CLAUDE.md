@@ -43,6 +43,21 @@ Builds follow `docs/v2/build/`: the build's spec (`specs/Bnn-*.md`) and the rule
 - Builder and reviewer are different sessions. The session that wrote the code doesn't review it.
 - Never create a `CLAUDE.md`, `AGENTS.md` or `.claude` folder below the repository root.
 
+### The commands, and who runs the work (built in B04)
+
+Four commands, all prefixed `chronos-`. **`/status` and `/resume` are built-in Claude Code commands and a skill cannot take a name a built-in already uses**, so every Chronos command carries the prefix — one rule to remember, and it stays safe if a later version adds a built-in `/tick` or `/halt`. Typing `/chronos-` filters the menu to exactly these four.
+
+| Command | What it does |
+|---|---|
+| `/chronos-tick` | One action, then stop: fetch, ask `v2/tools/loop/next_action.py` what is next, refuse if this session is on the wrong model, take the lock, dispatch the named agent, release the lock, print the status report. It never chooses the action itself and **never merges into `main`**. |
+| `/chronos-status` | Where things stand, in three plain sentences. Reads only. |
+| `/chronos-halt` | Opens a `chronos-halt` issue: every session, scheduled or by hand, then refuses to act. |
+| `/chronos-resume` | Turns the loop back on — and **never closes a `chronos-halt` issue**. Only the founder's own account lifts a stop. |
+
+The commands are `.claude/skills/chronos-*/SKILL.md`, over one shared helper, `.claude/skills/chronos-tick/loop_cli.py`. **The agents are defined in `.claude/agents/`**: `chronos-builder-opus.md` and `chronos-builder-sonnet.md` (same body, different `model`), `chronos-reviewer.md` and `chronos-auditor.md`, both Opus. Each pins its own `model` — never `fable`, never `inherit`, never omitted — so the model an action runs on comes from the agent definition rather than from whatever the calling session happens to be. Dispatch is a Task-tool call with `subagent_type`; running `claude <agent-name>` in a shell does not work.
+
+Templates for the documents each role writes are in `docs/v2/build/templates/`.
+
 ## At the end of every session
 
 *(Sessions outside the build loop: planning, research, content analysis, gate write-ups.)* In the same commit as the work:

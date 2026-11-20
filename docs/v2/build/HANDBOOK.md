@@ -1,6 +1,6 @@
 # CHRONOS BUILD HANDBOOK — for the founder
 
-**Status: v0.5, 17 Nov 2026 (UTC). The plan was approved at gate G0 on 16 Nov.** Section **1A** is what you do *now*, for builds 1–5. Sections marked *(planned)* describe commands that exist only after builds 4 and 5; those builds replace the wording with what really happens on screen.
+**Status: v0.6, 20 Nov 2026 (UTC). The plan was approved at gate G0 on 16 Nov.** Section **1A** is what you do *now*, for builds 1–5. **The four commands in §2 exist as of build B04** and §1–§3 describe what really happens on screen rather than what was planned; the scheduled task that runs them without you is build B05, so until that lands you type them yourself.
 
 You don't need to read code to run this. You need to know five things: where to look, how to start and stop the loop, what to do when it stops, how to approve a gate, and what to do when usage runs out.
 
@@ -86,9 +86,9 @@ Build 5 needs about 45 minutes of you clicking in GitHub and Claude settings; th
 
 | You want to know | Look at |
 |---|---|
-| What is it doing right now? | Type `/status` in any Claude session *(planned, B04)*. Three plain sentences |
+| What is it doing right now? | Type `/chronos-status` in any Claude Code session. Three plain sentences |
 | What got built? | GitHub → Pull requests → Closed. Each has a report whose first paragraph is written for you |
-| Is it waiting on me? | Your phone: one notification per gate or halt. Or `/status`. Or GitHub → Pull requests → "Review requested" |
+| Is it waiting on me? | Your phone: one notification per gate or halt. Or `/chronos-status`. Or GitHub → Pull requests → "Review requested" |
 | Is the plan slipping? | `docs/v2/build/LEDGER.md`: estimate vs actual for every build |
 | What was decided, ever? | `docs/v2/CHRONOS_V2.md` §10. Nothing else is a decision |
 | The plan itself | `docs/v2/build/BLUEPRINT.md` (diagrams first) |
@@ -97,21 +97,37 @@ The GitHub mobile app shows pull requests, reports and the diagrams. You never n
 
 ---
 
-## 2. Starting, stopping, taking over *(planned, B04–B05)*
+## 2. Starting, stopping, taking over
+
+**The four commands.** They all start `chronos-`, so typing `/chronos-` in any Claude Code session shows you exactly these four and nothing else:
+
+| Type this | And it |
+|---|---|
+| `/chronos-tick` | Does the next thing, once, then stops |
+| `/chronos-status` | Tells you where things stand, in three sentences |
+| `/chronos-halt` | Stops everything until you say otherwise |
+| `/chronos-resume` | Turns the loop back on |
+
+*Why the prefix:* `/status` and `/resume` are already Claude Code's own commands, and a command of ours cannot take a name one of its own already uses. That is also why `/status` still does what §7 says — shows you which model this session is on — and has nothing to do with Chronos.
 
 **Stop the loop:** in the Claude app, open Scheduled tasks → "Chronos build loop" → switch it off. Or say to Claude: "pause the Chronos loop." Nothing is lost; the state lives in the repo.
 
-**Start it:** switch it on, or say "resume the Chronos loop."
+**Start it:** switch it on, or type `/chronos-resume`, which checks nothing is halted and then tells you which switch to flip. It cannot flip that switch for you, and it will say so rather than pretending.
 
-**Emergency stop for everything:** say "halt Chronos" to Claude, **or** do it yourself from the GitHub app on your phone: Issues → New issue → any title → add the label `chronos-halt`. While such an issue is open, every session, scheduled or manual, refuses to act. **Only you closing it releases it**: if any other account closes it or removes the label, the loop treats it as still in force. This works even if Claude is unavailable.
+**Emergency stop for everything:** type `/chronos-halt` (or say "halt Chronos" to Claude), **or** do it yourself from the GitHub app on your phone: Issues → New issue → any title → add the label `chronos-halt`. While such an issue is open, every session, scheduled or manual, refuses to act. **Only you closing it releases it**: if any other account closes it or removes the label, the loop treats it as still in force. This works even if Claude is unavailable.
+
+`/chronos-resume` will **not** lift a stop, and that is deliberate: an automation that can switch off its own emergency stop does not have one. It will tell you to close the issue yourself. If you ask it again, it will say the same thing.
 
 **The last resort, which nothing can override:** switch the scheduled task off in the Claude app, or remove the automation's account from the repository (GitHub → Settings → Collaborators). The labelled issue is the convenient stop; these two are the certain ones.
 
 **Take over by hand** (when you have time and want it faster, or usage is short and you want to choose what gets done):
 1. Open a Claude Code session on the repo (cloud, desktop app, or `claude` in the Mac terminal inside `~/chronos`).
-2. Type `/tick`. It does the next thing, exactly as the loop would.
-3. It will tell you first if you are on the wrong model ("this build wants Opus; you are on Sonnet") and stop until you switch. You don't have to remember which model.
-4. Repeat `/tick` as often as you like. The loop and you can't collide: whoever acts first takes a lock on that build, and the other is told "claimed, nothing to do."
+2. Type `/chronos-tick`. It does the next thing, exactly as the loop would, and then stops. One command, one action.
+3. It will tell you first if you are on the wrong model — "This build wants opus; you are on sonnet. Nothing was claimed and nothing was committed." — and stop until you switch with `/model`. You don't have to remember which model.
+4. Repeat `/chronos-tick` as often as you like. The loop and you can't collide: whoever acts first takes a lock on that build, and the other is told "claimed, nothing to do."
+5. When it finishes it prints the same three sentences as `/chronos-status`, so you can see what it did and what is next without typing anything else.
+
+*One honest caveat on step 3:* the wrong-model warning works by the session comparing the model it is running as against the one the build asks for. There is no way for a command to look that up for itself, so this is a courtesy, not a lock. What actually pins the model is each agent's own definition in `.claude/agents/`: a build routed to the Opus builder runs on Opus whatever session dispatched it.
 
 **While the loop doesn't exist yet (builds 1–5),** see §1A.
 
@@ -119,7 +135,7 @@ The GitHub mobile app shows pull requests, reports and the diagrams. You never n
 
 ## 3. When it halts
 
-A halt is the system working. You get one notification with the reason and the options.
+A halt is the system working. You get one notification with the reason and the options. At any point `/chronos-status` tells you what is halted and what is waiting on you, in three sentences; the reason and the options are written into the build's own status file, so nothing is lost if you come back days later.
 
 | It says | It means | You do |
 |---|---|---|
