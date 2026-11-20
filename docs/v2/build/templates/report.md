@@ -56,6 +56,31 @@ that:
 <the failing summary line, exactly as pytest printed it>
 ```
 
+**The baseline, measured before anything was written** — so a later reader can
+tell what this build changed from what was already true:
+
+```
+TZ=UTC uv run pytest -q                  <n> passed
+uv run ruff check .                      <result>
+uv run python tools/guards/run_all.py    <n> ok, <findings>
+```
+
+### Known answers, item by item
+
+<!--
+One row per entry in the spec's "Known answers and checks", with what
+actually happened. This is the table the reviewer checks line by line against
+the spec, so leaving an entry out reads as an omission rather than a pass.
+
+Added to this template after writing the first report from it: the section
+turned out to be the one a reviewer most needs and the shape did not ask for
+it (B04).
+-->
+
+| The spec's known answer | Result |
+|---|---|
+| <quote it> | <what happened, with the number> |
+
 ### What I broke on purpose
 
 <!--
