@@ -2,7 +2,7 @@
 
 One card per build that doesn't have a full spec yet. A card fixes **what the build must prove** (taken from locked decisions, so it won't move) and leaves **how** to the spec written when the phase opens. A card can't be built from: the loop halts on `spec: card` (LADDER.yaml).
 
-**Why cards and not full specs today.** The engine spike can change the engine. Fee, funding and data-format facts get confirmed in phases 2–3. A full spec written now for B47 would be precise about things we don't know yet. Each phase opens with a **spec-writing session** (planning-grade model) that turns that phase's cards into specs, using what the earlier phases actually found. The specs arrive as a pull request the founder approves: specs are founder-owned files.
+**Why cards and not full specs today.** The engine spike can change the engine. Fee, funding and data-format facts get confirmed in phases 2–3. A full spec written now for a collector or for the spike would be precise about things we don't know yet. (Builds B43–B50 are the exception: they don't depend on the engine (V2-D50), so their full specs were written on 17 Nov; their cards below are kept for history.) Each phase opens with a **spec-writing session** (planning-grade model) that turns that phase's cards into specs, using what the earlier phases actually found. The specs arrive as a pull request the founder approves: specs are founder-owned files.
 
 `who`: **loop** = unattended · **you+** = needs the founder (your accounts, your Mac, your money, or your approval).
 
@@ -119,37 +119,45 @@ B42–B50 are engine-independent and may run while phases 2–3 wait on the foun
 - **Why it is its own build:** the first draft had no build that loaded the data every real result depends on (G0 red team, finding 23). The files can't be fetched from a cloud session, so the founder downloads them.
 
 ### B43 — Screening wrapper · M · loop
+**Full spec: `specs/B43-screening-wrapper.md` (17 Nov). The spec wins where it differs from this card.**
 - **Prove:** one wrapper around VectorBT that fixes the five defaults found in S32 (BUILD_NOTES §2): signals shifted one bar and filled at the next open; OHLC always passed so stops see the whole bar; stop exits as market orders so slippage applies; funding added per trade from the trade records; `freq` and `year_freq` always set. Costs come from B16. **Every column of every sweep is registered as a SEARCH trial** (B10) with its returns, trades and footprint (B11), before any result is shown.
 - **Checks:** five tests, one per fix, each failing on raw VectorBT and passing through the wrapper; 1,000 variants → `search_n` rises by exactly 1,000; data comes only through the door (B14).
 - **First:** re-check the S32 findings on the version the lock file resolves (1.2.1 vs the 1.2.0 that was tested).
 
 ### B44 — Look-ahead test kit · M · loop
+**Full spec: `specs/B44-lookahead-kit.md` (17 Nov). The spec wins where it differs from this card.**
 - **Prove:** three tests any strategy must pass before the edge check: the **slice test** (rerun on history cut just after each signal; every value at that bar must match), the **warm-up test** (indicators agree within a stated tolerance across different amounts of prior history), the **nudge probe** (change a future close; no earlier entry may change).
 - **Checks:** fixtures with a one-bar-ahead feature and a whole-series mean are flagged; the clean version passes; an EMA-200 is flagged by the warm-up test and an SMA isn't (BUILD_NOTES §2, S20 B4). Negative lags are rejected at parse time.
 
 ### B45 — Null benchmark (V2-D21) · M · loop
+**Full spec: `specs/B45-null-benchmark.md` (17 Nov). The spec wins where it differs from this card.**
 - **Prove:** random entries with matched exposure on the real price path: each draw keeps the strategy's trade count, holding-time distribution, long/short mix, sizing rule and costs; positions don't overlap; entries only where the strategy could have traded; at least 1,000 draws; ranks through `stats/ranks.py` (B07) only.
 - **Checks (the four, locked):** (a) the floating-point tie case; (b) a random-entry strategy gives roughly uniform p-values; (c) a planted timing edge gives low p-values; (d) constant exposure on a trending series does **not** pass.
 
 ### B46 — Sealed-look ledger · M · loop
+**Full spec: `specs/B46-sealed-look-ledger.md` (17 Nov). The spec wins where it differs from this card.**
 - **Prove:** every sealed look is a row keyed by instrument + date range + lineage (B18); a look that overlaps an earlier one for the same lineage is refused **by the database** (an exclusion constraint), not by Python; the door's `sealed_look` purpose (B14) works only with a ledger row; post-seal series get a research window `[start, X)` and their own seal from X, with X stored before research (V2-D46), and prices inside that window are readable only through a join to the series.
 - **Checks:** the V2-D34 fixture (an overlapping second look is refused); a dataset one day longer is still refused (the S13 trap); a look for a sibling hypothesis counts as the lineage's look.
 - **Question for the founder before this spec is written:** a lineage is a hypothesis plus its direct siblings (V2-D34). A chain of siblings (A–B, B–C, not A–C) is then three lineages and three looks. One look for the whole chain, or three? (B18 reports chains; it decides nothing.)
 
 ### B47 — Edge check I · M · loop
+**Full spec: `specs/B47-edge-check-core.md` (17 Nov). The spec wins where it differs from this card.**
 - **Prove:** the edge check's first half on the standard result shape (B11; V2-D48): configuration frozen and hashed before the run and stored with the verdict; data-sufficiency first (years to significance); DSR at honest N (and at the lineage's union N as a warning, B18); net after costs at 1× and at 2× frictions; the adverse-funding run where funding applies (V2-D35).
 - **Checks:** T-e's two numbers through the full path; the V2-D35 fixture fails at 2×; a verdict can't be produced under a config whose hash wasn't stored first.
 - **Basis check (proposal P-15, still the founder's to accept):** the edge check can rerun a candidate on the real nano contract's own bars (from B27) as a VERIFICATION trial and print the difference from the spot-signal result, and it states which basis model was used for the years before the contract existed. If P-15 is declined, this bullet is dropped when the spec is written.
 
 ### B48 — Edge check II · M · loop
+**Full spec: `specs/B48-edge-check-evidence.md` (17 Nov). The spec wins where it differs from this card.**
 - **Prove:** the second half: beats the null (B45); the neighbourhood test with a **pluggable rule** (the rule itself is chosen in B53, V2-D20); a lone spike also opens a look-ahead review (B44); the sealed-look confirm (≥ 200 sealed trades, net after 2× > 0, adverse funding > 0; else deferred to paper, V2-D38); the warnings (subperiod, minimum trades, capacity, fragmentation); the break-even cost multiple reported.
 - **Checks:** **one fixture per criterion that only that criterion catches**, or a written note that it is deliberate defence in depth (BUILD_NOTES §2, S13).
 
 ### B49 — Change check · M · loop
+**Full spec: `specs/B49-change-check.md` (17 Nov). The spec wins where it differs from this card.**
 - **Prove:** paired daily-difference test against the live version; Šidák bar over cumulative trials; 2× frictions; no bias toward trading less; the candidate must be net positive on its own after 2× costs; a live version that is itself net negative opens a retirement review (V2-D32).
 - **Checks (locked):** zero-edge live version losing at 2×, candidate trades half as often with zero edge → REJECT and retirement review; a candidate with a real edge that clears 2× → ACCEPT.
 
 ### B50 — Sizing v0 · M · loop
+**Full spec: `specs/B50-sizing-v0.md` (17 Nov). The spec wins where it differs from this card.**
 - **Prove:** accepted ruin probability → cushion → risk per trade, with the ruin formula fixed (`exp(−θ·D)`, not `exp(−θ·D·L)`); verified by block bootstrap because the formula assumes independent trades; never above ¼ Kelly; rounds to whole contracts and skips what it can't place; every money amount is configuration.
 - **Checks:** the ruin bug's known pair (5.0% wrong vs 10.0% right at 0.30R cost, BUILD_NOTES §3); Carver's volatility-target sizing reproduced with √365, not 16; v1's hand-enumerable 24-ordering drawdown fixture (ported with `trade_shuffle`).
 - **Open (P-14a):** what to do when the target is below one contract. Founder decides before L3; v0 implements "skip" and reports how often it skipped.
