@@ -660,6 +660,106 @@ def test_resume_leaves_an_open_halt_issue_open():
     assert "only your account releases the stop" in out
 
 
+def test_finish_releases_the_lock_and_prints_the_status_report():
+    cli = _load_cli()
+    refs = FakeRefs(existing={"refs/heads/lock/t01": "abc"})
+    code, out = cli.finish(
+        ["--build", "T01"],
+        status_report=lambda argv: (0, "nothing is running. Next: B05.", ""),
+        refs=refs,
+    )
+    assert code == 0
+    assert "delete refs/heads/lock/t01" in refs.calls
+    assert "nothing is running" in out
+
+
+def test_finish_reports_a_lock_it_could_not_release_instead_of_assuming():
+    """A release that fails must be said out loud, not swallowed: the lock
+    then times out over `claim_hours` while the loop looks like it is
+    working. That is the shape of B03's `GitHubRefs.delete` defect.
+    """
+    cli = _load_cli()
+
+    class Angry(FakeRefs):
+        def delete(self, ref):
+            raise RuntimeError("403 not permitted through this proxy")
+
+    code, out = cli.finish(
+        ["--build", "T01"],
+        status_report=lambda argv: (0, "ok", ""),
+        refs=Angry(),
+    )
+    assert code == 0
+    assert "could not be released" in out
+    assert "403" in out, "the real reason must reach the reader"
+
+
+def test_halt_opens_one_stop_and_refuses_to_open_a_second():
+    cli = _load_cli()
+    issues = FakeIssues(open_halt=None)
+    code, out = cli.halt(["--reason", "founder asked"], issues=issues)
+    assert code == 0
+    assert len(issues.opened) == 1
+    assert "founder asked" in issues.opened[0]
+    assert "close that issue yourself" in out.lower()
+
+    already = FakeIssues(open_halt=5)
+    code, out = cli.halt([], issues=already)
+    assert code == 0
+    assert already.opened == [], "a second stop must not be opened over an open one"
+    assert "#5" in out
+
+
+def test_halt_opens_nothing_when_it_cannot_tell_whether_one_is_in_force():
+    cli = _load_cli()
+
+    class Blind:
+        def halt_issue(self):
+            return -1
+
+        def open_halt_issue(self, body):  # pragma: no cover
+            raise AssertionError("must not open a stop it cannot check for")
+
+    code, out = cli.halt([], issues=Blind())
+    assert code != 0
+    assert "no issue" in out.lower() or "was opened" in out.lower()
+
+
+def test_status_prints_the_report_and_surfaces_a_failure():
+    cli = _load_cli()
+    code, out = cli.status([], status_report=lambda argv: (0, "three sentences.", ""))
+    assert code == 0
+    assert out == "three sentences."
+
+    code, out = cli.status([], status_report=lambda argv: (1, "", "boom"))
+    assert code != 0
+    assert "boom" in out, (
+        "a failed status report must say so, never be rebuilt by hand -- a "
+        "status assembled by guesswork is an opinion"
+    )
+
+
+def test_the_dispatch_map_covers_every_action_the_loop_can_emit():
+    """The import-time guard, asserted rather than trusted.
+
+    `FIX` is three characters and a careless grep for the action names
+    misses it, which is exactly what happened while building this: the map
+    shipped without the kind that handles a build whose review asked for
+    changes, until this guard caught it.
+    """
+    cli = _load_cli()
+    from next_action import ACTIONS
+
+    covered = set(cli.BUILDER_KINDS) | set(cli.AGENT_FOR_KIND) | set(cli.NO_DISPATCH)
+    assert covered == set(ACTIONS)
+    assert "FIX" in cli.BUILDER_KINDS
+    assert cli._agent_for("FIX", "sonnet") == "chronos-builder-sonnet"
+    assert cli._agent_for("RUN_GATE_AUDIT", None) == "chronos-auditor"
+    assert cli._agent_for("START_BUILD", None) is None, (
+        "a builder kind with no model must not resolve to an agent name"
+    )
+
+
 def test_a_labelled_pull_request_is_not_read_as_an_emergency_stop():
     """`GET /issues` returns pull requests as well as issues.
 
