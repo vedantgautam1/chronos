@@ -14,17 +14,36 @@ report.
 **Base:** `v2-build` at `<full sha>` — <confirm it is still both the branch's
 base and its merge base, so no hash here drifts>
 
-**Code commit reviewed:** `<full sha>` — <one line: what it is>
-**Last commit on the branch:** `<full sha>` — <usually a report-and-status
-commit>
+**Code commit reviewed:** `<full sha>` — **the LAST BUILDER COMMIT on the
+branch, whatever that commit touched**, even if it changed only the report and
+the status file. <one line: what it is>
+**Last commit that changed code or tests:** `<full sha>` — <the same commit
+when the build ends on its code; otherwise the earlier one. Say whether code
+and tests are identical at both, and how you checked.>
 
 <!--
-Both hashes, deliberately. Reviewer rule 5 asks for "the code commit reviewed",
-and a build that ends on a report-and-status commit has caught
-out three reviewers so far (B02-r2 finding 11, and B03 predicted a third).
-The rule's field name is unchanged; this template just asks for the other
-hash as well, so the ambiguity cannot bite. B03's report raises renaming the
-field as a suggestion for specs/README.md, which is the founder's to make.
+The first field's name is misleading, and the wording above is the fix.
+
+B02's `roles` guard reads the first match of
+`code commit reviewed[^0-9a-f]{0,20}([0-9a-f]{7,40})` and requires it to be
+the last commit carrying `Chronos-Role: builder` -- whatever that commit
+touched -- before it accepts a `passed` or `merged` status
+(`v2/tools/guards/checks.py`, `_review_backs_the_status`; it fires only for
+those two states). A build that ends on a report-and-status commit makes the
+two hashes differ, so filling field 1 with "the last commit that changed code"
+turns the guards red. That has caught reviewers on B02, B03 and B04 round 1
+(`reviews/B04-r1.md` finding 10, which put three options to the founder; he
+chose this one, 20 Nov).
+
+Field 1 satisfies the guard and names what would actually be merged. Field 2
+is the honest note about where the code stopped changing. Put the hash in
+field 1 immediately after the label with nothing but punctuation between: more
+than 20 characters, or a hex-looking word in the gap, and the regex reads the
+wrong thing.
+
+The cleaner fix is the builder's and is now in builder rule 7: end the build on
+the commit that carries the code, so both hashes are the same and there is
+nothing to get wrong. B04 round 2 did exactly that.
 -->
 
 **Spec read from:** `origin/v2-build`, sha256 `<hash>` — <confirm it matches
