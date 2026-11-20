@@ -1,6 +1,6 @@
 {
   "build": "B04",
-  "state": "passed",
+  "state": "merged",
   "ticks": 2,
   "head": "2e20b98ce3dc943e939764877012ecc3232efe51",
   "halt_reason": null,
