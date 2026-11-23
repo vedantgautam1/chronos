@@ -71,3 +71,5 @@ jobs:
           done
       - name: Fail if oracle outputs changed
         run: git diff --exit-code -- v2/tests/known_answers/v1_oracle/
+
+# A9 attack probe, 23 Nov 2026
