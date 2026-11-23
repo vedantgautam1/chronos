@@ -105,3 +105,109 @@ it as well. That second refusal is what A6 tests.
 A1–A12 were not attempted against an unprotected repository. An attack that
 "succeeds" because nothing was protecting the branch measures nothing, and
 recording it as a result would be worse than not running it.
+
+---
+
+## Round 2 — 23 Nov 14:48 ET — both branches protected, every setting matches
+
+The founder fixed all three defects. The authority first:
+
+```
+GET /rules/branches/main      -> deletion, non_fast_forward, pull_request, required_status_checks  (ruleset 27924823)
+GET /rules/branches/v2-build  -> deletion, non_fast_forward, pull_request, required_status_checks  (ruleset 27930220)
+GET /rules/branches/MAIN      -> []   the phantom is gone
+GET /rules/branches/claude/b05-> []   build branches are unprotected, as intended
+```
+
+`main`'s ruleset now targets **`~DEFAULT_BRANCH`** rather than a literal name,
+which is the more durable of the two options: renaming the default branch
+cannot silently unprotect it. `v2-build`'s targets `refs/heads/v2-build`.
+
+### Every setting, read back
+
+| Setting | `main` (27924823) | `v2-build` (27930220) | Spec | ✓ |
+|---|---|---|---|---|
+| `enforcement` | `active` | `active` | active | ✓ |
+| `current_user_can_bypass` | `never` | `never` | bypass list empty | ✓ |
+| targets | `~DEFAULT_BRANCH` | `refs/heads/v2-build` | main / v2-build | ✓ |
+| `conditions.ref_name.exclude` | `[]` | `[]` | — | ✓ |
+| `deletion` | present | present | no deletion | ✓ |
+| `non_fast_forward` | present | present | no force-push | ✓ |
+| `required_approving_review_count` | `1` | `0` | 1 / 0 | ✓ |
+| `dismiss_stale_reviews_on_push` | `true` | `true` | true | ✓ |
+| `require_code_owner_review` | `true` | `true` | true | ✓ |
+| `require_last_push_approval` | `true` | `false` | true / off pending A10 | ✓ |
+| `required_review_thread_resolution` | `false` | `false` | not specified | — |
+| `allowed_merge_methods` | `["merge"]` | `["squash"]` | merge / squash | ✓ |
+| `strict_required_status_checks_policy` | `false` | `false` | not specified | — |
+| `do_not_enforce_on_create` | `false` | `false` | not specified | — |
+| required checks | 5 | 5 | 5 | ✓ |
+
+All ten required-check entries (five on each ruleset) carry
+`integration_id: 15368`, which is GitHub Actions, so every check is pinned to
+its source as Deliver 3 requires. The contexts, verbatim on both:
+
+```
+tests
+lint
+v1-oracle
+guards (from the base commit's copy)
+earlier-tests (the base's tests, this branch's package)
+```
+
+### Still unresolved, carried to the gate
+
+`require_extra_approval_for_unattributed_changes` remains `true` on `main` and
+`false` on `v2-build`. The spec names it nowhere and the founder did not set it
+deliberately; it appears to be a GitHub default that differs by how each
+ruleset was created. [Guessing — not verified against GitHub's documentation,
+and this build did not read that documentation fresh.] Left as found rather
+than normalised, and flagged for a deliberate decision.
+
+### First evidence the rulesets bite
+
+PR #38 (`claude/b05` → `v2-build`, opened by the automation) went from
+`mergeable_state: clean` to **`mergeable_state: blocked`** the moment ruleset
+27930220 began targeting `v2-build`. B05's own pull request is now subject to
+the rules B05 installed, which is the cheapest possible confirmation that they
+apply to something real.
+
+### What this round does **not** establish
+
+That any protection is a **wall**. Settings reading back correctly is what
+round 1 proved is not enough. Only Deliver 4's attacks, each refused by GitHub
+for the reason named in the spec's table, can make that claim — and none has
+been run yet.
+
+---
+
+## Where each attack can run, measured rather than assumed
+
+From the route map in `B05-environment-measurements.md` §3 and §7c, with the
+cloud session now acting as the automation:
+
+| Attack | Runnable from cloud as the automation? | Why |
+|---|---|---|
+| A1 | **yes** | git push, `POST /pulls`, `PUT /merge` all allowed |
+| A2 | partly | the founder must open the `doc/a2` pull request |
+| A3 | partly | the founder must approve before the second push |
+| A4 | **no** | `POST /statuses` refused by the proxy — needs the Mac |
+| A5 | partly | push and force-push yes; **delete and rename** need the Mac |
+| A6 | **no** | `POST /rulesets` refused by the proxy — needs the Mac |
+| A7 | **yes** | ordinary pull request and merge attempt |
+| A8 | partly | the founder must approve before the second push |
+| A9 | **yes** | five pull requests that must each be refused |
+| A10 | **yes** | control; `lane/…` into `v2-build` is a guard-recognised kind and `/scratch/` has no code owner |
+| A11 | **yes** | corrected from round 1: `_agent_for` returns `None` for `WAIT_FOUNDER`, so `tick` returns **before** `Lock(...)` is constructed. A halted loop never reaches the lock, so the cloud lock defect does not block A11 |
+| A12 | **no** | `GET /collaborators` refused by the proxy; the installed-Apps half needs the founder's own screen either way |
+
+One correction to round 1's pessimism: A5 is **mostly** runnable from cloud,
+not wholly blocked. Pushing directly and force-pushing are the two sub-tests
+the ruleset is supposed to refuse, and both use `git push`, which is allowed.
+
+### Cleanup debt the attacks will create
+
+A1–A10 need roughly eleven branches (`doc/a1`–`doc/a4`, `spec/a7`, five for
+A9, `lane/a10`). A cloud session cannot delete a branch by any route, so they
+will accumulate and need deleting from the Mac in one batch at the end. Noted
+in advance rather than discovered afterwards.
