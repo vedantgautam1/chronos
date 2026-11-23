@@ -351,9 +351,45 @@ which is the first sign the ruleset is not fooled — the required checks carry
 `integration_id: 15368`, so a status from a user account should not satisfy
 them.
 
-The attack is **not finished**. What matters is the merge, and it must be
-attempted with the founder's approval already in place, or the refusal will
-cite the missing approval and prove nothing. Pending his approval of #50.
+### The merge attempt. **WALL — and the most precisely named refusal in the build.**
+
+With the founder's approval already recorded (`vedantgautam1 APPROVED`), so the
+approval rules could not be what refused it:
+
+```
+PUT /pulls/50/merge  merge_method=merge   -> HTTP 405
+Repository rule violations found
+
+Required status checks "earlier-tests (the base's tests, this branch's package)",
+"guards (from the base commit's copy)", "lint", "tests", and "v1-oracle"
+were not set by the expected GitHub apps.
+```
+
+One reason, no second clause, and GitHub names **all five contexts** and the
+exact ground: *not set by the expected GitHub apps*. That is the spec's named
+reason — "the required checks must come from GitHub Actions" — returned
+verbatim rather than inferred. `main` re-read afterwards: unmoved at `31e409a`.
+
+State at the moment of refusal, which is what makes this worth keeping:
+
+| | |
+|---|---|
+| GitHub's combined status for the commit | **`success`** |
+| real check runs from Actions | **0** |
+| founder's approval | in place |
+| merged | **no** |
+
+A commit that every casual reading calls green, with nothing having run, an
+approval in hand, and GitHub still refusing. The `integration_id: 15368`
+pinning recorded in `B05-ruleset-readback.md` is doing real work: it is the
+difference between a required check and a check-shaped string.
+
+**This is also the answer to a question B05 could otherwise not have settled.**
+A1, A2 and A3 cannot be isolated against `main` because `main` cannot run the
+checks its ruleset requires. A4 is the one attack for which that is an
+advantage rather than an obstacle — it *wants* no check to have run — so it is
+the only attack against `main` that B05 proves. `main`'s required-checks rule
+is therefore a wall; its approval rules remain untested.
 
 ---
 
@@ -496,10 +532,27 @@ permission refusal is not evidence of an empty list.
 tree nor `CODEOWNERS`, so no framing is refused for its own reason: **A1, A2,
 A3.** Deferred to the G1 audit, as the spec's "Not in scope" provides for.
 
-**A4 is the exception among the `main` attacks** and is primed rather than
-deferred: it is the only one that *wants* no real check to have run, so the
-missing workflows help it instead of spoiling it. Its merge attempt is
-pending the founder's approval of PR #50.
+**A4 is the exception among the `main` attacks, and it is a wall.** It is the
+only one that *wants* no real check to have run, so `main`'s missing workflows
+helped it instead of spoiling it. Refused with the founder's approval already
+in place, one reason, all five contexts named: *not set by the expected GitHub
+apps*. So `main`'s required-checks rule is proven; `main`'s approval rules are
+not.
+
+### Final tally, 23 Nov
+
+| | |
+|---|---|
+| **Walls** (GitHub refused, reason as named) | A4, A5a–A5f, A6, A7, A8, A9×5 |
+| **Guard rail** (our own script refused) | A11, and the red `guards` half of A9 |
+| **Control** (had to succeed) | A10 merged |
+| **Cannot be proven in B05** | A1, A2, A3 — all target `main`; deferred to G1 |
+| **Half done** | A12 — collaborators confirmed, installed Apps outstanding |
+
+Six of the nine attacks the gate asks to be refused are refused for the reason
+named. The three that are not were not run badly; they cannot be run at all
+until `main` carries the v2 tree, and the report should not be read as having
+tested `main`'s approval rules.
 
 ### What this already supports, and what it does not
 
