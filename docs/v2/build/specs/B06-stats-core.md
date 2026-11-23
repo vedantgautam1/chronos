@@ -63,3 +63,5 @@ The math probe (B07) · mid-rank counters (B07) · outside-library cross-checks 
 `COMPONENTS.md` §2 "Statistics core": ported in B06 (this build edits that row). `BUILD_NOTES.md` §2: the oracle method (the v1 environment writes a JSON of known answers; a CI job regenerates and diffs it).
 
 <!-- A7 attack probe: one word changed by the automation, 23 Nov 2026 -->
+
+<!-- A8: a second commit pushed by the automation AFTER the founder approved, 23 Nov 2026 -->
