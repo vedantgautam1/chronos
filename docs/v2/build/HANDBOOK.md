@@ -110,11 +110,30 @@ The GitHub mobile app shows pull requests, reports and the diagrams. You never n
 
 *Why the prefix:* `/status` and `/resume` are already Claude Code's own commands, and a command of ours cannot take a name one of its own already uses. That is also why `/status` still does what §7 says — shows you which model this session is on — and has nothing to do with Chronos.
 
+> **Where this stands today (B05, 23 Nov 2026).** The scheduled task now
+> exists — "Chronos build loop", hourly at :07, Opus, push notifications on —
+> and it is **switched off on purpose. Do not switch it on yet.**
+>
+> A session running in Anthropic's cloud cannot take the lock: the GitHub
+> routes it needs are blocked there, so every firing would stop with an error
+> before doing anything, and with notifications on that is an hourly buzz on
+> your phone. Worse, *releasing* a lock silently does nothing while reporting
+> success, so a status report would tell you the sign came down when it is
+> still hanging.
+>
+> Both live in `v2/tools/loop/lock.py` and both need a small build of their
+> own. **Until that is done, run builds by hand from the Mac** (§1A), where
+> every route works and the lock behaves. B05's report has the measurements.
+
 **Stop the loop:** in the Claude app, open Scheduled tasks → "Chronos build loop" → switch it off. Or say to Claude: "pause the Chronos loop." Nothing is lost; the state lives in the repo.
+
+*Also in your scheduled tasks, and not part of the loop:* "Chronos review watcher", created 17 Nov and currently off. It reviews finished builds every two hours and writes statuses directly, without taking a lock. If both it and the build loop were on, they would collide. Decide which one you want before switching anything on.
 
 **Start it:** switch it on, or type `/chronos-resume`, which checks nothing is halted and then tells you which switch to flip. It cannot flip that switch for you, and it will say so rather than pretending.
 
 **Emergency stop for everything:** type `/chronos-halt` (or say "halt Chronos" to Claude), **or** do it yourself from the GitHub app on your phone: Issues → New issue → any title → add the label `chronos-halt`. While such an issue is open, every session, scheduled or manual, refuses to act. **Only you closing it releases it**: if any other account closes it or removes the label, the loop treats it as still in force. This works even if Claude is unavailable.
+
+*This was tested properly in B05, not just believed.* The automation tried all three ways out — closing the issue, stripping the label off it, and deleting the label from the repository altogether. GitHub permitted all three, and the loop still answered "an emergency stop is in force" every time. One thing to know for when you do want to lift it: because the loop reads each issue's **history** rather than its current labels, an issue that the automation closed is still a stop. You have to reopen it and close it yourself, or remove the label yourself. Your action is the one that counts, and it has to actually happen.
 
 `/chronos-resume` will **not** lift a stop, and that is deliberate: an automation that can switch off its own emergency stop does not have one. It will tell you to close the issue yourself. If you ask it again, it will say the same thing.
 
@@ -124,10 +143,12 @@ The GitHub mobile app shows pull requests, reports and the diagrams. You never n
 1. Open a Claude Code session on the repo (cloud, desktop app, or `claude` in the Mac terminal inside `~/chronos`).
 2. Type `/chronos-tick`. It does the next thing, exactly as the loop would, and then stops. One command, one action.
 3. It will tell you first if you are on the wrong model — "This build wants opus; you are on sonnet. Nothing was claimed and nothing was committed." — and stop until you switch with `/model`. You don't have to remember which model.
-4. Repeat `/chronos-tick` as often as you like. The loop and you can't collide: whoever acts first takes a lock on that build, and the other is told "claimed, nothing to do."
+4. Repeat `/chronos-tick` as often as you like. The loop and you can't collide: whoever acts first takes a lock on that build, and the other is told "claimed, nothing to do." **On the Mac. See the caveat below — this is not true in a cloud session today.**
 5. When it finishes it prints the same three sentences as `/chronos-status`, so you can see what it did and what is next without typing anything else.
 
 *One honest caveat on step 3:* the wrong-model warning works by the session comparing the model it is running as against the one the build asks for. There is no way for a command to look that up for itself, so this is a courtesy, not a lock. What actually pins the model is each agent's own definition in `.claude/agents/`: a build routed to the Opus builder runs on Opus whatever session dispatched it.
+
+*A second caveat, on step 4, measured in B05 and true until `lock.py` is fixed:* **do your by-hand ticks on the Mac, not in a cloud session.** A cloud session cannot take the lock at all — `/chronos-tick` stops with an error before it dispatches anything. That failure is loud, which is the safe direction. The quiet one is the other way round: if a cloud session ever does hold a lock, releasing it does nothing while still printing "Lock released." So the rule for now is simply that the Mac is where ticks happen, and the collision protection in step 4 is real there and absent in the cloud.
 
 **While the loop doesn't exist yet (builds 1–5),** see §1A.
 
@@ -218,8 +239,17 @@ You don't choose; the spec does (BLUEPRINT 2.8). For the record:
 - **Fable on Pro is not in the allowance: it bills pay-as-you-go usage credits** [Certain]. A launch offer included it for a while; one write-up dates the end of that offer for Pro to 16 Nov 2026, 11:59 pm Pacific [Likely — single source]. After that, a long Fable session on Pro costs real money. On Max, Fable is inside the plan up to half of the weekly allowance [Certain — Anthropic help page, read 16 Nov].
 - A scheduled cloud run uses the same allowance as you do. When the allowance is gone, runs are rejected until it resets, unless usage credits are on [Certain].
 
-### Do this once, today
+### Do this once, today — **done, 23 Nov 2026**
 Claude → Settings → Usage: **set a monthly limit on usage credits** (suggest $0–20). Then nothing unattended can spend beyond it. If you use Fable for planning on Pro after the offer ends, this limit is your brake.
+
+Set on 23 Nov: **a $20 monthly cap on usage credits.** That is the ceiling on what anything unattended can cost you in real money, separate from the Pro allowance, which is time-based and resets on its own. If a scheduled run ever misbehaves, this is the number that bounds the damage.
+
+### What a tick costs — **not measured, and the reason matters**
+B05 was meant to produce this: a measured cost for a build tick, a review tick and an idle tick, read from Settings → Usage before and after the three probe builds.
+
+**There is no figure, because the probes never ran.** A cloud scheduled session cannot take the lock, so B97, B98 and B99 could not be attempted at all. This is not a number that was skipped or estimated — the thing it would have measured did not happen.
+
+Nothing downstream should quote a per-tick cost until it is measured for real. In particular, §6's rule for revisiting Max — *"B05 measures what a build and a review cost. The G1 report states how many builds a week that allows on Pro"* — has no input yet. It moves to whichever build first runs the loop unattended.
 
 ### Where more money helps (you said the $100 cap is soft)
 The full table with the weak point of each is in BLUEPRINT 2.9. In order:
@@ -236,7 +266,7 @@ The full table with the weak point of each is in BLUEPRINT 2.9. In order:
 
 **Not worth money** [Likely]: hardware for local AI models · a new Mac · pay-per-use credits as the loop's main fuel · the top Claude plan before the middle one has been measured.
 
-**While you are on Pro:** build and review on Opus (Fable costs extra on Pro once the launch offer ends [Likely]); remember the allowance is shared with your ordinary chats; and expect sessions to be cut off by the limit now and then. That is harmless: every build saves its work step by step and the next session picks up where it stopped. **The rule for revisiting, written now:** B05 measures what a build and a review cost. The G1 report states how many builds a week that allows on Pro and how long 54 builds would take. That number decides whether Max is worth it, not a feeling.
+**While you are on Pro:** build and review on Opus (Fable costs extra on Pro once the launch offer ends [Likely]); remember the allowance is shared with your ordinary chats; and expect sessions to be cut off by the limit now and then. That is harmless: every build saves its work step by step and the next session picks up where it stopped. **The rule for revisiting, written now:** a build and a review get measured for what they cost, and the G1 report states how many builds a week that allows on Pro and how long 54 builds would take. That number decides whether Max is worth it, not a feeling. **B05 was to have taken that measurement and did not** — its probes never ran, for the lock reason above — so the measurement moves to whichever build first runs the loop unattended. The rule stands; its input is still missing.
 
 ---
 
