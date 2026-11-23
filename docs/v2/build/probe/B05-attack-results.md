@@ -94,6 +94,67 @@ founder-owned path.
 
 ---
 
+### A7 confirmed from the other side
+
+When the founder approved PR #41, `mergeable_state` went straight from
+`blocked` to **`clean`**:
+
+```
+reviews: vedantgautam1 APPROVED at 2026-11-23T20:55:44Z
+GET /pulls/41  ->  {"mergeable": true, "mergeable_state": "clean"}
+```
+
+So code-owner review was not merely *a* blocker on A7, it was the **only** one.
+A refusal tells you that something stopped the merge; this tells you what, by
+removing exactly one thing and watching the block disappear.
+
+---
+
+## A8 — push again after the founder approves. **WALL, and the dismissal was watched happening.**
+
+Same pull request #41, immediately after the approval above. The automation
+pushed one more commit to `spec/a7`.
+
+The dismissal is directly observed, not inferred:
+
+```
+before the push:  reviews -> vedantgautam1  APPROVED    mergeable_state: clean
+after  the push:  reviews -> vedantgautam1  DISMISSED   mergeable_state: blocked
+                  head moved ea0b2f7 -> 6c5ea78
+```
+
+`dismiss_stale_reviews_on_push: true` did what it says, within seconds.
+
+**The merge was attempted twice, and only the second attempt is evidence.**
+Immediately after the push the refusal read:
+
+```
+Waiting on code owner review from vedantgautam1.
+
+5 of 5 required status checks are queued.
+```
+
+Two reasons, one of them merely that CI had not caught up — so that attempt
+proves nothing. After waiting for all five checks to go green on the new head:
+
+```
+PUT /pulls/41/merge  merge_method=squash   -> HTTP 405
+Repository rule violations found
+
+Waiting on code owner review from vedantgautam1.
+```
+
+One reason, every check green. The automation obtained an approval, invalidated
+it with its own push, and could not merge. `v2-build` re-read afterwards:
+unmoved at `2115315`.
+
+Note how GitHub phrases it. It does not say "the approval was dismissed"; it
+says it is waiting on review, which is the *consequence* of the dismissal. The
+dismissal itself is evidenced by the review-state transition above, not by the
+merge message — which is why both were captured.
+
+---
+
 ## A9 — the five founder-owned paths. **WALL on all five, two reasons each.**
 
 Each a `lane/a9-*` branch into `v2-build`, one path apiece.
@@ -285,8 +346,7 @@ the reason in the table", and A1–A4 will not be in that state when B05 reports
 |---|---|---|
 | A1 second run (#49) | nothing — CI in flight | isolate the approval rule |
 | A2 | the **founder** to open a `doc/a2` pull request | the attack is the automation pushing to, approving and merging *his* pull request |
-| A3 | the founder to **approve**, then the automation pushes once more | tests that the push dismissed his approval |
-| A8 | the founder to **approve** PR #41 | same, on `v2-build` |
+| A3 | — | **cannot be isolated**: targets `main`, same obstacle as A1 |
 | A4 | the **Mac** | `POST /statuses/{sha}` refused by the proxy |
 | A5e, A5f | the **Mac** | no delete route; rename route refused by the proxy |
 | A6 | the **Mac** | `POST /rulesets` refused by the proxy. GitHub should then refuse it as non-owner, which is the reason the spec names |
@@ -299,7 +359,11 @@ the reason in the table", and A1–A4 will not be in that state when B05 reports
 
 **Walls** — GitHub refused the automation, for the reason the spec names:
 
-- **A7** code-owner review on a spec change — clean, single reason, checks green
+- **A7** code-owner review on a spec change — single reason, checks green, and
+  confirmed from both sides: the founder's approval flipped it to `clean`
+- **A8** the founder's approval dismissed by the automation's own push —
+  transition `APPROVED` → `DISMISSED` observed directly, then refused with
+  every check green
 - **A9** ×5 code-owner review on five founder-owned paths — alongside a red `guards`
 - **A5a–A5d** the ruleset on direct push and force-push, both branches
 
@@ -311,5 +375,23 @@ the reason in the table", and A1–A4 will not be in that state when B05 reports
 
 **Control:** A10 merged.
 
-**Not yet proven either way:** A1 (compound reason; retry in flight), A2, A3,
-A4, A6, A8, A12, and A5's delete and rename.
+**Cannot be proven in B05** — all four target `main`, which carries neither the
+v2 tree nor `CODEOWNERS`, so no framing of the attack is refused for its own
+reason: **A1, A2, A3, A4.** Deferred to the G1 audit, as the spec's "Not in
+scope" provides for. A4 is the one of the four that may still be reachable from
+the Mac, because it is the only one that *wants* no checks to have run.
+
+**Still to run, all needing the Mac:** A6, A12, and A5's delete and rename.
+
+### What this already supports, and what it does not
+
+On the evidence so far, `v2-build` is genuinely walled against the automation
+acting alone: it cannot change a spec, cannot touch a founder-owned path,
+cannot keep an approval it invalidated, cannot push directly and cannot
+force-push. Every one of those is GitHub refusing, for the reason named.
+
+`main` is a different matter, and the honest position is weaker than the
+blueprint hopes. Its ruleset reads back correctly and its approval machinery
+demonstrably fires, but **not one attack against `main` has been isolated**,
+because until G1 `main` cannot run the checks its own ruleset requires. B05
+should not be read as having tested `main`.
