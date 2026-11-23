@@ -272,6 +272,48 @@ eight run from here with no workaround. A4, A5, A6 and A12 need routes only a
 Mac session reaches, and whether a Mac session also follows Claude's connection
 is still unmeasured — the re-run there is outstanding.
 
+## 7c-bis. Cloud and Mac sessions use **different** credentials. Measured 23 Nov.
+
+Round 1 left this open and called it load-bearing. It is now answered, and the
+two environments do not agree:
+
+| | acts as | credential source |
+|---|---|---|
+| cloud Claude Code session | **`vedant420420`** (the automation) | `GH_TOKEN`, injected by the session; follows Claude's GitHub connection |
+| Mac Claude Code session | **`vedantgautam1`** (the founder) | the Mac's own `gh auth login` keychain; **no `GH_TOKEN` set** |
+
+Switching Claude's GitHub connection to the automation changed the cloud
+session mid-flight and did **not** touch the Mac. The Mac's `git` credential
+helper is the founder's as well, so `git push` from there is also the founder.
+
+### Why this matters more than it looks
+
+The four attacks that need routes only the Mac can reach — A4, A5e, A5f, A6 —
+and the A12 check all have to be made **as the automation**. Run from the Mac
+as it stands they would be made as the **owner**, and an owner is expected to
+succeed. Worse than void: `A5e` would really delete `v2-build`, `A6` would
+really disable the ruleset, and A4 would post forged statuses under the
+founder's own name.
+
+The Mac session refused to run `attacks-on-mac.sh` for exactly this reason,
+which is what the script's identity guard was written for.
+
+### The resolution, and why it is the stronger test rather than a weaker one
+
+A **classic** personal access token belonging to `vedant420420`, with `repo`
+scope, supplied as `GH_TOKEN` for the single command. That is the most
+permissive credential the automation can hold, so any refusal is GitHub
+applying the **collaborator role**, not a narrow token running out of scope.
+A fine-grained token would be weaker evidence, because a refusal could be
+blamed on its permissions rather than on the repository's rules. A6 in
+particular tests whether a non-owner can change a ruleset — and no token
+scope grants admin on a repository the account does not own.
+
+Consequence for the script: it must use **REST throughout**, including
+creating and deleting branches, because `GH_TOKEN` governs `gh api` but not
+the Mac's `git` credential helper. `attacks-on-mac.sh` was rewritten on that
+basis; the `git push` steps are gone.
+
 ## 7d. The spec names two required checks that do not exist
 
 Deliver 3 asks for required checks `tests`, `lint`, `v1-oracle`, `guards` and
