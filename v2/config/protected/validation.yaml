@@ -39,3 +39,5 @@ fragmentation_window_days: 90
 # V2-D38 -- the confirm rule. At least this many of the strategy's trades must
 # fall in the sealed block. Fewer: the same test runs in L3 paper before L4.
 sealed_confirm_min_trades: 200
+
+# A9 attack probe, 23 Nov 2026
