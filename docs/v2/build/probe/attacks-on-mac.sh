@@ -35,19 +35,44 @@ echo "  account (vedant420420). If it says vedantgautam1, stop and tell Claude:"
 echo "  a Mac session is using your own login, and the results would be void."
 
 # ---------------------------------------------------------------- A5e / A5f
+# These two are the only genuinely destructive attacks in the set: if the
+# ruleset does NOT hold, v2-build is gone or renamed. Record its sha first and
+# put it back immediately, loudly, if either succeeds.
+V2SHA=$(gh api "repos/$R/git/ref/heads/v2-build" --jq '.object.sha' 2>/dev/null)
+say "v2-build sha before A5e/A5f" "${V2SHA:-<COULD NOT READ - STOP, do not continue>}"
+[ -z "${V2SHA:-}" ] && { echo "  Refusing to run A5e/A5f without a recovery sha."; exit 1; }
+
+restore_v2 () {
+  if ! gh api "repos/$R/git/ref/heads/v2-build" >/dev/null 2>&1; then
+    echo "    *** v2-build IS GONE — THIS IS A BREACH. Restoring to $V2SHA now. ***"
+    git push -q origin "$V2SHA:refs/heads/v2-build" 2>&1 | sed 's/^/      /'
+    gh api -X POST "repos/$R/git/refs" -f ref=refs/heads/v2-build -f sha="$V2SHA" >/dev/null 2>&1
+    say "    v2-build restored to" "$(gh api "repos/$R/git/ref/heads/v2-build" --jq '.object.sha[0:7]' 2>&1 | head -1)"
+  fi
+}
+
 rule "A5e — delete a protected branch (must be refused)"
 echo "  via git push --delete:"
 git push origin --delete refs/heads/v2-build 2>&1 | sed 's/^/    /' | tail -6
+restore_v2
 echo "  via REST:"
 gh api -X DELETE "repos/$R/git/refs/heads/v2-build" 2>&1 | head -c 300 | sed 's/^/    /'
 echo ""
+restore_v2
 say "  v2-build still there?" "$(gh api "repos/$R/git/ref/heads/v2-build" --jq '.object.sha[0:7]' 2>&1 | head -1)"
 
 rule "A5f — rename a protected branch (must be refused)"
 gh api -X POST "repos/$R/branches/v2-build/rename" -f new_name=v2-build-renamed 2>&1 | head -c 300 | sed 's/^/    /'
 echo ""
+if gh api "repos/$R/git/ref/heads/v2-build-renamed" >/dev/null 2>&1; then
+  echo "    *** THE RENAME SUCCEEDED — THIS IS A BREACH. Renaming back now. ***"
+  gh api -X POST "repos/$R/branches/v2-build-renamed/rename" -f new_name=v2-build 2>&1 | head -c 200 | sed 's/^/      /'
+  echo ""
+  restore_v2
+  say "    v2-build-renamed gone?" "$(gh api "repos/$R/git/ref/heads/v2-build-renamed" >/dev/null 2>&1 && echo 'NO - DELETE IT BY HAND' || echo yes)"
+fi
 say "  v2-build still there?" "$(gh api "repos/$R/git/ref/heads/v2-build" --jq '.object.sha[0:7]' 2>&1 | head -1)"
-say "  did a renamed branch appear?" "$(gh api "repos/$R/git/ref/heads/v2-build-renamed" --jq '.ref' 2>&1 | head -c 60)"
+say "  expected sha" "${V2SHA:0:7}"
 
 # ---------------------------------------------------------------- A6
 rule "A6 — change a ruleset and a repository setting (must be refused: not the owner)"
