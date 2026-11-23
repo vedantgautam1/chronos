@@ -181,6 +181,76 @@ renew or release at all when the take failed.
 - `doc/b05-deltest` — **still present** at `b9c4f5d`. `measure-env.sh` deletes
   it wherever a delete route works.
 
+## 7b. The Mac, measured 23 Nov — and what it does not settle
+
+`measure-env.sh` run in a Claude Code session **on the founder's Mac**,
+23 Nov ~14:47 UTC. Result: **every route in §3 allowed, nothing blocked.**
+
+- reads: `/git/ref`, `/collaborators` (A12), `/actions/permissions`, `/rulesets`
+  — all returned. GraphQL works.
+- writes probed against non-existent targets: all reached GitHub and were
+  refused by *GitHub* as `404`/`422`, which is the point.
+- **the lock: full cycle works.** `lock/mactest` was created; a second create
+  was refused *because it already existed* — the 422 the design rests on;
+  renew and release both worked; the ref is gone.
+- `doc/b05-deltest` deleted. No stray branches remain.
+
+So the proxy of §2 is a **cloud-session** restriction, not a platform one.
+GraphQL working on the Mac while being refused in cloud is the cleanest proof:
+that refusal is a proxy rule, and on the Mac there is no proxy in the path.
+
+**What this unblocks:** Deliver 1–4 — identity, repository settings, both
+rulesets, and all twelve attacks including A4, A5, A6 and A12 — become
+runnable, from the Mac.
+
+**What it does not unblock: Deliver 5 and 6.** The three probes run through a
+**cloud** scheduled task, and §3/§4 were re-run in cloud on 23 Nov and came
+back identical. A scheduled cloud session still cannot take the lock, so B97
+cannot run unattended. The Mac result narrows the halt; it does not lift it.
+
+### The new question, and it is load-bearing for every attack
+
+The Mac session reported `login=vedantgautam1`. **Today that is ambiguous**:
+`vedantgautam1` is both the founder's own `gh auth login` keychain *and* the
+account Claude's GitHub connection currently uses, so the two are
+indistinguishable. They diverge the moment Deliver 2 switches Claude's
+connection to the automation.
+
+It matters because **an attack run under the founder's own token proves
+nothing about the automation.** A1–A3 turn on which account acts; A4, A5, A6,
+A11 and A12 turn on which *permissions* it has, and a personal access token
+and a GitHub App installation token for the same account need not carry the
+same permissions. [Likely — reasoned from how the two credential types work,
+not measured here.]
+
+`measure-env.sh` now prints `gh api user`, whether `GH_TOKEN` and
+`GITHUB_TOKEN` are set (length only — **never the value**, since this output
+gets pasted around) and `gh auth status`, so one re-run after the switch
+settles it instead of leaving it to inference.
+
+### A permanent side effect this build caused, recorded rather than buried
+
+The first version of `measure-env.sh` aimed its A4 probe at `origin/v2-build`'s
+**real** tip. In cloud that route is blocked and nothing happened. On the Mac it
+is allowed, so it **wrote**: a `success` commit status named `__b05probe__` on
+`b9c4f5d`, by `vedantgautam1`, at 14:47:47Z. GitHub does not allow a status to
+be deleted, so it is permanent. The script now aims at
+`deadbeef…deadbeef`, which answers `422 No commit found for SHA`.
+
+Audited for anything else: no ruleset was created (`/rulesets` → `[]`), no
+issue, labels still ten, no stray pull request, no stray branch. That status is
+the only unintended write.
+
+Two consequences, neither severe:
+
+1. `__b05probe__` will appear in GitHub's **required-status-checks picker**
+   when Deliver 3's rulesets are built. It must not be selected: nothing ever
+   posts it, so requiring it would block every pull request.
+2. It does **not** weaken A4. PR merges evaluate the *head* commit, and PR
+   #37's head carries no statuses (`state: pending, total_count: 0`). The
+   status was also posted by the founder's account, not the automation's, so it
+   gives the automation nothing.
+
 ## 8. What this does **not** show
 
 - Nothing here was run as the automation account; it does not exist yet. The

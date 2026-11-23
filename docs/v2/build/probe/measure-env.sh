@@ -32,8 +32,20 @@ probe() {
 }
 
 echo "=== repo $R  base $BASE ==="
-echo "=== identity ==="
-gh api user --jq '"login=\(.login)  id=\(.id)"' 2>&1 | head -2
+echo "=== identity, and WHERE IT COMES FROM ==="
+# Which account matters, but so does which credential supplies it. A cloud
+# session is handed a GH_TOKEN; a Mac session may instead use the founder's own
+# `gh auth login` keychain. Today both are vedantgautam1 so they look the same.
+# Once Claude's GitHub connection is switched to the automation they diverge,
+# and attacks run under the founder's own token prove nothing about the
+# automation. Print enough to tell them apart.
+gh api user --jq '"  api user      login=\(.login)  id=\(.id)"' 2>&1 | head -2
+# Never print the value — only whether it is set and how long it is. This
+# output gets pasted around.
+if [ -n "${GH_TOKEN:-}" ]; then say "  GH_TOKEN set?" "yes (${#GH_TOKEN} chars, value not shown)"; else say "  GH_TOKEN set?" "no"; fi
+if [ -n "${GITHUB_TOKEN:-}" ]; then say "  GITHUB_TOKEN set?" "yes (${#GITHUB_TOKEN} chars, value not shown)"; else say "  GITHUB_TOKEN set?" "no"; fi
+echo "  gh auth status:"
+gh auth status 2>&1 | sed 's/^/    /' | head -8
 echo
 echo "=== reads ==="
 probe "GET  /git/ref/heads/$BASE"        "repos/$R/git/ref/heads/$BASE"
@@ -47,7 +59,13 @@ echo "=== writes that must NOT change anything ==="
 probe "POST   /pulls (open PR)"          -X POST "repos/$R/pulls" -f title= -f head=__nope__ -f base="$BASE"
 probe "PUT    /pulls/99999/merge"        -X PUT  "repos/$R/pulls/99999/merge"
 probe "POST   /pulls/99999/reviews"      -X POST "repos/$R/pulls/99999/reviews" -f event=APPROVE
-probe "POST   /statuses/<sha>      (A4)" -X POST "repos/$R/statuses/$(git rev-parse "origin/$BASE")" -f state=success -f context=__b05probe__
+# Deliberately a sha that cannot exist. The first version of this script aimed
+# at origin/$BASE's real tip, which is fine where the route is blocked and is a
+# permanent write where it is not: run on the Mac on 23 Nov it put a `success`
+# status named __b05probe__ on v2-build's tip b9c4f5d, and GitHub does not let
+# a status be deleted. A fake sha gets 422 "No commit found for SHA", which
+# proves the route is reachable and changes nothing.
+probe "POST   /statuses/<fake sha> (A4)" -X POST "repos/$R/statuses/deadbeefdeadbeefdeadbeefdeadbeefdeadbeef" -f state=success -f context=__b05probe__
 probe "POST   /issues (halt issue)"      -X POST "repos/$R/issues" -f title=
 probe "PATCH  /issues/99999       (A11)" -X PATCH "repos/$R/issues/99999" -f state=closed
 probe "DELETE /labels/__nope__    (A11)" -X DELETE "repos/$R/labels/__nope__"
