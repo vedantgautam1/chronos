@@ -317,12 +317,64 @@ vedant420420    admin=false  push=true
 Exactly the two the spec requires, with the automation holding push and **not**
 admin — which is what makes A6 refuse and what keeps A1–A3's reasoning intact.
 
-**Not yet confirmed:** installed GitHub Apps. The automation is not permitted
-to list them (`/installations` needs admin), and the cloud session cannot reach
-`/collaborators` at all. A GitHub App that can write code or approve pull
-requests would undo A1–A3 exactly as a third collaborator would, so **A12 is
-not complete until the founder reads Settings → GitHub Apps by eye.** A
-permission refusal is not evidence that the list is empty.
+**Installed Apps, read from the founder's screen 23 Nov** (neither identity can
+list them through the API): exactly **one** — *Claude*, by Anthropic. Its
+permissions at the time every attack in this file was run:
+
+| Scope | Level |
+|---|---|
+| commit statuses, metadata | read |
+| actions, checks, code, discussions, issues, **pull requests**, repository hooks, workflows | **read and write** |
+
+So A12's answer is **two accounts and one app**, and the app is the channel
+through which both accounts reach the repository rather than a third identity:
+every action in this build was attributed to a named account
+(`merged_by: vedant420420`, `Waiting on code owner review from vedantgautam1`),
+never to the app itself.
+
+### The app's permissions are load-bearing, and a dialog can change them
+
+This deserves to be stated plainly because it qualifies every wall above.
+A6 refuses because the automation has no admin. That is a property of the
+**app's permission set**, not of anything in this repository. On 23 Nov, while
+this build was running, GitHub showed the founder a pending request to widen
+that set — adding `administration: read`, `merge queues: read`,
+`repository creation: read and write`, `dependabot alerts: read`.
+
+Accepting it would not break A6 (read is not write), but the mechanism matters:
+**the walls B05 proves can be widened by approving a prompt**, and a future
+request that included `administration: write` would silently turn A6 from a
+wall into nothing. Nothing in the repository would change, and no guard would
+notice.
+
+The request was **not** accepted during the build, so every result above
+describes one stable configuration. Whether to accept it is a decision for
+after the report, and the attacks that depend on permissions — A6, A12, and
+Deliver 2's read-backs — should be re-run if it is.
+
+### A gap in A4, found and not closed
+
+A4 forged **commit statuses**. It did not forge a **check run**, which is a
+different API, and the app holds `checks: read and write`.
+
+Attempted from the cloud session and refused before reaching GitHub:
+
+```
+POST /repos/.../check-runs  ->  403
+"Write access to this GitHub API path is not permitted through this proxy."
+```
+
+It cannot be closed from the Mac either: GitHub restricts `POST /check-runs`
+to GitHub Apps, and a user's personal access token cannot create one at all.
+The only thing that could is the Claude app itself.
+
+What can be said: the ruleset pins each required check to
+`integration_id: 15368`, GitHub Actions, and A4's refusal named the criterion
+as *"not set by the expected GitHub **apps**"* — app identity, not the kind of
+object. A check run from the Claude app carries a different integration id, so
+it should meet the same refusal. **[Likely — reasoned from A4's wording and the
+pinning, not measured.]** Recorded as an open edge rather than counted as
+covered.
 
 ---
 
