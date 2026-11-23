@@ -251,6 +251,83 @@ Two consequences, neither severe:
    status was also posted by the founder's account, not the automation's, so it
    gives the automation nothing.
 
+## 7c. The identity switch worked, and it worked mid-session
+
+Measured 23 Nov, after the founder switched Claude's GitHub connection to the
+automation account `vedant420420` (id 360309407):
+
+- **A cloud session now acts as `vedant420420`.** `gh api user` returns it. The
+  switch took effect **without restarting the session** — this same session had
+  been acting as `vedantgautam1` an hour earlier. [Certain — run]
+- Which routes are allowed did **not** change. Same allowed set, same blocked
+  set, same two refusal texts. So the proxy filters by **path, not by account**,
+  which is what §8 of round 1 called [Likely] and is now measured.
+
+So the spec's `Halt if` bullet *"Claude's cloud sessions can't act as a separate
+GitHub account"* does **not** fire: they can.
+
+**Where each attack therefore runs.** A1, A2, A3, A7, A8, A9, A10 and A11 use
+only routes cloud allows, and a cloud session is now the automation, so those
+eight run from here with no workaround. A4, A5, A6 and A12 need routes only a
+Mac session reaches, and whether a Mac session also follows Claude's connection
+is still unmeasured — the re-run there is outstanding.
+
+## 7d. The spec names two required checks that do not exist
+
+Deliver 3 asks for required checks `tests`, `lint`, `v1-oracle`, `guards` and
+`earlier-tests`. Read from the check runs GitHub actually reported on
+`685ac56` and `deb346a` — not from the workflow files — the real names are:
+
+| Spec says | GitHub actually reports | Source |
+|---|---|---|
+| `tests` | `tests` | `v2.yml` |
+| `lint` | `lint` | `v2.yml` |
+| `v1-oracle` | `v1-oracle` | `v2.yml` |
+| `guards` | `guards (from the base commit's copy)` | `v2-guards.yml` |
+| `earlier-tests` | `earlier-tests (the base's tests, this branch's package)` | `v2-guards.yml` |
+
+The last two carry a `name:` override (`v2-guards.yml` lines 35 and 83) that
+GitHub uses as the check-run name. **Requiring the bare names `guards` and
+`earlier-tests` would wait for checks that never appear and block every pull
+request permanently.**
+
+Both overrides are **static strings** — the 13 `${{ }}` expressions in that file
+are all in steps, none in a `name:` — so the long names are stable and safe to
+require. [Certain — read, and confirmed against two commits' actual check runs.]
+
+There is also a near-miss to avoid: `tests.yml` is a **v1** workflow whose own
+job is named **`test`** (singular), and it reports twice per pull request
+because it triggers on both `push` and `pull_request`. `test` is not one of the
+five and must not be selected in its place.
+
+**What B05 does about it:** requires the real names. That is a deviation from
+the spec's wording and is recorded as one; it is not a fork, because requiring
+a check that never runs cannot be what the spec intended. **What B05 must not
+do:** change the `name:` lines to make the spec's wording true —
+`.github/workflows/**` is outside this build's `touches` (builder rule 4).
+Making the names plain, or correcting the spec to quote the real ones, is worth
+its own small spec, and is the more durable of the two: a later build that
+edits a `name:` line would silently stop satisfying the ruleset.
+
+## 7e. PR #37 was merged into `v2-build` unreviewed
+
+On 23 Nov at 10:23 ET the founder merged pull request #37 (`claude/b05` →
+`v2-build`, merge commit `6f0ded6`) while `status/B05.json` still read
+`building`. No review file exists and B05 has not been reviewed.
+
+Recorded because the reviewer will see it and should see it flagged rather than
+find it. What it does and does not mean:
+
+- **Materially harmless.** The merge carried this measurements file, the
+  `measure-env.sh` script and `status/B05.json` — 417 added lines of
+  documentation, no code and no tests. All five checks were green on `685ac56`.
+- **It did complete Deliver 1.** There are now zero open pull requests, so the
+  repository is quiet for the attack tests.
+- **Nothing stopped it, which is the point of this build.** `GET /rulesets`
+  returned `[]` at the time. This is the gap Deliver 3 closes.
+- `claude/b05` was fast-forwarded onto `6f0ded6` and B05's remaining work
+  continues on it under a new pull request.
+
 ## 8. What this does **not** show
 
 - Nothing here was run as the automation account; it does not exist yet. The
