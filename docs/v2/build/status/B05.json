@@ -1,8 +1,8 @@
 {
   "build": "B05",
-  "state": "needs_review",
+  "state": "changes_requested",
   "ticks": 2,
-  "head": null,
+  "head": "8ad1acfca1bd4835f461e9bacb380bf8c76df5b7",
   "halt_reason": null,
   "halt_options": [
     "RECORD of the halt the founder cleared on 23 Nov, kept because it shaped the whole build. B05 halted at step 0 on 20 Nov: a cloud session cannot take the lock (POST /git/commits, POST /git/refs, PATCH and DELETE /git/refs all refused by Anthropic's session proxy), and lock.py's release() discards the API return code so it reports success on a lock still held. The founder chose to keep unattended operation as the goal, correct lock.py in its own build, and take Deliver 1-4 now. So v2-build's ruleset was built at ZERO approvals as Deliver 3 writes it and A10's known answer stayed 'merges'; the spec's option (a) was not taken.",
