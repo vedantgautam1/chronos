@@ -150,6 +150,37 @@ gh api -X DELETE repos/vedantgautam1/chronos/git/refs/heads/lock/proxytest
   platform's, not the environment's, and the halt options in
   `status/B05.json` are the decision.
 
+## 7a. Re-measured 23 Nov, and made reproducible
+
+Everything in §3 and §4 was re-run in a cloud session on **23 Nov** after a
+three-day pause, and came back **identical** — same routes allowed, same
+routes blocked, same two refusal texts. Nothing drifted.
+
+`measure-env.sh`, beside this file, is the whole of §3 plus a real lock
+take/renew/release cycle in one script, so the next session measures rather
+than inherits. It must be run **inside a Claude Code session**, because that is
+the environment the loop runs in; a plain Terminal with the founder's own `gh`
+login answers a different question.
+
+Its first draft carried the defect this build is halted over: when the lock
+take was refused, it checked whether `lock/mactest` existed, found it absent,
+and printed *"full take/release cycle worked"* — a false success, from the same
+confusion between "the call did not happen" and "the call succeeded" that
+makes `release()` lie in §4. It now asks GitHub whether the ref came into
+existence, reports `lock ref actually created? no`, and declines to interpret
+renew or release at all when the take failed.
+
+### Status of the two stray branches from §5
+
+- `lock/proxytest` — **deleted by the founder on 23 Nov.** Confirmed gone from
+  here (`GET /git/ref/...` → 404). Which route or environment performed the
+  delete is **not established**: a cloud session cannot delete a branch, so it
+  was not this one, but nothing visible from here distinguishes a Claude Code
+  session on the Mac from the GitHub web interface. `measure-env.sh` settles
+  that question properly rather than inferring it from one success.
+- `doc/b05-deltest` — **still present** at `b9c4f5d`. `measure-env.sh` deletes
+  it wherever a delete route works.
+
 ## 8. What this does **not** show
 
 - Nothing here was run as the automation account; it does not exist yet. The
