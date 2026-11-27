@@ -124,6 +124,18 @@ The GitHub mobile app shows pull requests, reports and the diagrams. You never n
 > Both live in `v2/tools/loop/lock.py` and both need a small build of their
 > own. **Until that is done, run builds by hand from the Mac** (§1A), where
 > every route works and the lock behaves. B05's report has the measurements.
+>
+> **But know what a Mac session is.** Claude Code on your Mac uses your Mac's
+> own GitHub login, which is **you**: `vedantgautam1`, the owner, the admin and
+> the only code owner. Every wall B05 built is a wall against the *automation*
+> account and lets *you* through, so a Mac session gets through as well. It
+> can approve a pull request as you, merge your own files on `v2-build`, and
+> its approval plus the automation's push is everything `main` asks for. B05
+> measured this; it is not a guess. So **a build run on the Mac is protected
+> only by guard rails** (our own scripts and the session's instructions), not
+> by GitHub. The G1 gate has to choose one of two things: log the Mac's Claude
+> Code in as the automation account, or accept in writing that Mac-run builds
+> are guard rails only.
 
 **Stop the loop:** in the Claude app, open Scheduled tasks → "Chronos build loop" → switch it off. Or say to Claude: "pause the Chronos loop." Nothing is lost; the state lives in the repo.
 
@@ -148,7 +160,7 @@ The GitHub mobile app shows pull requests, reports and the diagrams. You never n
 
 *One honest caveat on step 3:* the wrong-model warning works by the session comparing the model it is running as against the one the build asks for. There is no way for a command to look that up for itself, so this is a courtesy, not a lock. What actually pins the model is each agent's own definition in `.claude/agents/`: a build routed to the Opus builder runs on Opus whatever session dispatched it.
 
-*A second caveat, on step 4, measured in B05 and true until `lock.py` is fixed:* **do your by-hand ticks on the Mac, not in a cloud session.** A cloud session cannot take the lock at all — `/chronos-tick` stops with an error before it dispatches anything. That failure is loud, which is the safe direction. The quiet one is the other way round: if a cloud session ever does hold a lock, releasing it does nothing while still printing "Lock released." So the rule for now is simply that the Mac is where ticks happen, and the collision protection in step 4 is real there and absent in the cloud.
+*A second caveat, on step 4, measured in B05 and true until `lock.py` is fixed:* **do your by-hand ticks on the Mac, not in a cloud session.** A cloud session cannot take the lock at all — `/chronos-tick` stops with an error before it dispatches anything. That failure is loud, which is the safe direction. The quiet one is the other way round: if a cloud session ever does hold a lock, releasing it does nothing while still printing "Lock released." So the rule for now is simply that the Mac is where ticks happen, and the collision protection in step 4 is real there and absent in the cloud. The price, from the box above: on the Mac, Claude acts as you, so GitHub's walls do not apply to that session.
 
 **While the loop doesn't exist yet (builds 1–5),** see §1A.
 
