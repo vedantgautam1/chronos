@@ -93,6 +93,18 @@ NO_STOP = "There is no emergency stop in force."
 # ----------------------------------------------------------------- the edges
 
 
+def production_refs(repo_root: Path, github_repo: str):
+    """The lock backend the loop runs on (B05A): ``git push`` from the local
+    clone at ``repo_root``. Not ``GitHubRefs``, whose REST writes a cloud
+    session's proxy refuses. ``github_repo`` is accepted so the call site
+    names the repository either way; the clone's own ``origin`` is the
+    remote."""
+    from lock import GitPushRefs
+
+    del github_repo
+    return GitPushRefs(repo_root)
+
+
 def _run(argv: list[str], cwd: Path) -> tuple[int, str, str]:
     # Fixed argv, never a shell string.
     done = subprocess.run(
@@ -410,9 +422,7 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - thin wrapp
     issues = GitHubIssues(known.github_repo, known.owner)
 
     if command in ("claim", "finish"):
-        from lock import GitHubRefs
-
-        refs = GitHubRefs(known.github_repo)
+        refs = production_refs(Path(known.repo) if known.repo else REPO_ROOT, known.github_repo)
         if command == "claim":
             code, out = claim(rest, refs=refs, issues=issues)
         else:
