@@ -1,0 +1,62 @@
+name: b05-r1-reviewer-probe
+
+# B05 review round 1, run by the REVIEWER session as the automation account.
+# Three questions, one pull request into main:
+#   1. A1, third framing: can a main-based head make all five required checks
+#      report green, so that an approval rule is the ONLY thing left in the way?
+#   2. A4, the route the build did not try: are check runs that GitHub Actions
+#      itself produces, from a workflow the pull request brings, accepted by
+#      the ruleset's pin to integration 15368?
+#   3. Deliver 2: may the workflow token approve a pull request? (The setting
+#      "Allow GitHub Actions to create and approve pull requests" should be off.)
+#
+# FAIL-CLOSED: every job fails on any head other than doc/a3. If this file ever
+# reached main it would block merges rather than wave them through. It must
+# never be merged; the pull request is to be closed once read.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "$HEAD" = "doc/a3"
+        env:
+          HEAD: ${{ github.head_ref }}
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "$HEAD" = "doc/a3"
+        env:
+          HEAD: ${{ github.head_ref }}
+
+  v1-oracle:
+    name: v1-oracle
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "$HEAD" = "doc/a3"
+        env:
+          HEAD: ${{ github.head_ref }}
+
+  guards:
+    name: "guards (from the base commit's copy)"
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "$HEAD" = "doc/a3"
+        env:
+          HEAD: ${{ github.head_ref }}
+
+  earlier-tests:
+    name: "earlier-tests (the base's tests, this branch's package)"
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "$HEAD" = "doc/a3"
+        env:
+          HEAD: ${{ github.head_ref }}
