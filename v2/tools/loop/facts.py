@@ -15,6 +15,8 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
+from lock import is_release_marker
+
 MAIN_BRANCH = "main"  # a gate is done when its report is on main; the move targets it
 STATES = ("building", "needs_review", "changes_requested", "passed", "merged", "halted")
 STATUS_KEYS = ("build", "state", "ticks", "head", "halt_reason", "halt_options")
@@ -265,12 +267,21 @@ def gather(
 
 
 def _locks(git, repo_dir: Path, branches: set[str]) -> dict[str, tuple[datetime | None, str]]:
+    """Every ``lock/<id>`` branch that is held, aged by its tip's commit time.
+
+    A released lock (B05A) is a branch whose tip is a release marker: a cloud
+    session cannot delete a branch, so release moves it onto a marker instead.
+    Such a branch is **not** a lock. Everything else is read as before --
+    including an unreadable tip, which stays a lock rather than becoming free.
+    """
     out: dict[str, tuple[datetime | None, str]] = {}
     for name in branches:
         if not name.startswith("lock/"):
             continue
         body = git(repo_dir, "log", "-1", "--format=%cI%n%B", f"refs/remotes/origin/{name}")
         lines = body.split("\n")
+        if is_release_marker("\n".join(lines[1:])):
+            continue
         out[name.removeprefix("lock/").upper()] = (
             _when(lines[0] if lines else ""),
             " ".join(lines[1:]),

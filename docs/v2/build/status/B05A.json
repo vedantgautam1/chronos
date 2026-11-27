@@ -1,0 +1,10 @@
+{
+  "build": "B05A",
+  "state": "passed",
+  "ticks": 1,
+  "head": null,
+  "halt_reason": null,
+  "halt_options": [
+    "head is null: the last builder commit is 76a9d08 (a merge of v2-build bringing in spec amendment #60, no code change); the last code commit is 11b1f3a; code and tests are identical at both. Reviewed PASS in reviews/B05A-r1.md. The builder's earlier notes here (head null; guards red until #60 merges) were stale once #60 merged and are corrected in the report."
+  ]
+}
