@@ -13,7 +13,9 @@ touches:
   - .claude/skills/chronos-tick/loop_cli.py
   - v2/tests/tools/loop/test_lock_by_push.py
   - v2/tests/tools/loop/test_lock_release_marker.py
-may_modify_tests: []
+  - v2/tests/tools/loop/test_lock.py  # amended 27 Nov: two tests only, see "Known answers" -> "And:"
+may_modify_tests:
+  - v2/tests/tools/loop/test_lock.py  # amended 27 Nov: two tests only, see "Known answers" -> "And:"
 adds_dependencies: []
 ```
 
@@ -115,7 +117,16 @@ All tests in step 1 run against a **throwaway local bare repository reached as a
 | 18 | `loop_cli.production_refs(repo_root, "owner/repo")` | returns a `GitPushRefs` whose `repo_dir` is `repo_root` |
 | 19 | `loop_cli.finish` with a `GitPushRefs` over a local bare repo where the lock was acquired | prints "released"; the bare ref's tip is a marker |
 
-**And:** every test that exists on `v2-build` today passes **unmodified**, `test_lock.py`, `test_agent_files.py` and `test_facts_collectors.py` included. `may_modify_tests` is empty.
+**And:** every test that exists on `v2-build` today passes **unmodified**, `test_lock.py`, `test_agent_files.py` and `test_facts_collectors.py` included, with **one exception**, below.
+
+**Amendment, 27 Nov (the founder's choice (a) after the builder halted at step 2; `status/B05A.json` on `claude/b05a` at `52e3d13`).** As first written, this spec could not be met: Deliver 3 and known answer 14 make `GitHubRefs.delete` raise on a non-zero answer, and two frozen tests in `test_lock.py` call `delete` through `FakeGh()`, whose default answer to every call is `(1, "{}")`. With Deliver 3 in place they went red [Certain — run: 4 failed, 400 passed]. So `test_lock.py` is now in `may_modify_tests`, and in `touches` too (the `scope` guard admits only `touches`, so a file in `may_modify_tests` alone is still refused), under these limits:
+
+- Only **`test_the_backend_deletes_the_reference_from_the_plural_refs_route`** and **`test_every_write_route_the_backend_uses_starts_with_git_refs`** may change. Every other line of the file stays byte-for-byte as on `v2-build`, `FakeGh` included.
+- The only permitted change is to give the `DELETE` call a **success answer** (for example, constructing `FakeGh` with an answer of `(0, "")` for the delete), so that `delete` does not raise.
+- Every existing assertion in both tests stays, unweakened: the route (`repos/owner/repo/git/refs/heads/lock/b06`), the `("-X", "DELETE")` verb, and "every write route starts with `git/refs`". Nothing is removed, skipped or wrapped in `pytest.raises`.
+- The report lists the diff to `test_lock.py` under its deviations, and the reviewer checks it against these limits.
+
+`test_agent_files.py` and `test_facts_collectors.py` remain frozen.
 
 **On GitHub (step 4, in the report, not a test):** 20 of 20 acquire pairs and 20 of 20 take-over pairs with exactly one winner, from a cloud session, with the re-run count. Then a clean acquire → renew → release, after which `facts._locks` does not report `lock/zz-proof-b05a`. **Any pair with two winners is a halt.**
 
