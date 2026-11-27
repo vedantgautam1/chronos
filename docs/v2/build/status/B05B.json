@@ -1,8 +1,13 @@
 {
   "build": "B05B",
-  "state": "building",
+  "state": "halted",
   "ticks": 1,
   "head": null,
-  "halt_reason": null,
-  "halt_options": []
+  "halt_reason": "Halted at step 3, before writing the probe specs (spec/probes). Four points in B05's Deliver 6 and known answers fork into designs that give different results, read against the shipped loop code: (1) nothing switches the task off when nothing is runnable (the founder named this gap at the start); (2) once B97 merges, B98 and B99, with needs [] and full specs, are runnable, so the next tick STARTS B98 instead of waiting for the hand-prepared defect branch, and 'nothing runnable' is never reached; (3) HALT is a no-dispatch answer in loop_cli.py, so nothing writes 'halted' into B99's status file, and every hourly firing would answer HALT again; (4) the measured idle tick used 0% -> 3% of the five-hour allowance, about 15% of each window if hourly firings find nothing, and 'Halt if' makes 'more than a trivial share' the founder's call. Step 2 is recorded in probe/B05B-deliver5.md; the connectors could not be removed (founder: record as a deviation).",
+  "halt_options": [
+    "(1) Self switch-off: (a) the founder is the off switch; the known answer is recorded NOT MET and carried to G1 · (b) the probe-period prompt also says: if the tick's answer is NONE or WAIT_FOUNDER with nothing in flight, switch this task off with the scheduling tool (a guard rail that relies on the Claude_Code_Remote connector already on the task; untested whether a run may switch off its own task) · (c) a spec amendment plus a small founder-owned build in .claude/skills/chronos-tick before the probes; B05B waits.",
+    "(2) B98/B99 runnable too early: (a) the probe ladder marks B98 and B99 'spec: card' (their spec files still go in specs/, where the guards and agents find them by id). With no branch, the loop reads them as waiting on the founder; once a hand-prepared branch exists, decide() treats them as in flight (checked before the card test), so it reviews B98 and halts B99 · (b) keep full specs, and the founder switches the task off as soon as B97 merges, before the next firing; one firing in the wrong window builds B98 properly and the defect probe is lost.",
+    "(3) B99 'ends halted': (a) read it as the tick answering HALT and stopping, with the status file left at changes_requested; the founder switches the task on for exactly one firing (B05 already says so) and counts the notifications · (b) treat it as a spec defect: the loop should write 'halted' and notify once; needs code in founder-owned paths, so a separate build.",
+    "(4) Idle cost: (a) 3% is trivial; proceed hourly · (b) not trivial; the wake-up design changes (the founder's call; B05 names GitHub-event triggers), and the probes wait · (c) proceed for the probes only, firm up the number with the further idle readings Deliver 3 already needs, and decide at G1."
+  ]
 }
