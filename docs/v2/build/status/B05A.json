@@ -1,8 +1,11 @@
 {
   "build": "B05A",
-  "state": "building",
+  "state": "needs_review",
   "ticks": 1,
   "head": null,
   "halt_reason": null,
-  "halt_options": []
+  "halt_options": [
+    "head is null deliberately, per builder rule 7: this status file is in the same commit as the last code change (prove_lock_by_push.py), the report and the CHANGELOG section, so it cannot name the commit containing it.",
+    "Guards: scope and frozen_files flag v2/tests/tools/loop/test_lock.py until the spec amendment PR #60 merges into v2-build; replayed onto #60's head, all seven guards pass. See reports/B05A.md deviations 2-4."
+  ]
 }

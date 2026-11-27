@@ -4,6 +4,17 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 27 Nov 2026 — B05A: the lock works from the cloud, and every release says whether it happened
+
+- **What now exists.** The loop's lock is taken and released through `git push` (`GitPushRefs` in `v2/tools/loop/lock.py`), which a cloud session can do, rather than through the REST routes its proxy refuses. A release moves the `lock/<id>` branch onto a **release marker** commit (`Chronos-Lock-Released:`), because the cloud cannot delete a branch; `facts._locks` skips markers, and `loop_cli.py` builds the new backend through `production_refs`. Every push is judged from `--porcelain` and the exit code: a rejection is a lost race (`False`), anything else raises `LockError` with git's stderr, and a failed release always raises. `GitHubRefs.delete` stops discarding GitHub's answer.
+- **Proved against GitHub from a cloud session** (`prove_lock_by_push.py`, 27 Nov 20:25 UTC): **20 of 20 acquire pairs and 20 of 20 take-over pairs with exactly one winner, 0 re-runs**; acquire → renew → release, after which `facts._locks` was silent. On GitHub a lost race comes back `[remote rejected] (cannot lock ref …)`, so every `!` line counts as lost. End to end: `loop_cli.py finish --build ZZ-PROOF-B05A` printed "Lock on ZZ-PROOF-B05A released." and `next_action.py` exited 0.
+- **Halted once, at step 2, on a spec defect.** Deliver 3 made two frozen `test_lock.py` tests red (their `FakeGh` answers every call `(1, "{}")`). The founder chose option (a): amendment [#60](https://github.com/vedantgautam1/chronos/pull/60), written by this builder session and **not yet merged**, lets those two tests give the delete a success answer and lists `test_lock.py` in `touches` as well as `may_modify_tests` (the `scope` guard admits only `touches`). Two lines changed; every assertion stands. Until #60 merges, the guards' `scope` and `frozen_files` flag `test_lock.py`; replayed onto #60, all seven pass.
+- **Deviations:** no lock taken for the build (the founder's instruction); the amendment; the builder writing it; building on before it merged. All in `reports/B05A.md`.
+- **New traps for `BUILD_NOTES.md`:** a released lock's branch stays, so read the tip · `--porcelain` and the exit code are a push's only trustworthy outcome · a lost race on GitHub can read `remote rejected` · a single-branch clone fetches no `lock/*` tips · `may_modify_tests` needs `touches` too.
+- **Left behind:** `lock/b05a-probe` and `lock/zz-proof-b05a` (released), deletable from the Mac.
+- **Code 268 strict (cap 400); tests 304 strict, 19 cases (cap 600); 10 files; 0 libraries; tick 1 of 3.** 404 passed, ruff clean. Status `needs_review`.
+---
+
 ## 27 Nov 2026 — Two builds added before G1: B05A fixes the lock for the cloud, B05B runs B05's unattended probes
 
 - **Why.** B05 merged (27 Nov 19:32 UTC) with the walls proved and the loop never run: a cloud session cannot take the lock, so the scheduled task cannot run a tick, and `GitHubRefs.delete` reported a release it had not made. The founder accepted that on 23 Nov and asked for the lock to be fixed in its own build; on 27 Nov he asked for the next step to be lined up.
