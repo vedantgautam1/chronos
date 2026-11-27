@@ -1,0 +1,43 @@
+# CHRONOS v2 — the PROBE ladder, used only while B05B runs B05's probes.
+# The loop reads it only when /chronos-tick is given --ladder pointing here; the
+# real ladder is docs/v2/build/LADDER.yaml. Status files for ids not on this
+# ladder (every real build) are ignored while it is in use (B03).
+#
+# Same format and rules as LADDER.yaml. Spec paths resolve against THIS folder,
+# so they start ../specs/.
+#
+# How each probe runs (specs/B05-first-unattended-run.md, Deliver 6; B05B):
+#   B97  a whole build, unattended. The task is switched on and left alone
+#        until B97 is merged.
+#   B98  the reviewer must catch a defect. Its branch is prepared BY HAND in
+#        state needs_review: the file differs from the spec by one word, and
+#        the report says the SHA matches. One tick reviews it. Then its pull
+#        request is closed and its branch deleted.
+#   B99  the loop must halt. Its branch is prepared BY HAND in state
+#        changes_requested with two review files. The task is switched on for
+#        one firing, which must answer HALT. Then its pull request is closed and
+#        its branch deleted.
+#
+# Why B98 and B99 are `spec: card` (the founder's choice, 27 Nov 22:49 UTC):
+# with a full spec and no prerequisites, the loop would START B98 itself as
+# soon as B97 merged, and the defect probe would never run. As cards they are
+# not startable: with no branch the loop lists them as waiting on the founder.
+# Once a hand-prepared branch exists, next_action.decide treats them as in
+# flight (it checks that before the card test), so it reviews B98 and halts B99.
+# Their spec files are still in specs/, where the guards and the agents find a
+# build's spec by its id.
+#
+# B98 and B99 are prepared one after the other, each only after the one before
+# is gone: the loop allows one active build at a time.
+
+version: probe-0.1
+build_branch: v2-build
+branch_prefix: claude/
+claim_hours: 3
+max_review_rounds: 2
+halt_label: chronos-halt
+
+ladder:
+  - {id: B97, title: "Probe: one whole build, unattended", phase: 0, size: S, model: opus, who: loop, ticks: 2, needs: [], spec: ../specs/B97-probe-whole-build.md}
+  - {id: B98, title: "Probe: the reviewer must catch a defect", phase: 0, size: S, model: opus, who: loop, ticks: 2, needs: [], spec: card}
+  - {id: B99, title: "Probe: the loop must halt", phase: 0, size: S, model: opus, who: loop, ticks: 2, needs: [], spec: card}
