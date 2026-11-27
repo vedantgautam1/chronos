@@ -13,6 +13,14 @@ Branch and ruleset state at the time: `main` → ruleset 27924823
 (`~DEFAULT_BRANCH`), `v2-build` → ruleset 27930220, both `active`, both
 `current_user_can_bypass: never`.
 
+> **Round 2 (27 Nov).** This file first said A1, A2 and A3 could not be
+> isolated before G1. Review round 1 (`reviews/B05-r1.md`, finding 1) showed
+> that was wrong, and all three have since been run and refused for the named
+> reason: see **"A1, A2, A3 against `main` — isolated after all"** below. The
+> round-1 statements that this overturns are left where they were, each marked
+> *[Superseded in round 2]*, so the record shows what was believed and why it
+> changed.
+
 ---
 
 ## A10 — the control. **MERGED, as it must.**
@@ -332,7 +340,34 @@ every action in this build was attributed to a named account
 (`merged_by: vedant420420`, `Waiting on code owner review from vedantgautam1`),
 never to the app itself.
 
+*[Round 2 (review r1, finding 8): narrower than "exactly two identities".
+"Acts as those accounts" is inferred from what was observed *[Likely]*; the
+Claude app acting as **itself** through an installation token would be a third
+approver if anything ever used it that way. **Deploy keys**, which can push
+code, were not read. "**Bypass list empty**" rests on
+`current_user_can_bypass: never`, which speaks only for the account asking;
+`bypass_actors` is withheld from non-admins, so only the founder's screen can
+confirm it. GitHub Actions as an approver is closed off, as evidenced in review
+r1 break 3: `"GitHub Actions is not permitted to approve pull requests."`]*
+
 ### The app's permissions are load-bearing, and a dialog can change them
+
+*[Superseded in round 2 (review r1, finding 4): this names the wrong
+mechanism. A6 was run **on the Mac with a classic personal access token** for
+`vedant420420`, and the Claude app is not in that path at all, so A6's refusal
+measures the automation's **collaborator role** (push, no admin), not the
+app's permission set. The refusal meets the spec's bar on its own evidence: in
+`attacks-on-mac.sh` the same token lists the rulesets and finds 27930220
+(line 74), gets `404` on `PUT` to that id (lines 78, 88), and reads the same id
+back straight afterwards (lines 80, 90: name and enforcement unchanged). The resource exists and is visible to
+that token, which carried `repo`, the widest classic scope, so the 404 is the
+role refusing. For cloud sessions, GitHub's documentation says a user access
+token has only the permissions both the user and the app have, so widening the
+app would not let a collaborator write a ruleset *[Likely: documentation, not
+measured]*. What would break A6 is a session acting as the **founder**, and a
+Claude Code session on the Mac does exactly that (`B05-environment-measurements.md`
+§7c-bis). The app's pending request still deserves a deliberate yes or no, but
+it is not the cliff described below. Round 1 read:]*
 
 This deserves to be stated plainly because it qualifies every wall above.
 A6 refuses because the automation has no admin. That is a property of the
@@ -375,6 +410,14 @@ object. A check run from the Claude app carries a different integration id, so
 it should meet the same refusal. **[Likely — reasoned from A4's wording and the
 pinning, not measured.]** Recorded as an open edge rather than counted as
 covered.
+
+*[Round 2 (review r1, finding 2 and break 2): the realistic version of this gap
+needs no special permission. A pull request that **brings its own workflow**
+gets real GitHub Actions check runs, app 15368, under the required names, and
+the ruleset accepts them (PRs #51, #54 and #55). The Claude app's
+`checks: write` is real but secondary. On `v2-build` that route needs the
+founder's review, because `.github/` is his there (A9, #42). On `main` nothing
+stops it until `CODEOWNERS` reaches `main` at G1.]*
 
 ---
 
@@ -436,12 +479,21 @@ approval in hand, and GitHub still refusing. The `integration_id: 15368`
 pinning recorded in `B05-ruleset-readback.md` is doing real work: it is the
 difference between a required check and a check-shaped string.
 
-**This is also the answer to a question B05 could otherwise not have settled.**
-A1, A2 and A3 cannot be isolated against `main` because `main` cannot run the
-checks its ruleset requires. A4 is the one attack for which that is an
-advantage rather than an obstacle — it *wants* no check to have run — so it is
-the only attack against `main` that B05 proves. `main`'s required-checks rule
-is therefore a wall; its approval rules remain untested.
+*[Superseded in round 2, two ways. A1–A3 **were** isolated against `main`, so
+A4 is not the only `main` attack proven. And "`main`'s required-checks rule is
+therefore a wall" says more than A4 shows: A4 proves the pin refuses commit
+**statuses** posted by an account. It does not refuse **check runs that GitHub
+Actions produces from a workflow the pull request itself brings**: PRs #51,
+#54 and #55 all got the five required contexts green that way. Forged
+statuses: a wall on both branches. Forged checks: a wall on `v2-build`, where
+`.github/` is founder-owned (A9, #42); **not** on `main` until `CODEOWNERS`
+reaches it at G1. Round 1 read:]* **This is also the answer to a question B05
+could otherwise not have settled.** A1, A2 and A3 cannot be isolated against
+`main` because `main` cannot run the checks its ruleset requires. A4 is the one
+attack for which that is an advantage rather than an obstacle — it *wants* no
+check to have run — so it is the only attack against `main` that B05 proves.
+`main`'s required-checks rule is therefore a wall; its approval rules remain
+untested.
 
 ---
 
@@ -490,7 +542,10 @@ that matters at a gate is `v2-build` → `main`, whose head *does* carry the v2
 workflows, so the five checks will run there. #41 is the evidence that a
 v2-build-based head reports all five.
 
-The spec anticipates this in its own "Not in scope": *re-running A1–A4 against
+*[Superseded in round 2: "Not in scope" defers the **re-run** at G1, which
+presupposes a first run here; and a `main`-based head **can** be isolated, if
+it brings a workflow that reports the five names (PR #51). Round 1 read:]* The
+spec anticipates this in its own "Not in scope": *re-running A1–A4 against
 `main` once `main` has its own guard code and `CODEOWNERS` (the G1 audit does
 that)*. A1 against a `main`-based head cannot be isolated before G1.
 
@@ -501,11 +556,22 @@ PUT /pulls/49/merge  merge_method=merge   -> HTTP 405
 Pull Request has merge conflicts
 ```
 
-`mergeable_state: dirty`. `main` holds the v1 tree and `v2-build` holds the v2
-tree, so a `v2-build`-based head conflicts with `main` wholesale. Only `test`
-reported. The approval rule was never reached.
+`mergeable_state: dirty`. Only `test` reported. The approval rule was never
+reached. *[Corrected in round 2: round 1 said here that the trees conflict
+"wholesale". They do not. `main` and `v2-build` share history (merge base
+`3500d52`); of the 106 files that differ, **two** conflict on a merge,
+`docs/v2/CHANGELOG.md` and `docs/v2/CHRONOS_V2.md`, because `main` took spec
+work after 17 Nov (`git merge-tree --write-tree origin/main origin/v2-build`,
+re-run by the round-2 builder). The refusal above stands; its cause was two
+files, not the whole tree.]*
 
 ### A1's verdict: **not provable in B05.** Not a wall, not a failure — unproven.
+
+*[Superseded in round 2: there **is** a third framing, a `main`-based head that
+brings its own workflow; the hybrid dismissed below failed only because it
+copied the *real* workflows, while the required checks need only *something*
+in GitHub Actions to report those five names. A1 is a wall: see the next
+section. The round-1 reasoning is kept as it was:]*
 
 The two framings are mutually exclusive, and there is no third:
 
@@ -536,7 +602,138 @@ the reason in the table", and A1–A4 will not be in that state when B05 reports
 
 ---
 
+## A1, A2, A3 against `main` — isolated after all. **WALL, three for three.**
+
+**The framing round 1 missed.** `main`'s ruleset pins each required check to a
+*name* and to `integration_id: 15368` (GitHub Actions). It does not pin *which
+workflow* produced it. A head cut from `main` that adds one probe workflow,
+`.github/workflows/b05-r1-probe.yml`, with five jobs named exactly as the five
+required contexts, gets all five reported **success by GitHub Actions**. That
+leaves the approval rules as the only thing able to refuse. Each probe job
+passes only on its own branch name and fails on any other head, so it is
+fail-closed: had it ever been merged, it would turn every check red, not green.
+
+**Who ran what.** A1: the round-1 reviewer, as the automation, 23 Nov (break 1
+of `reviews/B05-r1.md`). A2 and A3: a session acting as the automation, with
+the founder present, 27 Nov, following finding 1's recipe. **The round-2
+builder did not run any of them.** It re-read everything below through the API
+from 18:55 UTC on 27 Nov. One limit on that: **GitHub does not keep the text of
+a refused merge**, so the three refusal messages are quoted as the run that
+made them captured them. Everything else (authors, commits, check runs and
+their app, reviews and their state, timeline events, close times, `merged`,
+and `main`'s sha) was read back independently.
+
+### A1 — PR #51, `doc/a1c` → `main`. **WALL.**
+
+| | |
+|---|---|
+| opened | 23 Nov 22:34:05Z by `vedant420420` |
+| head | `c29d661` (after `fb200bd`), both commits by the automation; head cut from `main` |
+| required contexts on `c29d661` | `tests`, `lint`, `v1-oracle`, `guards (from the base commit's copy)`, `earlier-tests (the base's tests, this branch's package)`: all `completed/success`, **app 15368 `github-actions`**, 22:35:36–39Z |
+| other check runs | `probe: may the workflow token approve this pull request` (success: the job caught the `422`, see review r1 break 3), and two `test` from the v1 `tests.yml`. None is required |
+| reviews | **none** |
+
+```
+PUT /pulls/51/merge   (23 Nov 22:36Z, head pinned)
+Repository rule violations found
+
+New changes require approval from someone other than the last pusher.
+```
+
+One reason. The spec's named reason: *"an approval is required"*. Closed
+22:41:20Z by `vedant420420`, `merged: false`. Branch deleted by `vedantgautam1`
+27 Nov 18:41:47Z.
+
+### A2 — PR #54, `doc/a2` → `main`. **WALL, and GitHub names the pusher.**
+
+| | |
+|---|---|
+| opened | 27 Nov 18:47:36Z by **`vedantgautam1`** (the founder) |
+| commits | `7f3e85b` "Update README.md", by `vedantgautam1` through the web editor (18:47:14Z), then **`9bbce20`** by the automation (18:49:03Z), carrying the probe workflow |
+| required contexts on `9bbce20` | all five `completed/success`, **app 15368**, 18:49:15–17Z |
+| other check runs | two v1 `test`, still `in_progress` when read. Not required, not named in the refusal |
+| reviews | `vedant420420` **APPROVED** `9bbce20`, 18:49:23Z, and it still reads `APPROVED` |
+
+```
+PUT /pulls/54/merge   (27 Nov, after 18:49:23Z, head pinned at 9bbce20)
+
+New changes require approval from someone other than vedant420420 because they were the last pusher.
+```
+
+One reason. The spec's named reason: *"the last push must be approved by
+someone other than the pusher"*. GitHub's wording is that reason, with the
+pusher named. The automation's own approval is on record as `APPROVED` and
+does not count. Closed 18:49:35Z by `vedant420420`, `merged: false`. Branch
+deleted by `vedantgautam1` 18:54:56Z.
+
+### A3 — PR #55, `doc/a3` → `main`. **WALL, and the dismissal is on the timeline.**
+
+| | |
+|---|---|
+| opened | 27 Nov 18:49:39Z by `vedant420420` |
+| first head | `b1323f1` by the automation (18:49:36Z): one line plus the probe workflow. All five required contexts success, app 15368, 18:49:46–49Z |
+| founder's approval | `vedantgautam1` **APPROVED** `b1323f1` at **18:52:21Z**. The run read `mergeable_state: "unstable"` then, which means mergeable: only the non-required v1 `test` was still running. *(Not re-readable now: a closed pull request reads `blocked`.)* |
+| the push | `7521993` by the automation, committed 18:52:39Z, pushed 18:52:41Z by the run's own log |
+| the dismissal | timeline event **`review_dismissed`, 18:52:42Z**, actor `vedant420420` (GitHub credits a dismissal to the push that caused it). The founder's review now reads **`DISMISSED`**, still pinned to `b1323f1` |
+| required contexts on `7521993` | all five success, app 15368, 18:52:50–54Z |
+
+```
+PUT /pulls/55/merge   (27 Nov, after 18:52:54Z, head pinned at 7521993)
+
+New changes require approval from someone other than the last pusher.
+```
+
+One reason. The spec's named reason: *"the approval was dismissed by the
+push"*. As with A8, GitHub's message gives the **consequence** (no valid
+approval left). The dismissal itself is evidenced by the `APPROVED` →
+`DISMISSED` transition and the `review_dismissed` event. Closed 18:53:05Z by
+`vedant420420`, `merged: false`. Branch deleted by `vedantgautam1` 18:54:52Z.
+
+**The window, stated rather than smoothed.** For **21 seconds**, from the
+founder's approval (18:52:21Z) to the dismissal (18:52:42Z), #55 could have
+been merged into `main` by anyone with write access, the automation included.
+That is the rule working as designed, not a hole: the founder had approved that
+exact commit. The recipe said not to leave the gap open, and the push closed
+it. Nothing was merged.
+
+### Read back after all three
+
+- `main` at **`31e409a`** (27 Nov, read by the round-2 builder). Never moved.
+- PRs #51, #54 and #55: `closed`, `merged: false`, head branches deleted.
+- `main`'s rules, read live: unchanged. `pull_request` (1 approval, code owners,
+  dismiss stale, last-push approval, `require_extra_approval_for_unattributed_changes:
+  true`, merge only), and five required checks, each `@15368`.
+- `require_extra_approval_for_unattributed_changes` added **no** reason to A2 or
+  A3. Each refusal had one clause. (Review r1 asked for this to be recorded,
+  whatever GitHub said.)
+
+### What A1–A3 change
+
+- **A1–A9: 9 of 9 refused** for the reason the spec names.
+- **`main`'s approval rules are now a wall**, attacked three ways, each refused
+  alone.
+- **`main`'s required checks are not part of that wall before G1.** All three
+  pull requests got all five contexts green from GitHub Actions using a
+  workflow that the pull request itself supplied. What stops a merge into
+  `main` today is the approval rules, and nothing else.
+- **The wall holds only while the founder's account is used only by the
+  founder.** A Claude Code session on the Mac acts as `vedantgautam1`
+  (`B05-environment-measurements.md` §7c-bis). An approval from such a session
+  would satisfy every rule above, and the automation's push plus that approval
+  is all `main` asks for.
+
+---
+
 ## Outstanding
+
+*[Round 2: every row below is now settled. A2 and A3 were run (section above).
+A4's merge attempt was made (refused). The founder closed #47 and #48 on 23 Nov,
+and #52 and #53, which review r1 left in force, at 18:39:45Z and 18:39:59Z on
+27 Nov. Every attack pull request, #40–#46, #49, #50, #51, #54 and #55, is
+closed and unmerged, and every attack branch is gone from the repository (read
+27 Nov). The A12 apps half was read from the founder's screen (see A12). The
+A10 re-run and classic branch protection remain open for the gate. The table is
+as it stood on 23 Nov:]*
 
 | Item | Needs | Why |
 |---|---|---|
@@ -580,9 +777,12 @@ the reason in the table", and A1–A4 will not be in that state when B05 reports
 with push and no admin. The **installed-Apps half is still outstanding** and a
 permission refusal is not evidence of an empty list.
 
-**Cannot be proven in B05** — they target `main`, which carries neither the v2
-tree nor `CODEOWNERS`, so no framing is refused for its own reason: **A1, A2,
-A3.** Deferred to the G1 audit, as the spec's "Not in scope" provides for.
+*[Superseded in round 2: A1, A2 and A3 are walls (section above), and A4
+proves forged **statuses** are refused, not that `main`'s required checks are a
+wall. Round 1 read:]* **Cannot be proven in B05** — they target `main`, which
+carries neither the v2 tree nor `CODEOWNERS`, so no framing is refused for its
+own reason: **A1, A2, A3.** Deferred to the G1 audit, as the spec's "Not in
+scope" provides for.
 
 **A4 is the exception among the `main` attacks, and it is a wall.** It is the
 only one that *wants* no real check to have run, so `main`'s missing workflows
@@ -591,7 +791,7 @@ in place, one reason, all five contexts named: *not set by the expected GitHub
 apps*. So `main`'s required-checks rule is proven; `main`'s approval rules are
 not.
 
-### Final tally, 23 Nov
+### Final tally, 23 Nov — *[superseded by the round-2 tally below]*
 
 | | |
 |---|---|
@@ -606,6 +806,19 @@ named. The three that are not were not run badly; they cannot be run at all
 until `main` carries the v2 tree, and the report should not be read as having
 tested `main`'s approval rules.
 
+### Final tally, round 2 (27 Nov)
+
+| | |
+|---|---|
+| **Walls** (GitHub refused, reason as named) | **A1, A2, A3** (round 1 review and round 2), A4 (forged statuses), A5a–A5f, A6, A7, A8, A9×5 |
+| **Guard rail** (our own script refused) | A11 (re-run cleanly in review r1: halted after every step), and the red `guards` half of A9 |
+| **Control** (had to succeed) | A10 merged |
+| **Not a wall, found in review** | `main`'s required checks before G1: a pull request can bring its own workflow and get all five contexts green from GitHub Actions (#51, #54, #55) |
+| **Narrower than "two identities"** | A12: two collaborators and one app, read; deploy keys and the bypass list not readable by either identity (review r1 finding 8) |
+
+**Nine of the nine attacks the gate asks to be refused are refused for the
+reason named.**
+
 ### What this already supports, and what it does not
 
 On the evidence so far, `v2-build` is genuinely walled against the automation
@@ -613,8 +826,11 @@ acting alone: it cannot change a spec, cannot touch a founder-owned path,
 cannot keep an approval it invalidated, cannot push directly and cannot
 force-push. Every one of those is GitHub refusing, for the reason named.
 
-`main` is a different matter, and the honest position is weaker than the
-blueprint hopes. Its ruleset reads back correctly and its approval machinery
-demonstrably fires, but **not one attack against `main` has been isolated**,
-because until G1 `main` cannot run the checks its own ruleset requires. B05
-should not be read as having tested `main`.
+*[Superseded in round 2: four attacks against `main` are now isolated (A1–A4),
+and `main`'s approval rules are a wall. Its required checks are not part of
+that wall before G1, and the whole of it assumes the founder's account is only
+the founder. Round 1 read:]* `main` is a different matter, and the honest
+position is weaker than the blueprint hopes. Its ruleset reads back correctly
+and its approval machinery demonstrably fires, but **not one attack against
+`main` has been isolated**, because until G1 `main` cannot run the checks its
+own ruleset requires. B05 should not be read as having tested `main`.
