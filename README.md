@@ -18,3 +18,4 @@ A personal systematic trading system: crypto first (BTC/ETH intraday, long and s
 | `CLAUDE.md` | Rules for Claude Code sessions |
 
 v1 (Jul–Aug 2026) was a validation instrument with an 11-gate gauntlet and no live path; it is frozen under the git branch `v1-final` (commit 6b2b628). Its original README is at `docs/v1-archive/README-v1.md`.
+A2 test
