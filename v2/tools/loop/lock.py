@@ -287,9 +287,11 @@ class GitHubRefs:
         return code == 0
 
     def delete(self, ref: str) -> None:
-        # B05A Deliver 3 (raise on a non-zero answer) is held: it turns two
-        # frozen tests in test_lock.py red. See status/B05A.json.
-        self._run("-X", "DELETE", self._path(ref))
+        """Raises on any refusal. It used to discard GitHub's answer, so a
+        release the proxy refused reported success on a lock still held."""
+        code, out = self._run("-X", "DELETE", self._path(ref))
+        if code != 0:
+            raise LockError(f"could not delete {ref}: {(out or '').strip()[:300]}")
 
 
 # --------------------------------------------------------------- git push

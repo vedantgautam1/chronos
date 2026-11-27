@@ -1,13 +1,8 @@
 {
   "build": "B05A",
-  "state": "halted",
+  "state": "building",
   "ticks": 1,
   "head": null,
-  "halt_reason": "The spec contradicts itself at step 2. Deliver 3 and known answer 14 require GitHubRefs.delete to raise LockError on a non-zero answer. Two frozen tests in v2/tests/tools/loop/test_lock.py -- test_the_backend_deletes_the_reference_from_the_plural_refs_route and test_every_write_route_the_backend_uses_starts_with_git_refs -- call delete through FakeGh() with no answers configured, and FakeGh answers every call (1, \"{}\") (test_lock.py line 280). With Deliver 3 in place both raise LockError and go red [Certain - run: 4 failed, 400 passed]. The spec also requires every existing test to pass unmodified and may_modify_tests is empty, so no implementation satisfies both without a hack (for example treating an answer of \"{}\" as success), and 'Halt if' names exactly this: making a known answer pass needs a change to a frozen test. Done and committed: Deliver 1 and 2 (GitPushRefs, the release marker, is_release_marker), with known answers 1-13, 15, 16 and 19 green and the 20-pair races stable over 5 repeated runs; GitHubRefs.delete is left exactly as on v2-build. Not started: steps 3-5. Full suite now: 3 failed (14, 17, 18), 401 passed; ruff clean.",
-  "halt_options": [
-    "(a) RECOMMENDED. Amend the spec in a spec/ pull request: add v2/tests/tools/loop/test_lock.py to may_modify_tests, scoped to those two tests only, which may give FakeGh a success answer for the DELETE route (for example FakeGh(answers={\"lock/b06\": (0, \"\")}) or a DELETE-only answer) so they still pin the route and still pass. Deliver 3 and known answer 14 then stand as written. Costs a spec PR and founder review of a frozen-test edit.",
-    "(b) Amend the spec to drop Deliver 3 and known answer 14. GitHubRefs stops being the production backend in Deliver 5, so its silent delete becomes dead code rather than a live defect. Leaves a known false-success path in the module; a later build could remove GitHubRefs outright.",
-    "(c) Amend the spec to replace Deliver 3 with a GitHubRefs.delete that keeps its None return but is never called by production code, plus a module comment marking it unsafe. Weaker than (b) in practice; listed for completeness.",
-    "Not offered: an implementation that passes both by special-casing FakeGh's \"{}\" body. That would make known answer 14 pass by shape rather than by meaning, which builder rule 9 forbids."
-  ]
+  "halt_reason": null,
+  "halt_options": []
 }

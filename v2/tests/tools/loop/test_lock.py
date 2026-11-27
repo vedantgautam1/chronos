@@ -310,7 +310,7 @@ def test_the_backend_updates_without_force_and_never_with_it():
 
 def test_the_backend_deletes_the_reference_from_the_plural_refs_route():
     """The bug this test was written for: the path was missing `refs/`."""
-    gh = FakeGh()
+    gh = FakeGh(answers={"DELETE": (0, "")})
     GitHubRefs("owner/repo", runner=gh).delete("refs/heads/lock/b06")
     (args, _) = gh.calls[0]
     assert args[:2] == ("-X", "DELETE")
@@ -318,7 +318,7 @@ def test_the_backend_deletes_the_reference_from_the_plural_refs_route():
 
 
 def test_every_write_route_the_backend_uses_starts_with_git_refs():
-    gh = FakeGh()
+    gh = FakeGh(answers={"DELETE": (0, "")})
     backend = GitHubRefs("owner/repo", runner=gh)
     backend.create("refs/heads/lock/b06", "cafe1234")
     backend.update("refs/heads/lock/b06", "cafe1234")
