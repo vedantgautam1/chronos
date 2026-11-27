@@ -46,7 +46,9 @@ ladder:
   - {id: B03, title: "The loop's decision core: ladder reader, next action, locks", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B02], spec: specs/B03-loop-core.md}
   - {id: B04, title: "The loop's hands: agent definitions, commands, templates", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B03], spec: specs/B04-loop-agents.md}
   - {id: B05, title: "The automation's own GitHub identity, GitHub rules, attack tests, first unattended run", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B04], spec: specs/B05-first-unattended-run.md}
-  - {id: G1,  gate: true, title: "The loop is proven", phase: 0, needs: [B05]}
+  - {id: B05A, title: "The lock, made to work from the cloud: taken and released by git push, every refusal reported", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B05], spec: specs/B05A-lock-from-cloud.md}
+  - {id: B05B, title: "The first unattended runs: B05's probes and the measured cost of a tick", phase: 0, size: M, model: opus, who: founder, ticks: 3, needs: [B05A], spec: specs/B05B-unattended-probes.md}
+  - {id: G1,  gate: true, title: "The loop is proven", phase: 0, needs: [B05, B05A, B05B]}
 
   # ---------- Phase 1 · foundations (master doc §9 step 2) ----------
   - {id: B06, title: "Statistics I: the ported core, its known-answer tests, the v1 oracle", phase: 1, size: M, model: opus, who: loop, ticks: 3, needs: [G1], spec: specs/B06-stats-core.md}

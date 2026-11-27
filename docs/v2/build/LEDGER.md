@@ -26,6 +26,8 @@ the record (CHRONOS_V2 §14 rule 5: asymmetric findings stated asymmetrically).
 | B03 | The loop's decision core: ladder reader, next action, locks | M | 2–3 | 1 | 2 | 2 — r1 **CHANGES** (the emergency stop could be switched off by the automation), r2 **PASS** ◆ | 1712 / 1954 | none | 2026-11-20 14:51 |
 | B04 | The loop's hands: agent definitions, commands, templates | M | 2–3 | 1 | 2 | 2 — r1 **CHANGES** (`/chronos-tick` could not run the loop's script), r2 **PASS** ※ | 434 / 939 | none | 2026-11-20 23:05 |
 | B05 | The automation's own GitHub identity, GitHub rules, attack tests, first unattended run | M | 2–3 | 1 | 3 | 2 — r1 **CHANGES** (attacks A1–A3 on `main` not run), r2 **PASS** ⁂ | 299 / 0 | 1 — the lock can't be taken from cloud (step 0; founder cleared it 23 Nov, Deliver 5–6 left undone) | 2026-11-27 19:32 |
+| B05A | The lock, made to work from the cloud: taken and released by git push, every refusal reported | M | 2–3 | 1 | | | | | |
+| B05B | The first unattended runs: B05's probes and the measured cost of a tick | M | 2–3 | 1 | | | | | |
 | **G1** | **The loop is proven** | gate | — | — | | | | | |
 | B06 | Statistics I: the ported core, its known-answer tests, the v1 oracle | M | 2–3 | 1 | | | | | |
 | B07 | Statistics II: the 28-check probe as tests, mid-rank counters, the floating-point tie case | M | 2–3 | 1 | | | | | |

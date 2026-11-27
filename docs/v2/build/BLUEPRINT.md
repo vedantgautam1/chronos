@@ -551,9 +551,11 @@ Nothing third-party enters the code base until the build named here, and never w
 | B03 | The loop's decision core: ladder reader, next action, locks | M | Opus | you+ (by hand) | B02 |
 | B04 | The loop's hands: agent definitions, commands, templates | M | Opus | you+ (by hand) | B03 |
 | B05 | The automation's own GitHub identity, GitHub rules, attack tests, first unattended run | M | Opus | you+ (about 45 minutes of you) | B04 |
-| **G1** | **The loop is proven.** GitHub refuses what it should. Estimates re-sized from B01–B05. Plan and second-reviewer choice reviewed | — | Opus | gate | B05 |
+| B05A | The lock, made to work from the cloud: taken and released by git push, every refusal reported | M | Opus | you+ (by hand, in a cloud session) | B05 |
+| B05B | The first unattended runs: B05's probes and the measured cost of a tick | M | Opus | you+ (about 35 minutes of you) | B05A |
+| **G1** | **The loop is proven.** GitHub refuses what it should. Estimates re-sized from B01–B05B. Plan and second-reviewer choice reviewed | — | Opus | gate | B05B |
 
-B01–B05 are run by hand, with you present, because the loop and its walls don't exist until B05 has proved them.
+B01–B05B are run by hand, with you present, because the loop and its walls don't exist until B05 has proved them. B05A and B05B were added on 27 Nov: B05 proved the walls, but a cloud session could not take the lock, so the unattended run moved to B05B behind the lock fix in B05A.
 
 ### Phase 1 — Foundations (master doc §9 step 2)
 
