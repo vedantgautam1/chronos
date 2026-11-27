@@ -1,6 +1,6 @@
 {
   "build": "B05",
-  "state": "passed",
+  "state": "merged",
   "ticks": 3,
   "head": null,
   "halt_reason": null,
