@@ -4,6 +4,16 @@ Dated work log. **Decisions** and their reasons live in `CHRONOS_V2.md` §10 (an
 
 ---
 
+## 28 Nov 2026 — B97: the probe build, built by a session the loop dispatched
+
+- **What now exists.** `scratch/probe/b97.md`, one 94-byte sentence, and `scratch/probe/b97_check.sh`, which prints PASS only if that file's sha256 is the spec's `c758daee…71fd`. Nothing in Chronos itself changed. The point is the path: claimed under the loop's lock (`lock/b97`, taken by `/chronos-tick` at 00:09:18 UTC), check committed and seen red first (`No such file or directory`, exit 1), file added and check green, report up for a separate review. Pull request [#64](https://github.com/vedantgautam1/chronos/pull/64).
+- **Not yet shown:** that the review and merge also run with nobody at the keyboard. Those are later ticks; B05B's report records them. The sentence in `b97.md` is the spec's text, not this build's finding.
+- **Locally:** `1 failed, 403 passed`, the one failure `test_postgres_select_1`, as on `v2-build` in the same session: the permission system refused switching local Postgres to trust auth, and it was not worked around. CI's `tests` job on step 1's commit: `404 passed`. ruff clean; guards 7 ok.
+- **For the gate:** a dispatched builder has no shipped command for `still_mine`/renew (this one wrote a helper over `lock.py`, outside the repository) · a cloud session's Postgres starts on password auth · GraphQL is refused, so pull requests go through `gh api`.
+- **Code 0; check 10 strict / 13 raw; 5 files; 0 libraries; tick 1 of 2.** No deviations. Status `needs_review`.
+
+---
+
 ## 27 Nov 2026 — B05A: the lock works from the cloud, and every release says whether it happened
 
 - **What now exists.** The loop's lock is taken and released through `git push` (`GitPushRefs` in `v2/tools/loop/lock.py`), which a cloud session can do, rather than through the REST routes its proxy refuses. A release moves the `lock/<id>` branch onto a **release marker** commit (`Chronos-Lock-Released:`), because the cloud cannot delete a branch; `facts._locks` skips markers, and `loop_cli.py` builds the new backend through `production_refs`. Every push is judged from `--porcelain` and the exit code: a rejection is a lost race (`False`), anything else raises `LockError` with git's stderr, and a failed release always raises. `GitHubRefs.delete` stops discarding GitHub's answer.

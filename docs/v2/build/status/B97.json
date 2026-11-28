@@ -1,8 +1,10 @@
 {
   "build": "B97",
-  "state": "building",
+  "state": "needs_review",
   "ticks": 1,
   "head": null,
   "halt_reason": null,
-  "halt_options": null
+  "halt_options": [
+    "head is null: the status file is in the same commit as the code (builder rule 7), so it cannot name the commit containing it. That commit, the last builder commit, carries reports/B97.md."
+  ]
 }
