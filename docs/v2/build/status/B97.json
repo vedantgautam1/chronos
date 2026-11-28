@@ -1,10 +1,10 @@
 {
   "build": "B97",
-  "state": "passed",
+  "state": "merged",
   "ticks": 1,
   "head": null,
   "halt_reason": null,
   "halt_options": [
-    "head is null: the status file is in the same commit as the code (builder rule 7), so it cannot name the commit containing it. That commit, the last builder commit, is bf895195a093be743bbd3bd27e916de19e126b60, and it is also the last commit that changed code or tests. Reviewed PASS in reviews/B97-r1.md, no blocking findings; the next tick merges."
+    "head is null: the status file is in the same commit as the code (builder rule 7), so it cannot name the commit containing it. That commit, the last builder commit, is bf895195a093be743bbd3bd27e916de19e126b60, and it is also the last commit that changed code or tests. Reviewed PASS in reviews/B97-r1.md, no blocking findings. State merged is set by the MERGE tick in the last commit on claude/b97, before the squash merge into v2-build (reviewer rule 6, 'From B06'), together with B97's LEDGER.md row; the merge time is the squash commit's."
   ]
 }
